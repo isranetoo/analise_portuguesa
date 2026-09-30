@@ -1,0 +1,33 @@
+id_jogo,equipe,atleta_id,atleta,tempo,minuto_tempo,minuto_jogo,tipo
+833757,adversario,430440,Lohan,1,1,1,Normal
+833757,clube,582048,Cadorini,1,30,30,Normal
+833827,clube,652687,Igor Torres,1,15,15,Normal
+833827,clube,541928,Portuga,2,22,67,Normal
+833827,clube,724087,Cauari,2,32,77,Normal
+833886,clube,582048,Cadorini,1,39,39,Normal
+833886,adversario,369194,EMERSON CARIOCA,2,44,89,Normal
+833950,clube,598740,Mateus Cecchini,1,33,33,Normal
+833999,clube,522679,Biazus,1,3,3,Normal
+833999,clube,639967,Maceió,1,40,40,Normal
+833999,adversario,187979,Joao Carlos,2,6,51,Normal
+834195,adversario,717031,Coutinho,2,38,83,Normal
+834291,clube,582048,Cadorini,1,2,2,Normal
+834291,clube,582048,Cadorini,1,18,18,Normal
+834291,adversario,545852,Júlio,1,21,21,Normal
+834291,clube,652687,Igor Torres,2,18,63,Normal
+834291,clube,465349,Joao Diogo,2,27,72,Normal
+834340,adversario,584425,Eduardo,1,20,20,Normal
+834340,clube,582048,Cadorini,2,17,62,Normal
+834340,clube,170635,Eric,2,21,66,Normal
+834770,clube,724087,Cauari,2,14,59,Normal
+834770,clube,650773,Sciencia,2,45,90,Falta
+834911,adversario,600534,RYAN,2,3,48,Normal
+834911,clube,582048,Cadorini,2,44,89,Normal
+834943,clube,582048,Cadorini,2,45,90,Normal
+834973,clube,652687,Igor Torres,1,3,3,Normal
+834973,adversario,552219,Davi Torres,1,15,15,Normal
+834989,clube,345443,Lucas Hipolito,1,8,8,Normal
+834989,clube,582048,Cadorini,2,22,67,Normal
+835063,adversario,691394,JHONATAN LIMA,1,15,15,Normal
+835063,adversario,620337,Léo Reis,2,32,77,Normal
+835071,clube,551154,Jonas Toró,2,31,76,Pênalti

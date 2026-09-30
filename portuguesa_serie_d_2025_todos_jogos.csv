@@ -1,0 +1,17 @@
+id_jogo,data,hora,status,etapa,fase,grupo,rodada,adversario,mando,gols_clube,gols_adversario,resultado,gols_1t_clube,gols_1t_adversario,gols_2t_clube,gols_2t_adversario,resultado_intervalo,penaltis_clube,penaltis_adversario,estadio,cidade,arbitro,amarelos_clube,vermelhos_clube,amarelos_adversario,vermelhos_adversario
+830093,2025-04-19,16:00,finished,Grupos,1ª fase,A6,R1,Boavista,Fora,2,2,E,1,0,1,2,V,,,Elcyr Resende,Saquarema,Renan Novaes Insabralde (MS),4,1,2,0
+830133,2025-04-26,17:00,finished,Grupos,1ª fase,A6,R2,Maricá,Casa,2,1,V,1,0,1,1,V,,,Canindé,Sao Paulo,Dewson Fernando Freitas da Silva (PA),5,0,1,0
+830343,2025-05-04,18:00,finished,Grupos,1ª fase,A6,R3,Água Santa,Fora,1,2,D,0,2,1,0,D,,,Jardim Inamar,Diadema,Gabriel Henrique Meira Bispo (SP),2,0,3,0
+830388,2025-05-10,17:00,finished,Grupos,1ª fase,A6,R4,Rio Branco,Casa,2,1,V,1,1,1,0,E,,,Canindé,Sao Paulo,Daniel Alejandro Hidalgo Blanco (RR),4,0,5,0
+830420,2025-05-17,17:00,finished,Grupos,1ª fase,A6,R5,Porto Vitória,Fora,3,1,V,1,0,2,1,V,,,Kleber Andrade,Cariacica,Ronei Candido Alves (MG),4,0,1,0
+830451,2025-05-24,17:00,finished,Grupos,1ª fase,A6,R6,Pouso Alegre,Casa,2,1,V,2,0,0,1,V,,,Canindé,Sao Paulo,Felipe da Silva Goncalves Paludo (RJ),3,0,4,0
+830486,2025-05-31,15:00,finished,Grupos,1ª fase,A6,R7,Nova Iguaçu,Fora,1,1,E,1,1,0,0,E,,,Jânio Moraes,Nova Iguacu,Gabriel dos Santos Queiroz (GO),2,0,4,0
+830519,2025-06-07,17:00,finished,Grupos,1ª fase,A6,R8,Nova Iguaçu,Casa,1,0,V,0,0,1,0,E,,,Canindé,Sao Paulo,Marcos Mateus de Sousa (TO),4,2,3,1
+830549,2025-06-14,16:00,finished,Grupos,1ª fase,A6,R9,Pouso Alegre,Fora,0,2,D,0,1,0,1,D,,,Manduzão,Pouso Alegre,Marcos Mateus Pereira (MS),3,0,4,1
+830582,2025-06-28,17:00,finished,Grupos,1ª fase,A6,R10,Porto Vitória,Casa,2,1,V,1,0,1,1,V,,,Canindé,Sao Paulo,Pedro Alves De Oliveira (DF),6,0,3,0
+830620,2025-07-05,17:00,finished,Grupos,1ª fase,A6,R11,Rio Branco,Fora,0,0,E,0,0,0,0,E,,,Kleber Andrade,Cariacica,Francisco Soares Dias (RS),2,0,1,0
+830652,2025-07-12,17:00,finished,Grupos,1ª fase,A6,R12,Água Santa,Casa,2,1,V,1,1,1,0,E,,,Canindé,Sao Paulo,Paulo Roberto Alves Junior (PR),8,0,3,0
+830684,2025-07-19,16:00,finished,Grupos,1ª fase,A6,R13,Maricá,Fora,1,0,V,0,0,1,0,E,,,João Saldanha,Marica,Jose Mendonca da Silva Junior (PR),1,0,1,1
+830715,2025-07-26,16:00,finished,Grupos,1ª fase,A6,R14,Boavista,Casa,3,0,V,2,0,1,0,V,,,Canindé,Sao Paulo,Eleniel Benedito da Silva (MT),0,0,1,0
+831678,2025-08-02,18:00,finished,Mata-mata,2ª fase,B11,Ida,Mixto,Fora,0,1,D,0,1,0,0,D,,,Dutrinha,Cuiaba,Ivan da Silva Guimaraes Junior (AM),4,0,1,0
+831694,2025-08-09,16:00,finished,Mata-mata,2ª fase,B11,Volta,Mixto,Casa,1,0,V,0,0,1,0,E,3,4,Canindé,Sao Paulo,Roger Goulart (RS),1,1,7,0

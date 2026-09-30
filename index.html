@@ -5,30 +5,37 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0e773e">
   <title>Portuguesa | Painel de desempenho</title>
-  <meta name="description" content="Retrospectiva da campanha da Portuguesa na Série D 2026: pontos, aproveitamento, fase de grupos e mata-mata.">
+  <meta name="description" content="Retrospectiva da campanha da Portuguesa na Série D 2026: pontos, aproveitamento, artilharia, elenco, fase de grupos e mata-mata.">
+  <script>
+    // Aplica o tema salvo antes da renderização para evitar o piscar de cores.
+    try { const theme = localStorage.getItem('dashboard-theme'); if (theme) document.documentElement.dataset.theme = theme; } catch (_) {}
+  </script>
+  <link rel="icon" id="favicon" href="portuguesa-logo.svg">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <div class="page-shell">
     <header class="topbar">
       <a class="brand" href="#top" aria-label="Início">
-        <span class="brand-mark"><img src="portuguesa-logo.svg" alt="Escudo da Portuguesa"></span>
-        <span><b>PORTUGUESA</b> 2026</span>
+        <span class="brand-mark"><img id="brandLogo" src="portuguesa-logo.svg" alt="Escudo da Portuguesa"></span>
+        <span><b id="brandName">PORTUGUESA</b> <span id="brandYear">2026</span></span>
       </a>
       <nav aria-label="Seções do painel">
         <a href="#campanha">Campanha</a>
         <a href="#trajetoria">Trajetória</a>
         <a href="#evolucao">Evolução</a>
+        <a href="#elenco">Elenco</a>
         <a href="#jogos">Jogos</a>
       </nav>
+      <button type="button" class="theme-toggle" id="themeToggle" aria-label="Alternar tema claro e escuro">◐</button>
     </header>
 
     <main id="top">
       <section class="dashboard-heading" id="campanha">
         <div class="dashboard-title">
-          <p class="eyebrow">BRASILEIRÃO · SÉRIE D · 2026</p>
+          <p class="eyebrow" id="eyebrow">BRASILEIRÃO · SÉRIE D · 2026</p>
           <h1>Painel de desempenho</h1>
-          <p>Retrospectiva da campanha da Portuguesa no campeonato.</p>
+          <p id="subtitle">Retrospectiva da campanha da Portuguesa no campeonato.</p>
         </div>
         <div class="dashboard-context" aria-label="Contexto dos dados">
           <div>
@@ -46,11 +53,18 @@
         </div>
       </section>
 
-      <section class="filter-row" aria-label="Filtro por mando de campo">
-        <div class="segmented" id="venueFilter">
-          <button class="active" data-filter="Todos">Todos os jogos</button>
-          <button data-filter="Casa">Em casa</button>
-          <button data-filter="Fora">Fora</button>
+      <section class="filter-row" aria-label="Filtros">
+        <div class="filters">
+          <div class="segmented" id="venueFilter" role="group" aria-label="Filtrar por mando de campo">
+            <button class="active" data-filter="Todos">Todos os jogos</button>
+            <button data-filter="Casa">Em casa</button>
+            <button data-filter="Fora">Fora</button>
+          </div>
+          <div class="segmented" id="stageFilter" role="group" aria-label="Filtrar por fase">
+            <button class="active" data-filter="Todas">Todas as fases</button>
+            <button data-filter="Grupos">Grupos</button>
+            <button data-filter="Mata-mata">Mata-mata</button>
+          </div>
         </div>
         <p id="filterContext">Visão geral da campanha</p>
       </section>
@@ -87,8 +101,8 @@
         </article>
       </section>
 
-      <section class="journey-section" id="trajetoria">
-        <div class="journey-head">
+      <section class="page-section" id="trajetoria">
+        <div class="section-head">
           <div>
             <p class="section-kicker">TRAJETÓRIA NA COMPETIÇÃO</p>
             <h2 id="journeyTitle">Caminho na competição</h2>
@@ -106,7 +120,7 @@
               <p class="section-kicker">JOGO A JOGO</p>
               <h2>Evolução dos pontos</h2>
             </div>
-            <div class="legend"><span><i class="actual"></i>Portuguesa</span><span><i class="pace"></i>Ritmo de 50%</span></div>
+            <div class="legend"><span><i class="actual"></i><span id="legendClub">Portuguesa</span></span><span><i class="pace"></i>Ritmo de 50%</span></div>
           </div>
           <div class="chart-statline">
             <div><span>Pontuação final</span><b id="chartCurrentPoints">--</b></div>
@@ -160,13 +174,13 @@
               <p class="section-kicker">DESTAQUES</p>
               <h2>Números da campanha</h2>
             </div>
-            <span class="highlights-count" id="highlightsCount">--</span>
+            <span class="panel-badge" id="highlightsCount">--</span>
           </div>
           <div class="highlight-list" id="highlightsList"></div>
-          <small class="method">Placares do intervalo e cartões extraídos das súmulas publicadas pela CBF.</small>
+          <small class="method">Placares do intervalo, gols e cartões extraídos das súmulas publicadas pela CBF.</small>
         </article>
 
-        <article class="panel performance-panel">
+        <article class="panel wide performance-panel">
           <div class="panel-head">
             <div>
               <p class="section-kicker">CONSISTÊNCIA</p>
@@ -179,8 +193,8 @@
           <div class="streak-grid" id="streakGrid"></div>
         </article>
 
-        <article class="panel halves-panel">
-          <div class="panel-head halves-head">
+        <article class="panel wide halves-panel">
+          <div class="panel-head">
             <div>
               <p class="section-kicker">MOMENTOS DO JOGO</p>
               <h2>Antes e depois do intervalo</h2>
@@ -221,20 +235,111 @@
               <div class="half-share"><span>Participação nos gols marcados</span><b id="secondHalfShare">--</b></div>
             </section>
           </div>
-          <div class="halves-insights">
-            <div><span>MAIS PRODUTIVO</span><b id="productiveHalf">--</b></div>
-            <div><span>MAIS VULNERÁVEL</span><b id="vulnerableHalf">--</b></div>
-            <div class="result-change-card"><span>MUDANÇA APÓS O INTERVALO</span><b id="improvedResults">--</b><small id="unchangedResults">--</small></div>
-            <div><span>SALDO DAS REAÇÕES</span><b id="pointsSwing">--</b><small>pontos entre o intervalo e o resultado final</small></div>
+          <div class="stat-boxes">
+            <div><span>Mais produtivo</span><b id="productiveHalf">--</b></div>
+            <div><span>Mais vulnerável</span><b id="vulnerableHalf">--</b></div>
+            <div class="result-change-card"><span>Mudança após o intervalo</span><b id="improvedResults">--</b><small id="unchangedResults">--</small></div>
+            <div><span>Saldo das reações</span><b id="pointsSwing">--</b><small>pontos entre o intervalo e o resultado final</small></div>
           </div>
-          <div class="analysis-note halves-note">
+          <div class="analysis-note">
             <span>LEITURA POR TEMPO</span>
             <p id="halvesInsight"></p>
           </div>
         </article>
+
+        <article class="panel wide minutes-panel">
+          <div class="panel-head">
+            <div>
+              <p class="section-kicker">MINUTO A MINUTO</p>
+              <h2>Quando os gols saem</h2>
+            </div>
+            <div class="legend"><span><i class="dot for"></i>Marcados</span><span><i class="dot against"></i>Sofridos</span></div>
+          </div>
+          <div class="minutes-chart" id="minutesChart"></div>
+          <div class="stat-boxes" id="minutesStats"></div>
+          <div class="analysis-note">
+            <span>LEITURA DOS MINUTOS</span>
+            <p id="minutesInsight"></p>
+          </div>
+          <small class="method">Gols nos acréscimos entram na última faixa de cada tempo (45+ e 90+).</small>
+        </article>
+
+        <article class="panel scorers-panel">
+          <div class="panel-head compact">
+            <div>
+              <p class="section-kicker">ARTILHARIA</p>
+              <h2>Quem fez os gols</h2>
+            </div>
+            <span class="panel-badge" id="scorersCount">--</span>
+          </div>
+          <div class="scorer-list" id="scorerList"></div>
+          <div class="chip-row" id="scorerChips"></div>
+        </article>
+
+        <article class="panel discipline-panel">
+          <div class="panel-head compact">
+            <div>
+              <p class="section-kicker">DISCIPLINA</p>
+              <h2>Cartões</h2>
+            </div>
+          </div>
+          <div class="compare-bars" id="disciplineBars"></div>
+          <div class="stat-boxes" id="disciplineStats"></div>
+          <div class="chip-row" id="disciplineChips"></div>
+          <small class="method">Totais do time incluem a comissão técnica; os cartões por atleta consideram só os jogadores.</small>
+        </article>
       </section>
 
-      <section class="matches-section" id="jogos">
+      <section class="page-section" id="elenco">
+        <div class="section-head">
+          <div>
+            <p class="section-kicker">ELENCO</p>
+            <h2>Quem jogou</h2>
+          </div>
+          <p>Participação dos atletas, com minutos estimados pelas substituições e expulsões registradas nas súmulas (90 minutos por jogo, sem acréscimos).</p>
+        </div>
+        <div class="squad-summary" id="squadSummary"></div>
+        <div class="base-eleven">
+          <span>TIME-BASE · MAIS VEZES TITULARES</span>
+          <div class="chip-row" id="baseEleven"></div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Atleta</th><th>Jogos</th><th>Titular</th><th>Minutos</th><th>Gols</th><th>Cartões</th></tr></thead>
+            <tbody id="squadBody"></tbody>
+          </table>
+        </div>
+        <button type="button" class="show-more" id="squadToggle" hidden>Mostrar todos</button>
+      </section>
+
+      <section class="page-section" id="adversarios">
+        <div class="section-head">
+          <div>
+            <p class="section-kicker">ADVERSÁRIOS</p>
+            <h2>Retrospecto por adversário</h2>
+          </div>
+          <p id="opponentsSummary">--</p>
+        </div>
+        <div class="opponent-grid" id="opponentGrid"></div>
+      </section>
+
+      <section class="page-section" id="comparacao" hidden>
+        <div class="section-head">
+          <div>
+            <p class="section-kicker">TEMPORADA ANTERIOR</p>
+            <h2 id="comparisonTitle">Comparação</h2>
+          </div>
+          <p id="comparisonSummary">--</p>
+        </div>
+        <div class="compare-wrap">
+          <table class="compare-table">
+            <thead id="comparisonHead"></thead>
+            <tbody id="comparisonBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="page-section" id="jogos">
         <div class="matches-head">
           <div>
             <p class="section-kicker">PARTIDA A PARTIDA</p>
@@ -242,12 +347,12 @@
           </div>
           <label class="search-box">
             <span aria-hidden="true">⌕</span>
-            <input id="matchSearch" type="search" placeholder="Buscar adversário" aria-label="Buscar adversário">
+            <input id="matchSearch" type="search" placeholder="Buscar adversário ou atleta" aria-label="Buscar adversário ou atleta">
           </label>
         </div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Jogo</th><th>Data</th><th>Fase</th><th>Partida</th><th>Mando</th><th>Resultado</th><th>Pontos</th><th>Acumulado</th></tr></thead>
+            <thead><tr><th></th><th>Jogo</th><th>Data</th><th>Fase</th><th>Partida</th><th>Mando</th><th>Resultado</th><th>Pontos</th><th>Acumulado</th></tr></thead>
             <tbody id="matchesBody"></tbody>
           </table>
         </div>
@@ -256,10 +361,11 @@
     </main>
 
     <footer>
-      <span>Painel Portuguesa · Série D 2026</span>
+      <span id="footerLabel">Painel Portuguesa · Série D 2026</span>
       <span>Fonte: CBF</span>
     </footer>
   </div>
+  <script src="dados.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

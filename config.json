@@ -1,0 +1,26 @@
+{
+  "clube": {
+    "id": "63521",
+    "nome": "Portuguesa",
+    "nome_completo": "Associação Portuguesa de Desportos",
+    "artigo": "a",
+    "escudo": "portuguesa-logo.svg",
+    "cor_primaria": "#e31e27",
+    "cor_secundaria": "#0e773e"
+  },
+  "competicao": {
+    "nome": "Série D",
+    "slug": "serie-d",
+    "ano": 2026,
+    "classificados_por_grupo": 4
+  },
+  "comparacao": {
+    "ano": 2025
+  },
+  "nomes": {
+    "63521": "Portuguesa",
+    "20805": "Portuguesa-RJ",
+    "20046": "America-RJ",
+    "32387": "Sampaio Corrêa-RJ"
+  }
+}

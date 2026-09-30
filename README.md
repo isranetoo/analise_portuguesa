@@ -50,21 +50,27 @@ Os dados cobrem a campanha completa, de 4 de abril a 25 de julho de 2026.
 - A Portuguesa liderou o Grupo A13 com **21 pontos** (6V 3E 1D) e **70,0% de aproveitamento**.
 - O Canindé foi decisivo: **91,7% de aproveitamento em casa** (7V 1E, 22 dos 32 pontos), contra **41,7% como visitante**.
 - No mata-mata, a equipe **venceu os 3 jogos em casa** e **não venceu nenhum dos 3 fora**; a derrota por 2 × 0 em Uberlândia definiu a eliminação.
-- O rendimento caiu ao longo da competição: **73,3%** no turno do grupo, **66,7%** no returno e **61,1%** no mata-mata.
-- O time foi mais produtivo no segundo tempo (**12 gols**, contra 10 no primeiro) e **ganhou 6 pontos** em relação aos placares de intervalo.
-- A defesa passou **7 dos 16 jogos sem sofrer gol**, com média de 0,63 gol sofrido por partida.
+- **Cadorini foi o artilheiro, com 8 gols** (5 na fase de grupos e 3 no mata-mata), dois deles decisivos para vitórias.
+- Marcar primeiro foi determinante: o time **abriu o placar em 10 jogos e somou 26 dos 30 pontos** possíveis neles.
+- A faixa mais produtiva foi **dos 61 aos 75 minutos** (6 gols), e o time ganhou **6 pontos** em relação aos placares de intervalo.
+- **28 atletas** foram utilizados; o goleiro Bruno Bertinato esteve em campo em **93,8% dos minutos**.
+- Em relação a 2025 (eliminação na 2ª fase, nos pênaltis), o time **foi mais longe**, com aproveitamento semelhante (**66,7%** contra 68,8%).
 
 ## O que a dashboard entrega
 
 - KPIs de pontos, aproveitamento, média por jogo e saldo de gols;
+- filtros combinados por mando de campo (casa/fora) e por fase (grupos/mata-mata);
 - trajetória na competição: classificação do grupo e confrontos de ida e volta do mata-mata;
-- distribuição de vitórias, empates e derrotas;
-- evolução da pontuação jogo a jogo, com a divisão entre fase de grupos e mata-mata;
+- evolução da pontuação jogo a jogo, com tooltip de cada partida;
 - comparação entre desempenho em casa e como visitante;
-- destaques da campanha: maior vitória, derrota mais pesada, médias de gols e cartões;
-- rendimento por etapa (turno e returno do grupo e mata-mata), sequências e jogos sem sofrer gol;
-- comparação de gols marcados e sofridos no primeiro e no segundo tempo;
-- tabela completa com busca por adversário e filtros por mando de campo.
+- gols por tempo e por faixa de 15 minutos, incluindo quem abriu o placar;
+- artilharia com gols por fase, pênaltis, faltas e gols decisivos;
+- disciplina: cartões do time, dos adversários e por atleta;
+- elenco: atletas utilizados, time-base, titularidades e minutos estimados;
+- retrospecto por adversário;
+- comparação com a temporada anterior;
+- tabela completa com busca por adversário ou atleta e detalhes expansíveis de cada jogo (gols, escalação, árbitro);
+- tema claro e escuro.
 
 ## Metodologia
 
@@ -73,7 +79,13 @@ Os dados cobrem a campanha completa, de 4 de abril a 25 de julho de 2026.
 
 No mata-mata os pontos não definem a classificação, que depende do placar agregado (e dos pênaltis, quando há empate). Mesmo assim, o painel soma os pontos dessas partidas para medir o rendimento jogo a jogo de forma comparável entre as fases.
 
-O painel considera somente partidas com <code>status</code> igual a <code>finished</code> e resultado identificado como <code>V</code>, <code>E</code> ou <code>D</code>. Os placares de intervalo e os cartões são calculados a partir dos eventos das súmulas da CBF; gols contra são atribuídos ao adversário do autor.
+O painel considera somente partidas com <code>status</code> igual a <code>finished</code> e resultado identificado como <code>V</code>, <code>E</code> ou <code>D</code>. Gols, placares de intervalo, escalações e cartões vêm dos eventos das súmulas da CBF:
+
+- gols contra são atribuídos ao adversário do autor;
+- o minuto do gol é contado dentro de cada tempo, e os acréscimos entram na última faixa (45+ e 90+);
+- um **gol decisivo** é aquele que colocou o time à frente de vez numa vitória;
+- os **minutos jogados** são estimados a partir das substituições e expulsões, com 90 minutos por partida (sem acréscimos);
+- os cartões do time incluem a comissão técnica; os cartões por atleta consideram só os jogadores.
 
 ## Tecnologias utilizadas
 
@@ -87,18 +99,25 @@ O painel considera somente partidas com <code>status</code> igual a <code>finish
 ## Estrutura do projeto
 
 <pre><code>analise_portuguesa/
-├── app.js
-├── coleta_detalhada.py
+├── app.js                      # cálculos e renderização da dashboard
+├── coleta_detalhada.py         # coleta na CBF e geração dos CSVs e do dados.js
+├── config.json                 # clube, competição, cores e temporada de comparação
+├── dados.js                    # dados da dashboard (gerado pela coleta)
 ├── dashboard-preview.png
 ├── index.html
-├── iniciar.py
+├── iniciar.py                  # inicia o Streamlit (com correção para Windows)
 ├── portuguesa-logo.svg
+├── portuguesa_serie_d_2025_grupo.csv
+├── portuguesa_serie_d_2025_todos_jogos.csv
+├── portuguesa_serie_d_2026_atletas.csv
+├── portuguesa_serie_d_2026_gols.csv
 ├── portuguesa_serie_d_2026_grupo.csv
 ├── portuguesa_serie_d_2026_todos_jogos.csv
 ├── requirements.txt
 ├── server.js
 ├── streamlit_app.py
 ├── styles.css
+├── tests/test_coleta.py        # testes do tratamento das súmulas
 └── windows_asyncio.py
 </code></pre>
 
@@ -125,15 +144,24 @@ Depois, acesse <code>http://localhost:8000</code>.
 
 ## Atualização dos dados
 
-O arquivo <code>coleta_detalhada.py</code> busca os jogos na API pública usada pelo site da CBF, sem necessidade de chave, e gera:
+O arquivo <code>coleta_detalhada.py</code> busca os jogos na API pública usada pelo site da CBF, sem necessidade de chave. Ele descobre sozinho as fases da competição e gera, para a temporada principal:
 
-- <code>portuguesa_serie_d_2026_todos_jogos.csv</code>: uma linha por partida, com fase, mando, placar final, placar do intervalo, estádio e cartões;
-- <code>portuguesa_serie_d_2026_grupo.csv</code>: classificação final do grupo da Portuguesa na primeira fase.
+- <code>…_todos_jogos.csv</code>: uma linha por partida, com fase, mando, placares final e do intervalo, pênaltis, estádio, árbitro e cartões;
+- <code>…_grupo.csv</code>: classificação final do grupo na primeira fase;
+- <code>…_gols.csv</code>: todos os gols das partidas, com autor, tempo, minuto e tipo (normal, pênalti, falta ou contra);
+- <code>…_atletas.csv</code>: participação de cada atleta em cada partida (titularidade, minutos, gols e cartões).
+
+Para a temporada de comparação, gera apenas os jogos e o grupo. Por fim, tudo é consolidado em <code>dados.js</code>, que é o arquivo lido pela dashboard.
 
 <pre><code>python coleta_detalhada.py
+python -m unittest        # testes do tratamento das súmulas
 </code></pre>
 
-Após atualizar os CSVs e enviar um novo commit para a branch <code>main</code>, o Streamlit Community Cloud realiza o redeploy da aplicação.
+Após atualizar os dados e enviar um novo commit para a branch <code>main</code>, o Streamlit Community Cloud realiza o redeploy da aplicação.
+
+### Analisar outro clube ou temporada
+
+Basta editar o <code>config.json</code>: id do clube na CBF, nome, artigo ("o" ou "a", usado nos textos), escudo, cores, competição (<code>slug</code> como <code>serie-d</code> ou <code>serie-c</code>), ano e temporada de comparação. Depois, execute a coleta novamente. Os nomes dos adversários podem ser ajustados na seção <code>nomes</code>.
 
 ## Créditos
 
