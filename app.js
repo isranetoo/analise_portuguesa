@@ -100,6 +100,7 @@ const PHASE_DESTINATION = {'2ª fase': 'à 2ª fase', '3ª fase': 'à 3ª fase',
 let venueFilter = 'Todos';
 let stageFilter = 'Todas';
 let squadExpanded = false;
+let comparisonCard = null;
 const expandedMatches = new Set();
 
 function filteredMatches() {
@@ -429,7 +430,9 @@ function renderJourney() {
   if (passed.length) path += `, ${clubRef()} passou por ${listJoin(passed)}`;
   if (lost) path += `${passed.length ? ' e' : `, ${clubRef()}`} caiu diante do ${lost.opponent} ${PHASE_WITH_ARTICLE[lost.phase] || 'no mata-mata'}`;
   $('journeySummary').textContent = `${groupText}${path}.`;
-  $('journeyTitle').textContent = outcome.phase && PHASE_DESTINATION[outcome.phase] ? `Do grupo ${PHASE_DESTINATION[outcome.phase]}` : 'Caminho na competição';
+  const journeyTitle = outcome.phase && PHASE_DESTINATION[outcome.phase] ? `Do grupo ${PHASE_DESTINATION[outcome.phase]}` : 'Caminho na competição';
+  $('journeyTitle').textContent = journeyTitle;
+  $('homeJourneyTitle').textContent = journeyTitle;
 
   const knockout = matches.filter(m => m.stage === 'Mata-mata');
   $('journeyInsight').hidden = !knockout.length;
@@ -589,11 +592,7 @@ function goalsOf(list) {
 
 function renderMinutes(list) {
   const goals = goalsOf(list);
-  const counts = MINUTE_BUCKETS.map(() => ({for: 0, against: 0}));
-  goals.forEach(goal => {
-    const index = bucketIndex(goal.minuto_jogo);
-    if (index >= 0) counts[index][goal.equipe === 'clube' ? 'for' : 'against'] += 1;
-  });
+  const counts = minuteCounts(list);
   const max = Math.max(1, ...counts.flatMap(c => [c.for, c.against]));
   $('minutesChart').innerHTML = MINUTE_BUCKETS.map((bucket, i) => `<div class="minute-col ${i === 3 ? 'half-start' : ''}">
     <div class="minute-bars">
@@ -670,7 +669,7 @@ function renderScorers(list) {
     return;
   }
   const max = ranking[0].goals;
-  const TOP = 6;
+  const TOP = 12;
   let rank = 0, previous = null;
   $('scorerList').innerHTML = ranking.slice(0, TOP).map((p, index) => {
     if (p.goals !== previous) { rank = index + 1; previous = p.goals; }
@@ -847,11 +846,16 @@ function renderComparison() {
     return `<tr><td>${metric.label}</td><td>${metric.format(before)}</td><td class="current"><b>${metric.format(after)}</b>${tag}</td></tr>`;
   }).join('');
 
-  $('comparisonTitle').textContent = `${previous.year} × ${current.year}`;
+  const label = `${previous.year} × ${current.year}`;
+  $('comparisonTitle').textContent = label;
+  $('navComparison').textContent = label;
+  $('navComparison').hidden = false;
+  document.querySelector('.page[data-page="comparacao"]').dataset.title = label;
+  PAGES.find(page => page.id === 'comparacao').title = label;
+  comparisonCard = {title: label, stat: `Aproveitamento ${pct(previous.s.efficiency)} → ${pct(current.s.efficiency)}`};
   const direction = current.s.efficiency >= previous.s.efficiency ? 'subiu' : 'caiu';
   $('comparisonSummary').textContent = `Em ${previous.year}: ${previous.outcome.label.toLowerCase()}${previous.outcome.penalties ? ' nos pênaltis' : ''}. ` +
     `Em ${current.year}: ${current.outcome.label.toLowerCase()}. O aproveitamento ${direction} de ${pct(previous.s.efficiency)} para ${pct(current.s.efficiency)}.`;
-  $('comparacao').hidden = false;
 }
 
 // ---------- Tabela de jogos ----------
@@ -917,6 +921,116 @@ function toggleMatch(id) {
   button.setAttribute('aria-expanded', open);
 }
 
+// ---------- Início (resumo) ----------
+function minuteCounts(list) {
+  const counts = MINUTE_BUCKETS.map(() => ({for: 0, against: 0}));
+  goalsOf(list).forEach(goal => {
+    const index = bucketIndex(goal.minuto_jogo);
+    if (index >= 0) counts[index][goal.equipe === 'clube' ? 'for' : 'against'] += 1;
+  });
+  return counts;
+}
+
+function renderHome() {
+  const s = summarize(matches);
+  const home = summarize(matches.filter(m => m.venue === 'Casa'));
+  const away = summarize(matches.filter(m => m.venue === 'Fora'));
+  const topScorer = scorerStats(matches).ranking[0];
+  const outcome = getOutcome(matches, groupTable);
+
+  const tiles = [
+    {label: 'Aproveitamento', value: pct(s.efficiency), note: `${s.points} de ${s.max} pontos`},
+    {label: 'Campanha', value: `${s.wins}V ${s.draws}E ${s.losses}D`, note: plural(s.games, 'jogo', 'jogos')},
+    {label: 'Gols', value: score(s.gf, s.ga), note: `saldo ${signedNumber(s.gf - s.ga)}`},
+    topScorer && {label: 'Artilheiro', value: escapeHtml(topScorer.name), note: plural(topScorer.goals, 'gol', 'gols')},
+    {label: 'Em casa', value: pct(home.efficiency), note: `fora: ${pct(away.efficiency)}`}
+  ].filter(Boolean);
+  $('homeKpis').innerHTML = tiles.map(tile => `<article class="home-kpi"><span>${tile.label}</span><b>${tile.value}</b><small>${tile.note}</small></article>`).join('');
+
+  const own = groupTable.find(team => team.own);
+  const groupSummary = summarize(matches.filter(m => m.stage === 'Grupos'));
+  const steps = [];
+  if (groupSummary.games) {
+    const qualified = own ? own.pos <= GROUP_QUALIFIERS : true;
+    steps.push(`<li class="step ${qualified ? 'advanced' : 'eliminated'}"><span>1ª fase</span><b>Grupo ${escapeHtml(groupName)}${own ? ` · ${own.pos}º` : ''}</b><small>${groupSummary.points} pts · ${groupSummary.wins}V ${groupSummary.draws}E ${groupSummary.losses}D</small></li>`);
+  }
+  getTies(matches).forEach(tie => {
+    const penalties = tie.hasPenalties ? ` (pên. ${tie.penGf}–${tie.penGa})` : '';
+    steps.push(`<li class="step ${tie.status}"><span>${escapeHtml(tie.phase)}</span><b>${escapeHtml(tie.opponent)}</b><small>${tie.gf} × ${tie.ga} no agregado${penalties}</small></li>`);
+  });
+  $('homeJourney').innerHTML = steps.join('');
+
+  $('homeLastMatches').innerHTML = matches.slice(-5).reverse().map(m => `<a class="last-match row-${m.result}" href="#jogos" data-page="jogos">
+    <span class="badge ${m.result}">${m.result}</span>
+    <div><b>${escapeHtml(CLUB.nome)} ${m.gf} × ${m.ga} ${escapeHtml(m.opponent)}</b><small>${formatDate(m.date)} · ${escapeHtml(PHASE_SHORT[m.phase] || m.phase)} ${escapeHtml(m.leg)} · ${m.venue === 'Casa' ? 'em casa' : 'fora'}</small></div>
+  </a>`).join('');
+
+  const counts = minuteCounts(matches);
+  const best = counts.reduce((top, c, i) => c.for > counts[top].for ? i : top, 0);
+  const players = squadStats(matches).length;
+  const cards = [
+    {page: 'trajetoria', title: 'Trajetória', stat: outcome.label, text: 'Grupo, confrontos do mata-mata e retrospecto contra cada adversário.'},
+    {page: 'desempenho', title: 'Desempenho', stat: `${pct(home.efficiency)} em casa`, text: 'Evolução dos pontos, resultados, mando de campo e consistência.'},
+    {page: 'gols', title: 'Gols', stat: `Mais gols entre ${MINUTE_BUCKETS[best].label}`, text: 'Artilharia, gols por faixa de minuto e antes e depois do intervalo.'},
+    {page: 'elenco', title: 'Elenco', stat: `${players} atletas utilizados`, text: 'Time-base, titularidades, minutos jogados e cartões.'},
+    {page: 'jogos', title: 'Jogos', stat: plural(s.games, 'partida', 'partidas'), text: 'Tabela completa com gols, escalação e arbitragem de cada jogo.'}
+  ];
+  if (comparisonCard) cards.push({page: 'comparacao', ...comparisonCard, text: 'Comparação de aproveitamento, gols e desfecho com a temporada anterior.'});
+  $('homeCards').innerHTML = cards.map(card => `<a class="page-card" href="#${card.page}" data-page="${card.page}">
+    <span>${escapeHtml(card.title)}</span><b>${escapeHtml(card.stat)}</b><p>${card.text}</p><em>Abrir →</em>
+  </a>`).join('');
+}
+
+// ---------- Páginas ----------
+const PAGES = [...document.querySelectorAll('.page')].map(page => ({id: page.dataset.page, title: page.dataset.title, element: page}));
+const availablePages = () => PAGES.filter(page => !document.querySelector(`#mainNav a[data-page="${page.id}"]`)?.hidden);
+const pageFromHash = () => decodeURIComponent((location.hash || '#inicio').slice(1));
+
+function renderPager(currentId) {
+  const pages = availablePages();
+  const index = pages.findIndex(page => page.id === currentId);
+  const previous = pages[index - 1];
+  const next = pages[index + 1];
+  $('pagePager').innerHTML = `
+    ${previous ? `<a href="#${previous.id}" data-page="${previous.id}"><small>Anterior</small><b>← ${escapeHtml(previous.title)}</b></a>` : '<span></span>'}
+    ${next ? `<a class="next" href="#${next.id}" data-page="${next.id}"><small>Próxima</small><b>${escapeHtml(next.title)} →</b></a>` : '<span></span>'}`;
+}
+
+function showPage(id, {push = false, scroll = true} = {}) {
+  const page = availablePages().find(p => p.id === id) || PAGES[0];
+  PAGES.forEach(p => { p.element.hidden = p !== page; });
+  document.querySelectorAll('#mainNav a').forEach(link => {
+    if (link.dataset.page === page.id) link.setAttribute('aria-current', 'page');
+    else link.removeAttribute('aria-current');
+  });
+  // No celular o menu rola na horizontal: mantém a página ativa visível.
+  const nav = $('mainNav');
+  const activeLink = nav.querySelector('[aria-current="page"]');
+  if (activeLink && nav.scrollWidth > nav.clientWidth) {
+    nav.scrollLeft = activeLink.offsetLeft - (nav.clientWidth - activeLink.offsetWidth) / 2;
+  }
+  const slot = page.element.querySelector('.filter-slot');
+  const filterRow = $('filterRow');
+  filterRow.hidden = !slot;
+  if (slot) slot.appendChild(filterRow);
+  document.title = page.id === 'inicio' ? `${CLUB.nome} | Painel de desempenho` : `${page.title} · ${CLUB.nome} | Painel de desempenho`;
+  renderPager(page.id);
+  if (push) {
+    // Em iframes do Streamlit (about:srcdoc) o histórico pode não estar disponível.
+    try { history.pushState(null, '', `#${page.id}`); } catch (_) { /* segue sem alterar o endereço */ }
+  }
+  if (scroll) window.scrollTo(0, 0);
+}
+
+document.addEventListener('click', event => {
+  const link = event.target.closest('a[data-page]');
+  if (!link || event.ctrlKey || event.metaKey || event.shiftKey) return;
+  event.preventDefault();
+  showPage(link.dataset.page, {push: true});
+});
+window.addEventListener('popstate', () => showPage(pageFromHash()));
+window.addEventListener('hashchange', () => showPage(pageFromHash()));
+
 // ---------- Filtros e eventos ----------
 function renderFiltered() {
   const list = filteredMatches();
@@ -961,4 +1075,6 @@ renderHighlights();
 renderPerformance();
 renderOpponents();
 renderComparison();
+renderHome();
 renderFiltered();
+showPage(pageFromHash(), {scroll: false});

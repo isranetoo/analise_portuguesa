@@ -58,19 +58,19 @@ Os dados cobrem a campanha completa, de 4 de abril a 25 de julho de 2026.
 
 ## O que a dashboard entrega
 
-- KPIs de pontos, aproveitamento, média por jogo e saldo de gols;
-- filtros combinados por mando de campo (casa/fora) e por fase (grupos/mata-mata);
-- trajetória na competição: classificação do grupo e confrontos de ida e volta do mata-mata;
-- evolução da pontuação jogo a jogo, com tooltip de cada partida;
-- comparação entre desempenho em casa e como visitante;
-- gols por tempo e por faixa de 15 minutos, incluindo quem abriu o placar;
-- artilharia com gols por fase, pênaltis, faltas e gols decisivos;
-- disciplina: cartões do time, dos adversários e por atleta;
-- elenco: atletas utilizados, time-base, titularidades e minutos estimados;
-- retrospecto por adversário;
-- comparação com a temporada anterior;
-- tabela completa com busca por adversário ou atleta e detalhes expansíveis de cada jogo (gols, escalação, árbitro);
-- tema claro e escuro.
+O painel é dividido em páginas, acessíveis pelo menu superior (cada uma tem seu próprio endereço, como <code>#gols</code>):
+
+| Página | Conteúdo |
+|---|---|
+| **Início** | Resumo: aproveitamento, campanha, gols, artilheiro, trajetória em etapas, destaques, últimos jogos e atalhos para as análises |
+| **Trajetória** | Classificação do grupo, confrontos de ida e volta do mata-mata e retrospecto por adversário |
+| **Desempenho** | Indicadores, evolução dos pontos (com tooltip de cada jogo), resultados, mando de campo e consistência |
+| **Gols** | Artilharia (gols por fase, pênaltis, faltas e decisivos), gols por faixa de 15 minutos e antes e depois do intervalo |
+| **Elenco** | Atletas utilizados, time-base, titularidades, minutos estimados e disciplina |
+| **Jogos** | Tabela completa com busca por adversário ou atleta e detalhes de cada partida (gols, escalação, árbitro) |
+| **2025 × 2026** | Comparação com a temporada anterior |
+
+Os filtros por mando de campo (casa/fora) e por fase (grupos/mata-mata) aparecem nas páginas Desempenho, Gols, Elenco e Jogos e valem para todas elas. O painel também tem tema claro e escuro.
 
 ## Metodologia
 

@@ -16,288 +16,350 @@
 <body>
   <div class="page-shell">
     <header class="topbar">
-      <a class="brand" href="#top" aria-label="Início">
+      <a class="brand" href="#inicio" data-page="inicio" aria-label="Início">
         <span class="brand-mark"><img id="brandLogo" src="portuguesa-logo.svg" alt="Escudo da Portuguesa"></span>
         <span><b id="brandName">PORTUGUESA</b> <span id="brandYear">2026</span></span>
       </a>
-      <nav aria-label="Seções do painel">
-        <a href="#campanha">Campanha</a>
-        <a href="#trajetoria">Trajetória</a>
-        <a href="#evolucao">Evolução</a>
-        <a href="#elenco">Elenco</a>
-        <a href="#jogos">Jogos</a>
+      <nav id="mainNav" aria-label="Páginas do painel">
+        <a href="#inicio" data-page="inicio">Início</a>
+        <a href="#trajetoria" data-page="trajetoria">Trajetória</a>
+        <a href="#desempenho" data-page="desempenho">Desempenho</a>
+        <a href="#gols" data-page="gols">Gols</a>
+        <a href="#elenco" data-page="elenco">Elenco</a>
+        <a href="#jogos" data-page="jogos">Jogos</a>
+        <a href="#comparacao" data-page="comparacao" id="navComparison" hidden>Comparação</a>
       </nav>
       <button type="button" class="theme-toggle" id="themeToggle" aria-label="Alternar tema claro e escuro">◐</button>
     </header>
 
-    <main id="top">
-      <section class="dashboard-heading" id="campanha">
-        <div class="dashboard-title">
-          <p class="eyebrow" id="eyebrow">BRASILEIRÃO · SÉRIE D · 2026</p>
-          <h1>Painel de desempenho</h1>
-          <p id="subtitle">Retrospectiva da campanha da Portuguesa no campeonato.</p>
+    <!-- Filtros compartilhados: o app.js move este bloco para a página ativa que usa filtros. -->
+    <section class="filter-row" id="filterRow" aria-label="Filtros">
+      <div class="filters">
+        <div class="segmented" id="venueFilter" role="group" aria-label="Filtrar por mando de campo">
+          <button class="active" data-filter="Todos">Todos os jogos</button>
+          <button data-filter="Casa">Em casa</button>
+          <button data-filter="Fora">Fora</button>
         </div>
-        <div class="dashboard-context" aria-label="Contexto dos dados">
-          <div>
-            <span>Período analisado</span>
-            <b><span id="headerStartDate">--</span> — <span id="headerEndDate">--</span></b>
-          </div>
-          <div>
-            <span>Jogos disputados</span>
-            <b id="headerGames">--</b>
-          </div>
-          <div>
-            <span>Desfecho</span>
-            <b id="headerOutcome">--</b>
-          </div>
+        <div class="segmented" id="stageFilter" role="group" aria-label="Filtrar por fase">
+          <button class="active" data-filter="Todas">Todas as fases</button>
+          <button data-filter="Grupos">Grupos</button>
+          <button data-filter="Mata-mata">Mata-mata</button>
         </div>
+      </div>
+      <p id="filterContext">Visão geral da campanha</p>
+    </section>
+
+    <main>
+      <!-- ==================== INÍCIO ==================== -->
+      <section class="page" data-page="inicio" data-title="Início">
+        <section class="dashboard-heading">
+          <div class="dashboard-title">
+            <p class="eyebrow" id="eyebrow">BRASILEIRÃO · SÉRIE D · 2026</p>
+            <h1>Painel de desempenho</h1>
+            <p id="subtitle">Retrospectiva da campanha da Portuguesa no campeonato.</p>
+          </div>
+          <div class="dashboard-context" aria-label="Contexto dos dados">
+            <div>
+              <span>Período analisado</span>
+              <b><span id="headerStartDate">--</span> — <span id="headerEndDate">--</span></b>
+            </div>
+            <div>
+              <span>Jogos disputados</span>
+              <b id="headerGames">--</b>
+            </div>
+            <div>
+              <span>Desfecho</span>
+              <b id="headerOutcome">--</b>
+            </div>
+          </div>
+        </section>
+
+        <section class="home-kpis" id="homeKpis" aria-label="Resumo da campanha"></section>
+
+        <section class="page-section compact">
+          <div class="section-head">
+            <div>
+              <p class="section-kicker">TRAJETÓRIA</p>
+              <h2 id="homeJourneyTitle">Caminho na competição</h2>
+            </div>
+            <a class="section-link" href="#trajetoria" data-page="trajetoria">Ver trajetória completa →</a>
+          </div>
+          <ol class="journey-steps" id="homeJourney"></ol>
+        </section>
+
+        <section class="dashboard-grid home-grid">
+          <article class="panel highlights-panel">
+            <div class="panel-head compact">
+              <div>
+                <p class="section-kicker">DESTAQUES</p>
+                <h2>Números da campanha</h2>
+              </div>
+              <span class="panel-badge" id="highlightsCount">--</span>
+            </div>
+            <div class="highlight-list" id="highlightsList"></div>
+            <small class="method">Placares do intervalo, gols e cartões extraídos das súmulas publicadas pela CBF.</small>
+          </article>
+
+          <article class="panel">
+            <div class="panel-head compact">
+              <div>
+                <p class="section-kicker">RETA FINAL</p>
+                <h2>Últimos jogos</h2>
+              </div>
+              <a class="section-link" href="#jogos" data-page="jogos">Todos os jogos →</a>
+            </div>
+            <div class="last-matches" id="homeLastMatches"></div>
+          </article>
+        </section>
+
+        <section class="page-section compact">
+          <div class="section-head">
+            <div>
+              <p class="section-kicker">EXPLORE O PAINEL</p>
+              <h2>Análises detalhadas</h2>
+            </div>
+          </div>
+          <div class="page-cards" id="homeCards"></div>
+        </section>
       </section>
 
-      <section class="filter-row" aria-label="Filtros">
-        <div class="filters">
-          <div class="segmented" id="venueFilter" role="group" aria-label="Filtrar por mando de campo">
-            <button class="active" data-filter="Todos">Todos os jogos</button>
-            <button data-filter="Casa">Em casa</button>
-            <button data-filter="Fora">Fora</button>
-          </div>
-          <div class="segmented" id="stageFilter" role="group" aria-label="Filtrar por fase">
-            <button class="active" data-filter="Todas">Todas as fases</button>
-            <button data-filter="Grupos">Grupos</button>
-            <button data-filter="Mata-mata">Mata-mata</button>
-          </div>
-        </div>
-        <p id="filterContext">Visão geral da campanha</p>
-      </section>
-
-      <section class="kpi-grid" aria-label="Indicadores principais">
-        <article class="kpi kpi-featured">
-          <div class="kpi-top"><span>Aproveitamento</span><span class="kpi-icon">GERAL</span></div>
-          <strong id="kpiEfficiency">--</strong>
-          <div class="meter"><i id="efficiencyMeter"></i></div>
-          <small id="efficiencyDetail">-- de -- pontos possíveis</small>
-        </article>
-        <article class="kpi kpi-campaign">
-          <div class="kpi-top"><span>Campanha</span><span class="kpi-icon">V · E · D</span></div>
-          <div class="record-grid">
-            <div class="record-win"><strong id="kpiWins">--</strong><span>Vitórias</span></div>
-            <div class="record-draw"><strong id="kpiDraws">--</strong><span>Empates</span></div>
-            <div class="record-loss"><strong id="kpiLosses">--</strong><span>Derrotas</span></div>
-          </div>
-          <small class="points-rule">Vitória <b>3 pts</b> · Empate <b>1 pt</b> · Derrota <b>0 pt</b></small>
-        </article>
-        <article class="kpi kpi-average">
-          <div class="kpi-top"><span>Média por jogo</span><span class="kpi-icon">PTS / JOGO</span></div>
-          <strong id="kpiPpg">--</strong>
-          <div class="mini-meter"><i id="ppgMeter"></i></div>
-          <small>de um máximo de 3,00 pontos</small>
-        </article>
-        <article class="kpi kpi-goals">
-          <div class="kpi-top"><span>Saldo de gols</span><span class="kpi-icon">GOLS</span></div>
-          <strong id="kpiGoalDiff">--</strong>
-          <div class="goal-pair">
-            <span><b id="goalsFor">--</b> marcados</span>
-            <span><b id="goalsAgainst">--</b> sofridos</span>
-          </div>
-        </article>
-      </section>
-
-      <section class="page-section" id="trajetoria">
-        <div class="section-head">
-          <div>
-            <p class="section-kicker">TRAJETÓRIA NA COMPETIÇÃO</p>
-            <h2 id="journeyTitle">Caminho na competição</h2>
-          </div>
+      <!-- ==================== TRAJETÓRIA ==================== -->
+      <section class="page" data-page="trajetoria" data-title="Trajetória" hidden>
+        <header class="page-header">
+          <p class="eyebrow">TRAJETÓRIA NA COMPETIÇÃO</p>
+          <h1 id="journeyTitle">Caminho na competição</h1>
           <p id="journeySummary">--</p>
-        </div>
+        </header>
         <div class="journey-grid" id="journeyGrid"></div>
         <div class="analysis-note" id="journeyInsight" hidden></div>
+
+        <section class="page-section">
+          <div class="section-head">
+            <div>
+              <p class="section-kicker">ADVERSÁRIOS</p>
+              <h2>Retrospecto por adversário</h2>
+            </div>
+            <p id="opponentsSummary">--</p>
+          </div>
+          <div class="opponent-grid" id="opponentGrid"></div>
+        </section>
       </section>
 
-      <section class="dashboard-grid" id="evolucao">
-        <article class="panel chart-panel">
-          <div class="panel-head">
-            <div>
-              <p class="section-kicker">JOGO A JOGO</p>
-              <h2>Evolução dos pontos</h2>
-            </div>
-            <div class="legend"><span><i class="actual"></i><span id="legendClub">Portuguesa</span></span><span><i class="pace"></i>Ritmo de 50%</span></div>
-          </div>
-          <div class="chart-statline">
-            <div><span>Pontuação final</span><b id="chartCurrentPoints">--</b></div>
-            <div><span>Ritmo de 50%</span><b id="chartPacePoints">--</b></div>
-            <div id="chartGapCard"><span>Diferença</span><b id="chartGap">--</b></div>
-          </div>
-          <div class="chart-wrap" id="pointsChart" role="img" aria-label="Gráfico de evolução de pontos"></div>
-          <div class="chart-insight" id="chartInsight"></div>
-        </article>
+      <!-- ==================== DESEMPENHO ==================== -->
+      <section class="page" data-page="desempenho" data-title="Desempenho" hidden>
+        <header class="page-header">
+          <p class="eyebrow">DESEMPENHO</p>
+          <h1>Pontos, resultados e mando de campo</h1>
+          <p>Aproveitamento, evolução jogo a jogo e onde o time rendeu mais. Os indicadores e os resultados respeitam os filtros.</p>
+        </header>
+        <div class="filter-slot"></div>
 
-        <article class="panel campaign-panel">
-          <div class="panel-head compact">
-            <div>
-              <p class="section-kicker">DISTRIBUIÇÃO</p>
-              <h2>Resultados</h2>
+        <section class="kpi-grid" aria-label="Indicadores principais">
+          <article class="kpi kpi-featured">
+            <div class="kpi-top"><span>Aproveitamento</span><span class="kpi-icon">GERAL</span></div>
+            <strong id="kpiEfficiency">--</strong>
+            <div class="meter"><i id="efficiencyMeter"></i></div>
+            <small id="efficiencyDetail">-- de -- pontos possíveis</small>
+          </article>
+          <article class="kpi kpi-campaign">
+            <div class="kpi-top"><span>Campanha</span><span class="kpi-icon">V · E · D</span></div>
+            <div class="record-grid">
+              <div class="record-win"><strong id="kpiWins">--</strong><span>Vitórias</span></div>
+              <div class="record-draw"><strong id="kpiDraws">--</strong><span>Empates</span></div>
+              <div class="record-loss"><strong id="kpiLosses">--</strong><span>Derrotas</span></div>
             </div>
-          </div>
-          <div class="donut-row">
-            <div class="donut" id="resultDonut"><div><strong id="donutEfficiency">--</strong><span>aproveitamento</span></div></div>
-            <div class="result-list">
-              <div class="result-win"><span><i class="win"></i>Vitórias</span><small id="winsPercent">--</small><b id="winsCount">--</b></div>
-              <div class="result-draw"><span><i class="draw"></i>Empates</span><small id="drawsPercent">--</small><b id="drawsCount">--</b></div>
-              <div class="result-loss"><span><i class="loss"></i>Derrotas</span><small id="lossesPercent">--</small><b id="lossesCount">--</b></div>
+            <small class="points-rule">Vitória <b>3 pts</b> · Empate <b>1 pt</b> · Derrota <b>0 pt</b></small>
+          </article>
+          <article class="kpi kpi-average">
+            <div class="kpi-top"><span>Média por jogo</span><span class="kpi-icon">PTS / JOGO</span></div>
+            <strong id="kpiPpg">--</strong>
+            <div class="mini-meter"><i id="ppgMeter"></i></div>
+            <small>de um máximo de 3,00 pontos</small>
+          </article>
+          <article class="kpi kpi-goals">
+            <div class="kpi-top"><span>Saldo de gols</span><span class="kpi-icon">GOLS</span></div>
+            <strong id="kpiGoalDiff">--</strong>
+            <div class="goal-pair">
+              <span><b id="goalsFor">--</b> marcados</span>
+              <span><b id="goalsAgainst">--</b> sofridos</span>
             </div>
-          </div>
-          <div class="result-highlights">
-            <div><span>Taxa de vitória</span><b id="winRate">--</b></div>
-            <div><span>Jogos sem derrota</span><b id="nonLossRate">--</b></div>
-          </div>
-          <div class="form-block">
-            <span>ÚLTIMOS 5 JOGOS</span>
-            <div id="recentForm" class="form-dots"></div>
-            <small id="recentPoints">--</small>
-          </div>
-        </article>
+          </article>
+        </section>
 
-        <article class="panel venue-panel">
-          <div class="panel-head compact">
-            <div>
-              <p class="section-kicker">MANDO DE CAMPO</p>
-              <h2>Onde rende mais?</h2>
-            </div>
-          </div>
-          <div id="venueComparison"></div>
-          <div class="analysis-note" id="venueInsight"></div>
-        </article>
-
-        <article class="panel highlights-panel">
-          <div class="panel-head compact">
-            <div>
-              <p class="section-kicker">DESTAQUES</p>
-              <h2>Números da campanha</h2>
-            </div>
-            <span class="panel-badge" id="highlightsCount">--</span>
-          </div>
-          <div class="highlight-list" id="highlightsList"></div>
-          <small class="method">Placares do intervalo, gols e cartões extraídos das súmulas publicadas pela CBF.</small>
-        </article>
-
-        <article class="panel wide performance-panel">
-          <div class="panel-head">
-            <div>
-              <p class="section-kicker">CONSISTÊNCIA</p>
-              <h2>Rendimento jogo a jogo</h2>
-            </div>
-            <div class="points-key"><span><i class="p3"></i>3 pts</span><span><i class="p1"></i>1 pt</span><span><i class="p0"></i>0 pt</span></div>
-          </div>
-          <div class="game-strip" id="gameStrip"></div>
-          <div class="period-grid" id="periodGrid"></div>
-          <div class="streak-grid" id="streakGrid"></div>
-        </article>
-
-        <article class="panel wide halves-panel">
-          <div class="panel-head">
-            <div>
-              <p class="section-kicker">MOMENTOS DO JOGO</p>
-              <h2>Antes e depois do intervalo</h2>
-            </div>
-            <p>Comparação dos gols marcados e sofridos em cada etapa da partida.</p>
-          </div>
-          <div class="halves-grid">
-            <section class="half-card">
-              <div class="half-card-head">
-                <div><span>1º TEMPO</span><small>até o intervalo</small></div>
-                <b id="firstHalfBalance">-- saldo</b>
+        <section class="dashboard-grid">
+          <article class="panel chart-panel">
+            <div class="panel-head">
+              <div>
+                <p class="section-kicker">JOGO A JOGO · CAMPANHA COMPLETA</p>
+                <h2>Evolução dos pontos</h2>
               </div>
-              <div class="half-score">
-                <div><strong id="firstHalfFor">--</strong><span>marcados</span></div>
-                <i>×</i>
-                <div><strong id="firstHalfAgainst">--</strong><span>sofridos</span></div>
-              </div>
-              <div class="half-bars">
-                <div><span>Pró</span><i><b id="firstForBar"></b></i></div>
-                <div><span>Contra</span><i><b class="against" id="firstAgainstBar"></b></i></div>
-              </div>
-              <div class="half-share"><span>Participação nos gols marcados</span><b id="firstHalfShare">--</b></div>
-            </section>
-            <section class="half-card second">
-              <div class="half-card-head">
-                <div><span>2º TEMPO</span><small>após o intervalo</small></div>
-                <b id="secondHalfBalance">-- saldo</b>
-              </div>
-              <div class="half-score">
-                <div><strong id="secondHalfFor">--</strong><span>marcados</span></div>
-                <i>×</i>
-                <div><strong id="secondHalfAgainst">--</strong><span>sofridos</span></div>
-              </div>
-              <div class="half-bars">
-                <div><span>Pró</span><i><b id="secondForBar"></b></i></div>
-                <div><span>Contra</span><i><b class="against" id="secondAgainstBar"></b></i></div>
-              </div>
-              <div class="half-share"><span>Participação nos gols marcados</span><b id="secondHalfShare">--</b></div>
-            </section>
-          </div>
-          <div class="stat-boxes">
-            <div><span>Mais produtivo</span><b id="productiveHalf">--</b></div>
-            <div><span>Mais vulnerável</span><b id="vulnerableHalf">--</b></div>
-            <div class="result-change-card"><span>Mudança após o intervalo</span><b id="improvedResults">--</b><small id="unchangedResults">--</small></div>
-            <div><span>Saldo das reações</span><b id="pointsSwing">--</b><small>pontos entre o intervalo e o resultado final</small></div>
-          </div>
-          <div class="analysis-note">
-            <span>LEITURA POR TEMPO</span>
-            <p id="halvesInsight"></p>
-          </div>
-        </article>
-
-        <article class="panel wide minutes-panel">
-          <div class="panel-head">
-            <div>
-              <p class="section-kicker">MINUTO A MINUTO</p>
-              <h2>Quando os gols saem</h2>
+              <div class="legend"><span><i class="actual"></i><span id="legendClub">Portuguesa</span></span><span><i class="pace"></i>Ritmo de 50%</span></div>
             </div>
-            <div class="legend"><span><i class="dot for"></i>Marcados</span><span><i class="dot against"></i>Sofridos</span></div>
-          </div>
-          <div class="minutes-chart" id="minutesChart"></div>
-          <div class="stat-boxes" id="minutesStats"></div>
-          <div class="analysis-note">
-            <span>LEITURA DOS MINUTOS</span>
-            <p id="minutesInsight"></p>
-          </div>
-          <small class="method">Gols nos acréscimos entram na última faixa de cada tempo (45+ e 90+).</small>
-        </article>
-
-        <article class="panel scorers-panel">
-          <div class="panel-head compact">
-            <div>
-              <p class="section-kicker">ARTILHARIA</p>
-              <h2>Quem fez os gols</h2>
+            <div class="chart-statline">
+              <div><span>Pontuação final</span><b id="chartCurrentPoints">--</b></div>
+              <div><span>Ritmo de 50%</span><b id="chartPacePoints">--</b></div>
+              <div id="chartGapCard"><span>Diferença</span><b id="chartGap">--</b></div>
             </div>
-            <span class="panel-badge" id="scorersCount">--</span>
-          </div>
-          <div class="scorer-list" id="scorerList"></div>
-          <div class="chip-row" id="scorerChips"></div>
-        </article>
+            <div class="chart-wrap" id="pointsChart" role="img" aria-label="Gráfico de evolução de pontos"></div>
+            <div class="chart-insight" id="chartInsight"></div>
+          </article>
 
-        <article class="panel discipline-panel">
-          <div class="panel-head compact">
-            <div>
-              <p class="section-kicker">DISCIPLINA</p>
-              <h2>Cartões</h2>
+          <article class="panel campaign-panel">
+            <div class="panel-head compact">
+              <div>
+                <p class="section-kicker">DISTRIBUIÇÃO</p>
+                <h2>Resultados</h2>
+              </div>
             </div>
-          </div>
-          <div class="compare-bars" id="disciplineBars"></div>
-          <div class="stat-boxes" id="disciplineStats"></div>
-          <div class="chip-row" id="disciplineChips"></div>
-          <small class="method">Totais do time incluem a comissão técnica; os cartões por atleta consideram só os jogadores.</small>
-        </article>
+            <div class="donut-row">
+              <div class="donut" id="resultDonut"><div><strong id="donutEfficiency">--</strong><span>aproveitamento</span></div></div>
+              <div class="result-list">
+                <div class="result-win"><span><i class="win"></i>Vitórias</span><small id="winsPercent">--</small><b id="winsCount">--</b></div>
+                <div class="result-draw"><span><i class="draw"></i>Empates</span><small id="drawsPercent">--</small><b id="drawsCount">--</b></div>
+                <div class="result-loss"><span><i class="loss"></i>Derrotas</span><small id="lossesPercent">--</small><b id="lossesCount">--</b></div>
+              </div>
+            </div>
+            <div class="result-highlights">
+              <div><span>Taxa de vitória</span><b id="winRate">--</b></div>
+              <div><span>Jogos sem derrota</span><b id="nonLossRate">--</b></div>
+            </div>
+            <div class="form-block">
+              <span>ÚLTIMOS 5 JOGOS</span>
+              <div id="recentForm" class="form-dots"></div>
+              <small id="recentPoints">--</small>
+            </div>
+          </article>
+
+          <article class="panel wide venue-panel">
+            <div class="panel-head compact">
+              <div>
+                <p class="section-kicker">MANDO DE CAMPO · CAMPANHA COMPLETA</p>
+                <h2>Onde rende mais?</h2>
+              </div>
+            </div>
+            <div id="venueComparison"></div>
+            <div class="analysis-note" id="venueInsight"></div>
+          </article>
+
+          <article class="panel wide performance-panel">
+            <div class="panel-head">
+              <div>
+                <p class="section-kicker">CONSISTÊNCIA · CAMPANHA COMPLETA</p>
+                <h2>Rendimento jogo a jogo</h2>
+              </div>
+              <div class="points-key"><span><i class="p3"></i>3 pts</span><span><i class="p1"></i>1 pt</span><span><i class="p0"></i>0 pt</span></div>
+            </div>
+            <div class="game-strip" id="gameStrip"></div>
+            <div class="period-grid" id="periodGrid"></div>
+            <div class="streak-grid" id="streakGrid"></div>
+          </article>
+        </section>
       </section>
 
-      <section class="page-section" id="elenco">
-        <div class="section-head">
-          <div>
-            <p class="section-kicker">ELENCO</p>
-            <h2>Quem jogou</h2>
-          </div>
+      <!-- ==================== GOLS ==================== -->
+      <section class="page" data-page="gols" data-title="Gols" hidden>
+        <header class="page-header">
+          <p class="eyebrow">GOLS</p>
+          <h1>Quando e quem marcou</h1>
+          <p>Gols por tempo e por faixa de minuto, quem abriu o placar e a artilharia do time.</p>
+        </header>
+        <div class="filter-slot"></div>
+
+        <section class="dashboard-grid">
+          <article class="panel wide scorers-panel">
+            <div class="panel-head compact">
+              <div>
+                <p class="section-kicker">ARTILHARIA</p>
+                <h2>Quem fez os gols</h2>
+              </div>
+              <span class="panel-badge" id="scorersCount">--</span>
+            </div>
+            <div class="scorer-list" id="scorerList"></div>
+            <div class="chip-row" id="scorerChips"></div>
+          </article>
+
+          <article class="panel wide minutes-panel">
+            <div class="panel-head">
+              <div>
+                <p class="section-kicker">MINUTO A MINUTO</p>
+                <h2>Quando os gols saem</h2>
+              </div>
+              <div class="legend"><span><i class="dot for"></i>Marcados</span><span><i class="dot against"></i>Sofridos</span></div>
+            </div>
+            <div class="minutes-chart" id="minutesChart"></div>
+            <div class="stat-boxes" id="minutesStats"></div>
+            <div class="analysis-note">
+              <span>LEITURA DOS MINUTOS</span>
+              <p id="minutesInsight"></p>
+            </div>
+            <small class="method">Gols nos acréscimos entram na última faixa de cada tempo (45+ e 90+).</small>
+          </article>
+
+          <article class="panel wide halves-panel">
+            <div class="panel-head">
+              <div>
+                <p class="section-kicker">MOMENTOS DO JOGO</p>
+                <h2>Antes e depois do intervalo</h2>
+              </div>
+              <p>Comparação dos gols marcados e sofridos em cada etapa da partida.</p>
+            </div>
+            <div class="halves-grid">
+              <section class="half-card">
+                <div class="half-card-head">
+                  <div><span>1º TEMPO</span><small>até o intervalo</small></div>
+                  <b id="firstHalfBalance">-- saldo</b>
+                </div>
+                <div class="half-score">
+                  <div><strong id="firstHalfFor">--</strong><span>marcados</span></div>
+                  <i>×</i>
+                  <div><strong id="firstHalfAgainst">--</strong><span>sofridos</span></div>
+                </div>
+                <div class="half-bars">
+                  <div><span>Pró</span><i><b id="firstForBar"></b></i></div>
+                  <div><span>Contra</span><i><b class="against" id="firstAgainstBar"></b></i></div>
+                </div>
+                <div class="half-share"><span>Participação nos gols marcados</span><b id="firstHalfShare">--</b></div>
+              </section>
+              <section class="half-card second">
+                <div class="half-card-head">
+                  <div><span>2º TEMPO</span><small>após o intervalo</small></div>
+                  <b id="secondHalfBalance">-- saldo</b>
+                </div>
+                <div class="half-score">
+                  <div><strong id="secondHalfFor">--</strong><span>marcados</span></div>
+                  <i>×</i>
+                  <div><strong id="secondHalfAgainst">--</strong><span>sofridos</span></div>
+                </div>
+                <div class="half-bars">
+                  <div><span>Pró</span><i><b id="secondForBar"></b></i></div>
+                  <div><span>Contra</span><i><b class="against" id="secondAgainstBar"></b></i></div>
+                </div>
+                <div class="half-share"><span>Participação nos gols marcados</span><b id="secondHalfShare">--</b></div>
+              </section>
+            </div>
+            <div class="stat-boxes">
+              <div><span>Mais produtivo</span><b id="productiveHalf">--</b></div>
+              <div><span>Mais vulnerável</span><b id="vulnerableHalf">--</b></div>
+              <div class="result-change-card"><span>Mudança após o intervalo</span><b id="improvedResults">--</b><small id="unchangedResults">--</small></div>
+              <div><span>Saldo das reações</span><b id="pointsSwing">--</b><small>pontos entre o intervalo e o resultado final</small></div>
+            </div>
+            <div class="analysis-note">
+              <span>LEITURA POR TEMPO</span>
+              <p id="halvesInsight"></p>
+            </div>
+          </article>
+        </section>
+      </section>
+
+      <!-- ==================== ELENCO ==================== -->
+      <section class="page" data-page="elenco" data-title="Elenco" hidden>
+        <header class="page-header">
+          <p class="eyebrow">ELENCO</p>
+          <h1>Quem jogou</h1>
           <p>Participação dos atletas, com minutos estimados pelas substituições e expulsões registradas nas súmulas (90 minutos por jogo, sem acréscimos).</p>
-        </div>
+        </header>
+        <div class="filter-slot"></div>
+
         <div class="squad-summary" id="squadSummary"></div>
         <div class="base-eleven">
           <span>TIME-BASE · MAIS VEZES TITULARES</span>
@@ -310,41 +372,32 @@
           </table>
         </div>
         <button type="button" class="show-more" id="squadToggle" hidden>Mostrar todos</button>
+
+        <section class="dashboard-grid">
+          <article class="panel wide discipline-panel">
+            <div class="panel-head compact">
+              <div>
+                <p class="section-kicker">DISCIPLINA</p>
+                <h2>Cartões</h2>
+              </div>
+            </div>
+            <div class="compare-bars" id="disciplineBars"></div>
+            <div class="stat-boxes" id="disciplineStats"></div>
+            <div class="chip-row" id="disciplineChips"></div>
+            <small class="method">Totais do time incluem a comissão técnica; os cartões por atleta consideram só os jogadores.</small>
+          </article>
+        </section>
       </section>
 
-      <section class="page-section" id="adversarios">
-        <div class="section-head">
-          <div>
-            <p class="section-kicker">ADVERSÁRIOS</p>
-            <h2>Retrospecto por adversário</h2>
-          </div>
-          <p id="opponentsSummary">--</p>
-        </div>
-        <div class="opponent-grid" id="opponentGrid"></div>
-      </section>
-
-      <section class="page-section" id="comparacao" hidden>
-        <div class="section-head">
-          <div>
-            <p class="section-kicker">TEMPORADA ANTERIOR</p>
-            <h2 id="comparisonTitle">Comparação</h2>
-          </div>
-          <p id="comparisonSummary">--</p>
-        </div>
-        <div class="compare-wrap">
-          <table class="compare-table">
-            <thead id="comparisonHead"></thead>
-            <tbody id="comparisonBody"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <section class="page-section" id="jogos">
+      <!-- ==================== JOGOS ==================== -->
+      <section class="page" data-page="jogos" data-title="Jogos" hidden>
+        <header class="page-header">
+          <p class="eyebrow">PARTIDA A PARTIDA</p>
+          <h1>A campanha completa</h1>
+          <p>Clique em um jogo para ver gols, escalação, cartões e arbitragem.</p>
+        </header>
+        <div class="filter-slot"></div>
         <div class="matches-head">
-          <div>
-            <p class="section-kicker">PARTIDA A PARTIDA</p>
-            <h2>A campanha completa</h2>
-          </div>
           <label class="search-box">
             <span aria-hidden="true">⌕</span>
             <input id="matchSearch" type="search" placeholder="Buscar adversário ou atleta" aria-label="Buscar adversário ou atleta">
@@ -358,6 +411,23 @@
         </div>
         <p class="empty-state" id="emptyState" hidden>Nenhum jogo encontrado.</p>
       </section>
+
+      <!-- ==================== COMPARAÇÃO ==================== -->
+      <section class="page" data-page="comparacao" data-title="Comparação" hidden>
+        <header class="page-header">
+          <p class="eyebrow">TEMPORADA ANTERIOR</p>
+          <h1 id="comparisonTitle">Comparação</h1>
+          <p id="comparisonSummary">--</p>
+        </header>
+        <div class="compare-wrap">
+          <table class="compare-table">
+            <thead id="comparisonHead"></thead>
+            <tbody id="comparisonBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <nav class="page-pager" id="pagePager" aria-label="Navegação entre páginas"></nav>
     </main>
 
     <footer>
