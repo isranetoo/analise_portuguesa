@@ -91,13 +91,15 @@ O painel considera somente partidas com <code>status</code> igual a <code>finish
 ├── coleta_detalhada.py
 ├── dashboard-preview.png
 ├── index.html
+├── iniciar.py
 ├── portuguesa-logo.svg
 ├── portuguesa_serie_d_2026_grupo.csv
 ├── portuguesa_serie_d_2026_todos_jogos.csv
 ├── requirements.txt
 ├── server.js
 ├── streamlit_app.py
-└── styles.css
+├── styles.css
+└── windows_asyncio.py
 </code></pre>
 
 ## Executar localmente
@@ -107,10 +109,12 @@ O painel considera somente partidas com <code>status</code> igual a <code>finish
 <pre><code>git clone https://github.com/isranetoo/analise_portuguesa.git
 cd analise_portuguesa
 python -m pip install -r requirements.txt
-python -m streamlit run streamlit_app.py
+python iniciar.py
 </code></pre>
 
 A aplicação será disponibilizada normalmente em <code>http://localhost:8501</code>.
+
+O <code>iniciar.py</code> equivale a <code>python -m streamlit run streamlit_app.py</code>, mas evita no Windows o aviso inofensivo <code>ConnectionResetError [WinError 10054]</code>, que o asyncio registra quando o navegador encerra uma conexão.
 
 ### Versão HTML
 

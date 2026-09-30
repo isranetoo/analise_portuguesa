@@ -9,8 +9,14 @@ from pathlib import Path
 import streamlit as st
 import streamlit.components.v1 as components
 
+from windows_asyncio import silence_windows_connection_reset
+
 
 ROOT = Path(__file__).resolve().parent
+
+# Com "python iniciar.py" a correção já vem aplicada antes do servidor subir;
+# com "streamlit run" ela passa a valer a partir da primeira execução da página.
+silence_windows_connection_reset()
 
 
 def read_text(filename: str) -> str:
