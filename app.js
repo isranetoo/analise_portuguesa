@@ -74,7 +74,15 @@ function buildMatches(rows) {
         oppYellows: toNumber(row.amarelos_adversario),
         oppReds: toNumber(row.vermelhos_adversario),
         penGf: toNumber(row.penaltis_clube),
-        penGa: toNumber(row.penaltis_adversario)
+        penGa: toNumber(row.penaltis_adversario),
+        uf: row.uf,
+        sumula: row.sumula_url,
+        boletim: row.boletim_url,
+        attendance: toNumber(row.publico),
+        grossIncome: toNumber(row.renda_bruta),
+        netIncome: toNumber(row.renda_liquida),
+        lat: toNumber(row.latitude),
+        lon: toNumber(row.longitude)
       };
     });
 }
@@ -93,11 +101,35 @@ const groupTable = buildGroup(DATA.principal.grupo);
 const goalsByMatch = groupBy(DATA.principal.gols || [], 'id_jogo');
 const playersByMatch = groupBy(DATA.principal.atletas || [], 'id_jogo');
 
+// Cadastro dos atletas: nome, foto e camisa mais usada.
+const athleteInfo = new Map();
+(DATA.principal.atletas || []).forEach(row => {
+  const info = athleteInfo.get(row.atleta_id) || {id: row.atleta_id, name: row.atleta, foto: '', goalkeeper: false, shirts: new Map()};
+  if (row.foto) info.foto = row.foto;
+  info.goalkeeper = info.goalkeeper || row.goleiro === 1;
+  if (row.camisa) info.shirts.set(row.camisa, (info.shirts.get(row.camisa) || 0) + 1);
+  athleteInfo.set(row.atleta_id, info);
+});
+const shirtOf = (info) => [...info.shirts].sort((a, b) => b[1] - a[1])[0]?.[0];
+
+function avatar(id, name, size = 'sm') {
+  const initials = (name || '?').split(/\s+/).map(word => word[0]).slice(0, 2).join('').toUpperCase();
+  const foto = athleteInfo.get(id)?.foto;
+  const img = foto ? `<img src="${escapeHtml(foto)}" alt="" loading="lazy" onerror="this.remove()">` : '';
+  return `<span class="avatar ${size}" data-initials="${escapeHtml(initials)}" aria-hidden="true">${img}</span>`;
+}
+
+function athleteLink(id, name) {
+  if (!athleteInfo.has(id)) return escapeHtml(name);
+  return `<a class="athlete-link" href="#atleta/${encodeURIComponent(id)}" data-page="atleta" data-param="${escapeHtml(id)}">${escapeHtml(name)}</a>`;
+}
+
 const PHASE_SHORT = {'1ª fase': '1ª fase', '2ª fase': '2ª fase', '3ª fase': '3ª fase', 'Oitavas de final': 'Oitavas', 'Quartas de final': 'Quartas', 'Semifinal': 'Semifinal', 'Final': 'Final', 'Playoff de acesso': 'Playoff'};
 const PHASE_WITH_ARTICLE = {'1ª fase': 'na 1ª fase', '2ª fase': 'na 2ª fase', '3ª fase': 'na 3ª fase', 'Oitavas de final': 'nas oitavas de final', 'Quartas de final': 'nas quartas de final', 'Semifinal': 'na semifinal', 'Final': 'na final', 'Playoff de acesso': 'no playoff de acesso'};
 const PHASE_DESTINATION = {'2ª fase': 'à 2ª fase', '3ª fase': 'à 3ª fase', 'Oitavas de final': 'às oitavas', 'Quartas de final': 'às quartas', 'Semifinal': 'à semifinal', 'Final': 'à final', 'Playoff de acesso': 'ao playoff'};
 
 let venueFilter = 'Todos';
+let leagueExpanded = false;
 let stageFilter = 'Todas';
 let squadExpanded = false;
 let comparisonCard = null;
@@ -140,6 +172,28 @@ function getTies(list) {
   });
 }
 
+// Gols-chave: o que garantiu cada vitória e o que garantiu cada vaga no mata-mata.
+function computeKeyGoals() {
+  const winGoals = new Set();
+  const qualifyingGoals = new Set();
+  matches.forEach(m => {
+    if (m.result !== 'V') return;
+    const goal = (goalsByMatch.get(m.id) || []).filter(g => g.equipe === 'clube')[m.ga];
+    if (goal) winGoals.add(goal);
+  });
+  getTies(matches).filter(tie => tie.status === 'advanced' && tie.gf !== tie.ga).forEach(tie => {
+    let diff = 0, candidate = null;
+    tie.legs.flatMap(leg => goalsByMatch.get(leg.id) || []).forEach(goal => {
+      const before = diff;
+      diff += goal.equipe === 'clube' ? 1 : -1;
+      if (goal.equipe === 'clube' && before <= 0 && diff > 0) candidate = goal;
+      if (diff <= 0) candidate = null;
+    });
+    if (candidate) qualifyingGoals.add(candidate);
+  });
+  return {winGoals, qualifyingGoals};
+}
+
 function getOutcome(list, table) {
   const ties = getTies(list);
   const own = table.find(team => team.own);
@@ -155,6 +209,8 @@ function getOutcome(list, table) {
   if (last.status === 'advanced' && last.phase === 'Final') return {label: gendered('Campeão', 'Campeã'), finished: true, phase: last.phase};
   return {label: 'Em andamento', finished: false};
 }
+
+const KEY_GOALS = computeKeyGoals();
 
 // ---------- Identidade visual ----------
 function applyBranding() {
@@ -641,18 +697,16 @@ function scorerStats(list) {
   const players = new Map();
   let ownGoalsFor = 0;
   list.forEach(m => {
-    const clubGoals = (goalsByMatch.get(m.id) || []).filter(goal => goal.equipe === 'clube');
-    // Gol decisivo: o que colocou o time à frente de vez numa vitória.
-    const decisive = m.result === 'V' ? clubGoals[m.ga] : null;
-    clubGoals.forEach(goal => {
+    (goalsByMatch.get(m.id) || []).filter(goal => goal.equipe === 'clube').forEach(goal => {
       if (goal.tipo === 'Contra') { ownGoalsFor += 1; return; }
-      if (!players.has(goal.atleta_id)) players.set(goal.atleta_id, {name: goal.atleta, goals: 0, group: 0, knockout: 0, penalty: 0, freeKick: 0, decisive: 0});
+      if (!players.has(goal.atleta_id)) players.set(goal.atleta_id, {id: goal.atleta_id, name: goal.atleta, goals: 0, group: 0, knockout: 0, penalty: 0, freeKick: 0, decisive: 0, qualifying: 0});
       const player = players.get(goal.atleta_id);
       player.goals += 1;
       player[m.stage === 'Grupos' ? 'group' : 'knockout'] += 1;
       if (goal.tipo === 'Pênalti') player.penalty += 1;
       if (goal.tipo === 'Falta') player.freeKick += 1;
-      if (goal === decisive) player.decisive += 1;
+      if (KEY_GOALS.winGoals.has(goal)) player.decisive += 1;
+      if (KEY_GOALS.qualifyingGoals.has(goal)) player.qualifying += 1;
     });
   });
   const ranking = [...players.values()].sort((a, b) => b.goals - a.goals || b.decisive - a.decisive || a.name.localeCompare(b.name, 'pt-BR'));
@@ -678,19 +732,22 @@ function renderScorers(list) {
       p.knockout && `${p.knockout} no mata-mata`,
       p.penalty && `${p.penalty} de pênalti`,
       p.freeKick && `${p.freeKick} de falta`,
-      p.decisive && plural(p.decisive, 'decisivo', 'decisivos')
+      p.decisive && plural(p.decisive, 'decisivo', 'decisivos'),
+      p.qualifying && plural(p.qualifying, 'valeu vaga', 'valeram vaga')
     ].filter(Boolean).join(' · ');
     return `<div class="scorer-row ${rank === 1 ? 'leader' : ''}">
       <em>${rank}º</em>
-      <div><strong>${escapeHtml(p.name)}</strong><small>${details}</small><div class="scorer-bar"><i style="width:${p.goals / max * 100}%"></i></div></div>
+      <div class="scorer-main">${avatar(p.id, p.name)}<div><strong>${athleteLink(p.id, p.name)}</strong><small>${details}</small><div class="scorer-bar"><i style="width:${p.goals / max * 100}%"></i></div></div></div>
       <b>${p.goals}</b>
     </div>`;
   }).join('');
   const decisiveTotal = sum(ranking, p => p.decisive);
+  const qualifyingTotal = sum(ranking, p => p.qualifying);
   const others = ranking.slice(TOP);
   $('scorerChips').innerHTML = [
-    others.length ? `<span class="chip">Também marcaram: ${others.map(p => `${escapeHtml(p.name)} <b>${p.goals}</b>`).join(', ')}</span>` : '',
+    others.length ? `<span class="chip">Também marcaram: ${others.map(p => `${athleteLink(p.id, p.name)} <b>${p.goals}</b>`).join(', ')}</span>` : '',
     `<span class="chip"><b>${decisiveTotal}</b> ${decisiveTotal === 1 ? 'gol decisivo' : 'gols decisivos'}: os que garantiram vitórias</span>`,
+    qualifyingTotal ? `<span class="chip"><b>${qualifyingTotal}</b> ${qualifyingTotal === 1 ? 'gol garantiu' : 'gols garantiram'} vaga no mata-mata</span>` : '',
     ownGoalsFor ? `<span class="chip"><b>${ownGoalsFor}</b> ${ownGoalsFor === 1 ? 'gol contra' : 'gols contra'} a favor</span>` : ''
   ].join('');
 }
@@ -720,7 +777,7 @@ function renderDiscipline(list) {
     <div><span>Jogos com expulsão</span><b>${withRed.length}</b><small>${withRed.map(m => escapeHtml(m.opponent)).join(', ') || 'nenhum'}</small></div>
     <div><span>Jogo com mais cartões</span><b>${mostCards ? finite(mostCards.yellows) + finite(mostCards.reds) : 0}</b><small>${mostCards ? `${escapeHtml(mostCards.opponent)} · J${mostCards.round}` : '—'}</small></div>
     <div><span>Mais advertido</span><b>${booked[0] ? escapeHtml(booked[0].name) : '—'}</b><small>${booked[0] ? `${plural(booked[0].yellows, 'amarelo', 'amarelos')}${booked[0].reds ? ` · ${plural(booked[0].reds, 'vermelho', 'vermelhos')}` : ''}` : ''}</small></div>`;
-  $('disciplineChips').innerHTML = booked.slice(0, 8).map(p => `<span class="chip">${escapeHtml(p.name)} ${cardIcons(p.yellows, p.reds)}</span>`).join('');
+  $('disciplineChips').innerHTML = booked.slice(0, 8).map(p => `<span class="chip">${athleteLink(p.id, p.name)} ${cardIcons(p.yellows, p.reds)}</span>`).join('');
 }
 
 function cardIcons(yellows, reds) {
@@ -764,13 +821,13 @@ function renderSquad(list) {
     <div><span>Goleiros utilizados</span><b>${keepers.length}</b><small>${keepers.map(p => escapeHtml(p.name)).join(', ') || '—'}</small></div>`;
 
   const base = [...players].sort((a, b) => b.starts - a.starts || b.minutes - a.minutes).slice(0, 11);
-  $('baseEleven').innerHTML = base.map(p => `<span class="chip">${escapeHtml(p.name)} <b>${p.starts}</b></span>`).join('');
+  $('baseEleven').innerHTML = base.map(p => `<span class="chip">${athleteLink(p.id, p.name)} <b>${p.starts}</b></span>`).join('');
 
   const visible = squadExpanded ? players : players.slice(0, 12);
   $('squadBody').innerHTML = visible.map(p => {
     const share = possible ? p.minutes / possible * 100 : 0;
     return `<tr>
-      <td><div class="squad-name">${escapeHtml(p.name)}${p.goalkeeper ? '<small>GOL</small>' : ''}</div></td>
+      <td><div class="squad-name">${avatar(p.id, p.name)}${athleteLink(p.id, p.name)}${p.goalkeeper ? '<small>GOL</small>' : ''}</div></td>
       <td>${p.games}</td>
       <td>${p.starts}</td>
       <td><div class="minutes-meter"><i><b style="width:${share}%"></b></i><small>${p.minutes}'</small></div></td>
@@ -865,17 +922,27 @@ function matchDetails(m) {
   const goalItems = goals.map(goal => {
     const kind = goal.tipo !== 'Normal' ? ` <small>(${goal.tipo.toLowerCase()})</small>` : '';
     const team = goal.equipe === 'clube' ? CLUB.nome : m.opponent;
-    return `<li class="${goal.equipe === 'clube' ? '' : 'against'}"><span>${goal.minuto_jogo}' ${escapeHtml(goal.atleta)}${kind}</span><small>${escapeHtml(team)}</small></li>`;
+    const name = goal.equipe === 'clube' && goal.tipo !== 'Contra' ? athleteLink(goal.atleta_id, goal.atleta) : escapeHtml(goal.atleta);
+    const tags = [
+      KEY_GOALS.winGoals.has(goal) && '<em class="tag better">gol da vitória</em>',
+      KEY_GOALS.qualifyingGoals.has(goal) && '<em class="tag better">gol da vaga</em>'
+    ].filter(Boolean).join(' ');
+    return `<li class="${goal.equipe === 'clube' ? '' : 'against'}"><span>${goal.minuto_jogo}' ${name}${kind} ${tags}</span><small>${escapeHtml(team)}</small></li>`;
   }).join('') || '<li><span>Sem gols</span></li>';
-  const starters = players.filter(p => p.titular).map(p => escapeHtml(p.atleta));
-  const subs = players.filter(p => !p.titular).map(p => `${escapeHtml(p.atleta)} (${p.minuto_entrada}')`);
-  const booked = players.filter(p => p.amarelos || p.vermelhos).map(p => `${escapeHtml(p.atleta)} ${cardIcons(p.amarelos, p.vermelhos)}`);
+  const starters = players.filter(p => p.titular).map(p => athleteLink(p.atleta_id, p.atleta));
+  const subs = players.filter(p => !p.titular).map(p => `${athleteLink(p.atleta_id, p.atleta)} (${p.minuto_entrada}')`);
+  const booked = players.filter(p => p.amarelos || p.vermelhos).map(p => `${athleteLink(p.atleta_id, p.atleta)} ${cardIcons(p.amarelos, p.vermelhos)}`);
+  const documents = [
+    m.sumula && `<a href="${escapeHtml(m.sumula)}" target="_blank" rel="noopener">Súmula (PDF)</a>`,
+    m.boletim && `<a href="${escapeHtml(m.boletim)}" target="_blank" rel="noopener">Boletim financeiro</a>`
+  ].filter(Boolean).join(' · ');
+  const attendance = Number.isFinite(m.attendance) ? `<br>Público: <b>${m.attendance.toLocaleString('pt-BR')}</b>${Number.isFinite(m.grossIncome) ? ` · renda ${money(m.grossIncome)}` : ''}` : '';
   const halfTime = Number.isFinite(m.htGf) ? `${m.htGf} × ${m.htGa}` : '—';
   const penalties = Number.isFinite(m.penGf) ? `<br>Pênaltis: <b>${m.penGf} × ${m.penGa}</b>` : '';
   return `<div class="match-details">
     <div><h3>Gols</h3><ul>${goalItems}</ul></div>
     <div><h3>Escalação</h3><p><b>Titulares:</b> ${starters.join(', ') || '—'}<br><b>Entraram:</b> ${subs.join(', ') || '—'}<br><b>Cartões:</b> ${booked.join(', ') || '—'}</p></div>
-    <div><h3>Informações</h3><p>Intervalo: <b>${halfTime}</b>${penalties}<br>${escapeHtml(m.stadium)}${m.city ? ` · ${escapeHtml(m.city)}` : ''}<br>${formatDate(m.date)} · ${escapeHtml(m.time)}<br>Árbitro: ${escapeHtml(m.referee || '—')}<br>Cartões: ${finite(m.yellows)} amarelos, ${finite(m.reds)} vermelhos (adversário: ${finite(m.oppYellows)} e ${finite(m.oppReds)})</p></div>
+    <div><h3>Informações</h3><p>Intervalo: <b>${halfTime}</b>${penalties}<br>${escapeHtml(m.stadium)}${m.city ? ` · ${escapeHtml(m.city)}` : ''}<br>${formatDate(m.date)} · ${escapeHtml(m.time)}<br>Árbitro: ${escapeHtml(m.referee || '—')}<br>Cartões: ${finite(m.yellows)} amarelos, ${finite(m.reds)} vermelhos (adversário: ${finite(m.oppYellows)} e ${finite(m.oppReds)})${attendance}${documents ? `<br>${documents}` : ''}</p></div>
   </div>`;
 }
 
@@ -975,6 +1042,10 @@ function renderHome() {
     {page: 'elenco', title: 'Elenco', stat: `${players} atletas utilizados`, text: 'Time-base, titularidades, minutos jogados e cartões.'},
     {page: 'jogos', title: 'Jogos', stat: plural(s.games, 'partida', 'partidas'), text: 'Tabela completa com gols, escalação e arbitragem de cada jogo.'}
   ];
+  const leagueOwn = (DATA.principal.classificacao_geral || []).find(row => row.clube === 1);
+  if (leagueOwn) cards.push({page: 'serie-d', title: COMPETITION.nome, stat: `${leagueOwn.posicao}º de ${DATA.principal.classificacao_geral.length} na classificação geral`, text: `Indicadores comparados à média dos clubes da ${COMPETITION.nome} e classificação geral.`});
+  const homeAttendance = matches.filter(m => m.venue === 'Casa' && Number.isFinite(m.attendance));
+  if (homeAttendance.length) cards.push({page: 'estadios', title: 'Público e viagens', stat: `${Math.round(sum(homeAttendance, m => m.attendance) / homeAttendance.length).toLocaleString('pt-BR')} torcedores por jogo em casa`, text: 'Público e renda de cada jogo e mapa das viagens da campanha.'});
   if (comparisonCard) cards.push({page: 'comparacao', ...comparisonCard, text: 'Comparação de aproveitamento, gols e desfecho com a temporada anterior.'});
   $('homeCards').innerHTML = cards.map(card => `<a class="page-card" href="#${card.page}" data-page="${card.page}">
     <span>${escapeHtml(card.title)}</span><b>${escapeHtml(card.stat)}</b><p>${card.text}</p><em>Abrir →</em>
@@ -983,7 +1054,10 @@ function renderHome() {
 
 // ---------- Páginas ----------
 const PAGES = [...document.querySelectorAll('.page')].map(page => ({id: page.dataset.page, title: page.dataset.title, element: page}));
-const availablePages = () => PAGES.filter(page => !document.querySelector(`#mainNav a[data-page="${page.id}"]`)?.hidden);
+const availablePages = () => PAGES.filter(page => {
+  const link = document.querySelector(`#mainNav a[data-page="${page.id}"]`);
+  return link && !link.hidden;
+});
 const pageFromHash = () => decodeURIComponent((location.hash || '#inicio').slice(1));
 
 function renderPager(currentId) {
@@ -997,10 +1071,15 @@ function renderPager(currentId) {
 }
 
 function showPage(id, {push = false, scroll = true} = {}) {
-  const page = availablePages().find(p => p.id === id) || PAGES[0];
+  const [base, param] = id.split('/');
+  const isAthlete = base === 'atleta' && athleteInfo.has(param);
+  const page = isAthlete ? PAGES.find(p => p.id === 'atleta') : (availablePages().find(p => p.id === base) || PAGES[0]);
+  const navId = isAthlete ? 'elenco' : page.id;
   PAGES.forEach(p => { p.element.hidden = p !== page; });
+  if (isAthlete) renderAthlete(param);
+  if (page.id === 'estadios') ensureTravelMap();
   document.querySelectorAll('#mainNav a').forEach(link => {
-    if (link.dataset.page === page.id) link.setAttribute('aria-current', 'page');
+    if (link.dataset.page === navId) link.setAttribute('aria-current', 'page');
     else link.removeAttribute('aria-current');
   });
   // No celular o menu rola na horizontal: mantém a página ativa visível.
@@ -1013,11 +1092,13 @@ function showPage(id, {push = false, scroll = true} = {}) {
   const filterRow = $('filterRow');
   filterRow.hidden = !slot;
   if (slot) slot.appendChild(filterRow);
-  document.title = page.id === 'inicio' ? `${CLUB.nome} | Painel de desempenho` : `${page.title} · ${CLUB.nome} | Painel de desempenho`;
-  renderPager(page.id);
+  const title = isAthlete ? athleteInfo.get(param).name : page.title;
+  document.title = page.id === 'inicio' ? `${CLUB.nome} | Painel de desempenho` : `${title} · ${CLUB.nome} | Painel de desempenho`;
+  if (isAthlete) $('pagePager').innerHTML = '';
+  else renderPager(page.id);
   if (push) {
     // Em iframes do Streamlit (about:srcdoc) o histórico pode não estar disponível.
-    try { history.pushState(null, '', `#${page.id}`); } catch (_) { /* segue sem alterar o endereço */ }
+    try { history.pushState(null, '', `#${isAthlete ? `atleta/${encodeURIComponent(param)}` : page.id}`); } catch (_) { /* segue sem alterar o endereço */ }
   }
   if (scroll) window.scrollTo(0, 0);
 }
@@ -1026,10 +1107,362 @@ document.addEventListener('click', event => {
   const link = event.target.closest('a[data-page]');
   if (!link || event.ctrlKey || event.metaKey || event.shiftKey) return;
   event.preventDefault();
-  showPage(link.dataset.page, {push: true});
+  showPage(link.dataset.param ? `${link.dataset.page}/${link.dataset.param}` : link.dataset.page, {push: true});
 });
 window.addEventListener('popstate', () => showPage(pageFromHash()));
 window.addEventListener('hashchange', () => showPage(pageFromHash()));
+
+// ---------- Utilidades de exportação e formatação ----------
+function money(value) {
+  return value.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL', maximumFractionDigits: 0});
+}
+
+const FILE_PREFIX = `${CLUB.nome}_${COMPETITION.slug}_${COMPETITION.ano}`
+  .normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '_');
+
+function downloadCsv(filename, rows) {
+  if (!rows.length) return;
+  const headers = Object.keys(rows[0]);
+  const cell = (value) => {
+    const text = value === null || value === undefined ? '' : String(value);
+    return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+  };
+  const csv = '﻿' + [headers.join(','), ...rows.map(row => headers.map(h => cell(row[h])).join(','))].join('\n');
+  const url = URL.createObjectURL(new Blob([csv], {type: 'text/csv;charset=utf-8'}));
+  const link = Object.assign(document.createElement('a'), {href: url, download: filename});
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// ---------- Página do atleta ----------
+function renderAthlete(id) {
+  const info = athleteInfo.get(id);
+  const rows = matches.map(m => ({m, row: (playersByMatch.get(m.id) || []).find(r => r.atleta_id === id)}));
+  const played = rows.filter(item => item.row);
+  const goals = matches.flatMap(m => (goalsByMatch.get(m.id) || []).filter(g => g.atleta_id === id && g.equipe === 'clube' && g.tipo !== 'Contra').map(g => ({...g, match: m, original: g})));
+  const minutes = sum(played, item => item.row.minutos);
+  const starts = sum(played, item => item.row.titular);
+  const yellows = sum(played, item => item.row.amarelos);
+  const reds = sum(played, item => item.row.vermelhos);
+  const decisive = goals.filter(g => KEY_GOALS.winGoals.has(g.original)).length;
+  const qualifying = goals.filter(g => KEY_GOALS.qualifyingGoals.has(g.original)).length;
+  const shirt = shirtOf(info);
+  const possible = matches.length * 90;
+  const record = summarize(played.map(item => item.m));
+
+  $('athleteHeader').innerHTML = `${avatar(id, info.name, 'lg')}
+    <div>
+      <p class="eyebrow">${escapeHtml(CLUB.nome.toUpperCase())} · ${COMPETITION.nome.toUpperCase()} ${COMPETITION.ano}</p>
+      <h1>${escapeHtml(info.name)}</h1>
+      <p>${[shirt && `Camisa ${shirt}`, info.goalkeeper && 'Goleiro', `${plural(played.length, 'jogo', 'jogos')} na campanha`].filter(Boolean).join(' · ')}</p>
+    </div>`;
+
+  const tiles = [
+    {label: 'Jogos', value: `${played.length} de ${matches.length}`, note: `${plural(starts, 'como titular', 'como titular')}`},
+    {label: 'Minutos', value: minutes.toLocaleString('pt-BR'), note: `${pct(possible ? minutes / possible * 100 : 0)} do tempo possível`},
+    {label: 'Gols', value: goals.length, note: [decisive && plural(decisive, 'decisivo', 'decisivos'), qualifying && plural(qualifying, 'valeu vaga', 'valeram vaga')].filter(Boolean).join(' · ') || (goals.length ? 'nenhum decisivo' : 'sem gols')},
+    {label: 'Cartões', value: `${yellows} · ${reds}`, note: 'amarelos · vermelhos'},
+    {label: 'Com ele em campo', value: pct(record.efficiency), note: `${record.wins}V ${record.draws}E ${record.losses}D`}
+  ];
+  $('athleteKpis').innerHTML = tiles.map(tile => `<article class="home-kpi"><span>${tile.label}</span><b>${tile.value}</b><small>${tile.note}</small></article>`).join('');
+
+  $('athleteStrip').innerHTML = rows.map(({m, row}) => {
+    const kind = !row ? 'none' : row.titular ? 'starter' : 'sub';
+    const label = !row ? 'Não jogou' : row.titular ? `Titular · ${row.minutos}'` : `Entrou aos ${row.minuto_entrada}'`;
+    return `<div class="game-tile participation ${kind}" title="J${m.round} · ${escapeHtml(m.opponent)} · ${label}">
+      <span>J${String(m.round).padStart(2, '0')}</span><strong>${row ? `${row.minutos}'` : '—'}</strong>
+    </div>`;
+  }).join('');
+
+  $('athleteMatches').innerHTML = rows.map(({m, row}) => {
+    let participation = 'Não jogou';
+    if (row && row.titular) participation = row.minuto_saida < 90 ? `Titular, saiu aos ${row.minuto_saida}'` : 'Titular, jogou até o fim';
+    else if (row) participation = `Entrou aos ${row.minuto_entrada}'`;
+    const matchGoals = goals.filter(g => g.match === m).map(g => `${g.minuto_jogo}'${g.tipo !== 'Normal' ? ` (${g.tipo.toLowerCase()})` : ''}`).join(', ');
+    return `<tr class="${row ? '' : 'muted-row'}">
+      <td><span class="round-number">${String(m.round).padStart(2, '0')}</span></td>
+      <td class="date-cell">${formatDate(m.date)}</td>
+      <td><div class="result-cell"><span class="badge ${m.result}">${m.result}</span><b>${escapeHtml(CLUB.nome)} ${m.gf} × ${m.ga} ${escapeHtml(m.opponent)}</b></div></td>
+      <td>${participation}</td>
+      <td>${row ? `${row.minutos}'` : '—'}</td>
+      <td>${matchGoals || '—'}</td>
+      <td>${row ? cardIcons(row.amarelos, row.vermelhos) || '—' : '—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ---------- Contexto da competição ----------
+const LEAGUE_ROWS = DATA.principal.classificacao_geral || [];
+const LEAGUE_METRICS = [
+  {label: 'Aproveitamento', value: r => r.jogos ? r.pontos / (r.jogos * 3) * 100 : 0, format: pct, better: 1},
+  {label: 'Aproveitamento em casa', value: r => r.jogos_casa ? r.pontos_casa / (r.jogos_casa * 3) * 100 : 0, format: pct, better: 1},
+  {label: 'Aproveitamento fora', value: r => r.jogos_fora ? r.pontos_fora / (r.jogos_fora * 3) * 100 : 0, format: pct, better: 1},
+  {label: 'Gols marcados por jogo', value: r => r.jogos ? r.gols_pro / r.jogos : 0, format: decimal, better: 1},
+  {label: 'Gols sofridos por jogo', value: r => r.jogos ? r.gols_contra / r.jogos : 0, format: decimal, better: -1},
+  {label: 'Cartões amarelos por jogo', value: r => r.jogos ? r.amarelos / r.jogos : 0, format: decimal, better: -1}
+];
+
+function leagueRank(metric, own) {
+  const ownValue = metric.value(own);
+  return 1 + LEAGUE_ROWS.filter(r => r.jogos && (metric.value(r) - ownValue) * metric.better > 1e-9).length;
+}
+
+function renderLeague() {
+  const own = LEAGUE_ROWS.find(row => row.clube === 1);
+  if (!own) {
+    $('navLeague').hidden = true;
+    return;
+  }
+  const total = LEAGUE_ROWS.length;
+  const league = DATA.principal.liga || {};
+  const pageInfo = PAGES.find(page => page.id === 'serie-d');
+  pageInfo.title = COMPETITION.nome;
+  pageInfo.element.dataset.title = COMPETITION.nome;
+  $('navLeague').textContent = COMPETITION.nome;
+  $('leagueTitle').textContent = `${CLUB.nome} na ${COMPETITION.nome} ${COMPETITION.ano}`;
+  $('leagueLegendClub').textContent = CLUB.nome;
+  const behind = LEAGUE_ROWS.filter(row => row.posicao > own.posicao).length;
+  const reach = own.fase_alcancada === 'Campeão' ? 'com o título' : `com a campanha encerrada ${PHASE_WITH_ARTICLE[own.fase_alcancada] || `na ${own.fase_alcancada.toLowerCase()}`}`;
+  $('leagueSummary').textContent = `${own.posicao}º lugar na classificação geral entre ${total} clubes, ${reach}. ` +
+    `${clubRef(true)} ficou à frente de ${pct(behind / Math.max(total - 1, 1) * 100)} dos participantes.`;
+
+  const efficiency = LEAGUE_METRICS[0];
+  const avgEfficiency = sum(LEAGUE_ROWS, efficiency.value) / total;
+  const tiles = [
+    {label: 'Classificação geral', value: `${own.posicao}º de ${total}`, note: own.fase_alcancada},
+    {label: 'Aproveitamento', value: pct(efficiency.value(own)), note: `${leagueRank(efficiency, own)}º melhor · média ${pct(avgEfficiency)}`},
+    {label: 'Gols por jogo na competição', value: decimal(league.media_gols_jogo || 0), note: `${(league.jogos || 0).toLocaleString('pt-BR')} jogos disputados`},
+    {label: 'Vitórias do mandante', value: pct(league.jogos ? league.vitorias_mandante / league.jogos * 100 : 0), note: `empates ${pct(league.jogos ? league.empates / league.jogos * 100 : 0)} · visitante ${pct(league.jogos ? league.vitorias_visitante / league.jogos * 100 : 0)}`}
+  ];
+  $('leagueKpis').innerHTML = tiles.map(tile => `<article class="home-kpi"><span>${tile.label}</span><b>${tile.value}</b><small>${tile.note}</small></article>`).join('');
+
+  $('leagueMetrics').innerHTML = LEAGUE_METRICS.map(metric => {
+    const values = LEAGUE_ROWS.filter(r => r.jogos).map(metric.value);
+    const min = Math.min(...values), max = Math.max(...values);
+    const avg = values.reduce((a, b) => a + b, 0) / values.length;
+    const ownValue = metric.value(own);
+    const position = (value) => max > min ? (value - min) / (max - min) * 100 : 50;
+    const rank = leagueRank(metric, own);
+    const good = (ownValue - avg) * metric.better >= 0;
+    return `<div class="league-metric">
+      <div class="lm-head"><span>${metric.label}${metric.better < 0 ? ' <small>(menor é melhor)</small>' : ''}</span><b>${metric.format(ownValue)}</b><em class="tag ${good ? 'better' : 'worse'}">${rank}º de ${values.length}</em></div>
+      <div class="lm-track"><i class="avg" style="left:${position(avg)}%" title="Média: ${metric.format(avg)}"></i><i class="own" style="left:${position(ownValue)}%" title="${escapeHtml(CLUB.nome)}: ${metric.format(ownValue)}"></i></div>
+      <div class="lm-scale"><span>${metric.format(min)}</span><span>média ${metric.format(avg)}</span><span>${metric.format(max)}</span></div>
+    </div>`;
+  }).join('');
+  renderLeagueTable();
+}
+
+function renderLeagueTable() {
+  const own = LEAGUE_ROWS.find(row => row.clube === 1);
+  const visible = leagueExpanded ? LEAGUE_ROWS : LEAGUE_ROWS.filter(row => row.posicao <= 16 || row === own);
+  $('leagueTable').innerHTML = visible.map(row => `<tr class="${row.clube ? 'own-row' : ''}">
+    <td><span class="round-number">${row.posicao}</span></td>
+    <td><b>${escapeHtml(row.time)}</b></td>
+    <td>${escapeHtml(row.fase_alcancada)}</td>
+    <td><b>${row.pontos}</b></td><td>${row.jogos}</td><td>${row.vitorias}</td><td>${row.empates}</td><td>${row.derrotas}</td>
+    <td>${signedNumber(row.saldo)}</td>
+    <td>${pct(row.jogos ? row.pontos / (row.jogos * 3) * 100 : 0)}</td>
+  </tr>`).join('');
+  $('leagueToggle').textContent = leagueExpanded ? 'Mostrar menos' : `Mostrar todos (${LEAGUE_ROWS.length})`;
+}
+
+// ---------- Banco de reservas ----------
+function renderBench(list) {
+  const rows = list.flatMap(m => (playersByMatch.get(m.id) || []).map(row => ({...row, match: m})));
+  if (!rows.length) {
+    $('benchStats').innerHTML = '';
+    $('benchSplit').innerHTML = '<p class="empty-state">Escalações indisponíveis neste recorte.</p>';
+    $('benchScorers').innerHTML = '';
+    return;
+  }
+  const subs = rows.filter(row => !row.titular);
+  const benchKeys = new Set(subs.map(row => `${row.id_jogo}:${row.atleta_id}`));
+  const playerGoals = list.flatMap(m => (goalsByMatch.get(m.id) || []).filter(g => g.equipe === 'clube' && g.tipo !== 'Contra'));
+  const benchGoals = playerGoals.filter(g => benchKeys.has(`${g.id_jogo}:${g.atleta_id}`));
+  const benchKeyGoals = benchGoals.filter(g => KEY_GOALS.winGoals.has(g) || KEY_GOALS.qualifyingGoals.has(g));
+  const firstSubs = list.map(m => {
+    const minutes = (playersByMatch.get(m.id) || []).filter(row => !row.titular).map(row => row.minuto_entrada);
+    return {m, first: minutes.length ? Math.min(...minutes) : null};
+  });
+  const withSubs = firstSubs.filter(item => item.first !== null);
+  const avgFirst = withSubs.length ? sum(withSubs, item => item.first) / withSubs.length : 0;
+  const halftime = subs.filter(row => row.minuto_entrada === 45).length;
+
+  $('benchStats').innerHTML = `
+    <div><span>Gols de quem saiu do banco</span><b>${benchGoals.length} de ${playerGoals.length}</b><small>${pct(playerGoals.length ? benchGoals.length / playerGoals.length * 100 : 0)} dos gols dos atletas</small></div>
+    <div><span>Gols decisivos do banco</span><b>${benchKeyGoals.length}</b><small>garantiram vitória ou vaga</small></div>
+    <div><span>Primeira substituição</span><b>${Math.round(avgFirst)}'</b><small>minuto médio</small></div>
+    <div><span>Trocas no intervalo</span><b>${halftime}</b><small>${decimal(list.length ? halftime / list.length : 0)} por jogo</small></div>`;
+
+  const early = firstSubs.filter(item => item.first !== null && item.first <= 60).map(item => item.m);
+  const late = firstSubs.filter(item => item.first === null || item.first > 60).map(item => item.m);
+  const card = (title, subtitle, games) => {
+    const s = summarize(games);
+    return `<div class="bench-card"><span>${title}</span><b>${games.length ? pct(s.efficiency) : '—'}</b><small>${subtitle} · ${plural(s.games, 'jogo', 'jogos')} · ${s.wins}V ${s.draws}E ${s.losses}D</small></div>`;
+  };
+  $('benchSplit').innerHTML = card('Mexeu cedo', '1ª troca até os 60 minutos', early) + card('Mexeu tarde', '1ª troca depois dos 60 minutos', late);
+
+  const scorers = new Map();
+  benchGoals.forEach(g => scorers.set(g.atleta_id, {name: g.atleta, goals: (scorers.get(g.atleta_id)?.goals || 0) + 1}));
+  $('benchScorers').innerHTML = scorers.size
+    ? `<span class="chip">Marcaram vindo do banco: ${[...scorers].map(([id, p]) => `${athleteLink(id, p.name)} <b>${p.goals}</b>`).join(', ')}</span>`
+    : '<span class="chip">Nenhum gol de reserva neste recorte.</span>';
+}
+
+// ---------- Arbitragem ----------
+function renderReferees(list) {
+  const byReferee = new Map();
+  list.forEach(m => {
+    const name = m.referee || 'Não informado';
+    if (!byReferee.has(name)) byReferee.set(name, []);
+    byReferee.get(name).push(m);
+  });
+  const entries = [...byReferee].map(([name, games]) => ({name, games, s: summarize(games)}))
+    .sort((a, b) => b.games.length - a.games.length || b.s.efficiency - a.s.efficiency || a.name.localeCompare(b.name, 'pt-BR'));
+  $('refereesBody').innerHTML = entries.map(({name, games, s}) => `<tr>
+    <td><b>${escapeHtml(name)}</b></td>
+    <td>${games.length}</td>
+    <td>${s.wins}V ${s.draws}E ${s.losses}D</td>
+    <td>${pct(s.efficiency)}</td>
+    <td>${decimal(sum(games, m => finite(m.yellows) + finite(m.reds)) / games.length)} × ${decimal(sum(games, m => finite(m.oppYellows) + finite(m.oppReds)) / games.length)}</td>
+    <td><div class="opponent-results">${games.map(m => `<span class="${m.result}" title="J${m.round} · ${escapeHtml(m.opponent)}">J${m.round} ${m.gf}×${m.ga}</span>`).join('')}</div></td>
+  </tr>`).join('');
+  const states = new Map();
+  list.forEach(m => {
+    const uf = (m.referee || '').match(/\(([A-Z]{2})\)$/)?.[1];
+    if (uf) states.set(uf, (states.get(uf) || 0) + 1);
+  });
+  const topState = [...states].sort((a, b) => b[1] - a[1])[0];
+  $('refereesSummary').textContent = `${plural(entries.length, 'árbitro diferente', 'árbitros diferentes')} em ${plural(list.length, 'jogo', 'jogos')}` +
+    (topState ? `; a federação mais frequente foi ${topState[0]} (${plural(topState[1], 'jogo', 'jogos')}).` : '.');
+}
+
+// ---------- Público e renda ----------
+function renderAttendance() {
+  const withData = matches.filter(m => Number.isFinite(m.attendance));
+  const home = withData.filter(m => m.venue === 'Casa');
+  const missing = matches.length - withData.length;
+  if (!withData.length) {
+    $('attendanceKpis').innerHTML = '';
+    $('attendanceChart').innerHTML = '<p class="empty-state">Nenhum boletim financeiro com público disponível.</p>';
+    return;
+  }
+  const biggest = [...withData].sort((a, b) => b.attendance - a.attendance)[0];
+  const homeAvg = home.length ? sum(home, m => m.attendance) / home.length : 0;
+  const homeGross = sum(home.filter(m => Number.isFinite(m.grossIncome)), m => m.grossIncome);
+  const homeNet = home.filter(m => Number.isFinite(m.netIncome));
+  const tiles = [
+    {label: 'Público em casa', value: sum(home, m => m.attendance).toLocaleString('pt-BR'), note: `${plural(home.length, 'jogo', 'jogos')} com boletim`},
+    {label: 'Média em casa', value: Math.round(homeAvg).toLocaleString('pt-BR'), note: 'torcedores por jogo'},
+    {label: 'Maior público', value: biggest.attendance.toLocaleString('pt-BR'), note: `${escapeHtml(biggest.opponent)} · ${biggest.venue === 'Casa' ? 'em casa' : 'fora'}`},
+    {label: 'Renda bruta em casa', value: money(homeGross), note: `${money(home.length ? homeGross / home.length : 0)} por jogo`},
+    homeNet.length && {label: 'Resultado líquido em casa', value: money(sum(homeNet, m => m.netIncome)), note: 'receita menos despesas do jogo'}
+  ].filter(Boolean);
+  $('attendanceKpis').innerHTML = tiles.map(tile => `<article class="home-kpi"><span>${tile.label}</span><b>${tile.value}</b><small>${tile.note}</small></article>`).join('');
+
+  const max = Math.max(...withData.map(m => m.attendance));
+  $('attendanceChart').innerHTML = matches.map(m => {
+    const has = Number.isFinite(m.attendance);
+    const height = has ? Math.max(4, m.attendance / max * 160) : 18;
+    const title = `J${m.round} · ${m.opponent} (${m.venue === 'Casa' ? 'casa' : 'fora'}) · ${has ? `${m.attendance.toLocaleString('pt-BR')} torcedores` : 'sem boletim legível'}`;
+    return `<div class="attendance-col ${has ? '' : 'missing'}" title="${escapeHtml(title)}">
+      <b>${has ? (m.attendance >= 1000 ? `${(m.attendance / 1000).toLocaleString('pt-BR', {maximumFractionDigits: 1})} mil` : m.attendance) : '—'}</b>
+      <i class="${has ? m.result : ''}" style="height:${height}px"></i>
+      <span>J${m.round}</span><small>${m.venue === 'Casa' ? 'C' : 'F'}</small>
+    </div>`;
+  }).join('');
+
+  const above = home.filter(m => m.attendance >= homeAvg);
+  const below = home.filter(m => m.attendance < homeAvg);
+  $('attendanceInsight').innerHTML = `A média em casa foi de <b>${Math.round(homeAvg).toLocaleString('pt-BR')} torcedores</b>; o maior público da campanha foi <b>${biggest.attendance.toLocaleString('pt-BR')}</b>, contra o ${escapeHtml(biggest.opponent)} (${formatDate(biggest.date)}). ` +
+    (above.length && below.length ? `Nos jogos em casa com público acima da média, o aproveitamento foi de <b>${pct(summarize(above).efficiency)}</b>; abaixo da média, <b>${pct(summarize(below).efficiency)}</b>.` : '');
+  $('attendanceMethod').textContent = 'Público = ingressos vendidos, incluindo gratuidades, segundo os boletins financeiros das federações.' +
+    (missing ? ` ${plural(missing, 'jogo não tem boletim legível', 'jogos não têm boletim legível')} (documento escaneado, sem texto).` : '');
+}
+
+// ---------- Viagens ----------
+const EARTH_RADIUS_KM = 6371;
+function distanceKm(a, b) {
+  const rad = (deg) => deg * Math.PI / 180;
+  const dLat = rad(b.lat - a.lat), dLon = rad(b.lon - a.lon);
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLon / 2) ** 2;
+  return 2 * EARTH_RADIUS_KM * Math.asin(Math.sqrt(h));
+}
+
+function travelData() {
+  const located = matches.filter(m => Number.isFinite(m.lat) && Number.isFinite(m.lon));
+  const homeGame = located.find(m => m.venue === 'Casa' && m.city === mostCommon(located.filter(x => x.venue === 'Casa').map(x => x.city)));
+  if (!homeGame) return null;
+  const base = {lat: homeGame.lat, lon: homeGame.lon, city: homeGame.city, uf: homeGame.uf};
+  const trips = located.filter(m => m.venue === 'Fora').map(m => ({m, km: Math.round(distanceKm(base, m) * 2)}));
+  return {base, trips, located};
+}
+
+function renderTravelList() {
+  const data = travelData();
+  if (!data) {
+    $('travelSummary').textContent = 'Coordenadas indisponíveis.';
+    return;
+  }
+  const total = sum(data.trips, trip => trip.km);
+  const longest = [...data.trips].sort((a, b) => b.km - a.km)[0];
+  $('travelSummary').textContent = `${total.toLocaleString('pt-BR')} km percorridos em ${plural(data.trips.length, 'viagem', 'viagens')} a partir de ${data.base.city}` +
+    (longest ? `; a mais longa foi até ${longest.m.city} (${longest.km.toLocaleString('pt-BR')} km, ida e volta).` : '.');
+  $('travelList').innerHTML = data.trips.map(({m, km}) => `<li class="${m.result}">
+    <span class="badge ${m.result}">${m.result}</span>
+    <div><b>${escapeHtml(m.city)}/${escapeHtml(m.uf)}</b><small>J${m.round} · ${escapeHtml(m.opponent)} ${m.gf}×${m.ga} · ${escapeHtml(m.stadium)}</small></div>
+    <em>${km.toLocaleString('pt-BR')} km</em>
+  </li>`).join('');
+}
+
+let travelMap = null;
+let travelTiles = null;
+const tileUrl = () => document.documentElement.dataset.theme === 'dark' || (!document.documentElement.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches)
+  ? 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}'
+  : 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}';
+
+function ensureTravelMap() {
+  const data = travelData();
+  const container = $('travelMap');
+  if (!data) return;
+  if (!window.L) {
+    container.innerHTML = '<p class="empty-state">Mapa indisponível: a biblioteca de mapas não carregou (sem conexão?).</p>';
+    return;
+  }
+  // O Leaflet precisa do contêiner visível para medir o tamanho: cria o mapa na primeira exibição.
+  requestAnimationFrame(() => {
+    if (!travelMap) {
+      const css = getComputedStyle(document.documentElement);
+      const color = {V: css.getPropertyValue('--win').trim(), E: css.getPropertyValue('--draw').trim(), D: css.getPropertyValue('--primary').trim()};
+      travelMap = L.map(container, {scrollWheelZoom: false, attributionControl: true});
+      travelTiles = L.tileLayer(tileUrl(), {maxZoom: 12, attribution: 'Tiles © Esri — Esri, HERE, Garmin, © OpenStreetMap'}).addTo(travelMap);
+      const byCity = new Map();
+      data.trips.forEach(trip => {
+        const key = `${trip.m.city}/${trip.m.uf}`;
+        if (!byCity.has(key)) byCity.set(key, []);
+        byCity.get(key).push(trip);
+      });
+      byCity.forEach(trips => {
+        const {m, km} = trips[0];
+        L.polyline([[data.base.lat, data.base.lon], [m.lat, m.lon]], {color: css.getPropertyValue('--loss-strong').trim(), weight: 2, dashArray: '6 6'}).addTo(travelMap);
+        const best = trips.some(t => t.m.result === 'V') ? 'V' : trips.some(t => t.m.result === 'E') ? 'E' : 'D';
+        L.circleMarker([m.lat, m.lon], {radius: 7 + trips.length * 2, color: '#fff', weight: 2, fillColor: color[best], fillOpacity: .95})
+          .bindPopup(`<b>${escapeHtml(m.city)}/${escapeHtml(m.uf)}</b> · ${km.toLocaleString('pt-BR')} km<br>${trips.map(t => `${escapeHtml(t.m.opponent)} ${t.m.gf}×${t.m.ga}`).join('<br>')}`)
+          .addTo(travelMap);
+      });
+      L.circleMarker([data.base.lat, data.base.lon], {radius: 10, color: '#fff', weight: 3, fillColor: css.getPropertyValue('--secondary').trim() || '#0e773e', fillOpacity: 1})
+        .bindPopup(`<b>${escapeHtml(data.base.city)}</b> · sede`).addTo(travelMap);
+      travelMap.fitBounds(data.located.map(m => [m.lat, m.lon]), {padding: [30, 30]});
+    } else {
+      travelMap.invalidateSize();
+    }
+  });
+}
+
+$('themeToggle').addEventListener('click', () => { if (travelTiles) travelTiles.setUrl(tileUrl()); });
 
 // ---------- Filtros e eventos ----------
 function renderFiltered() {
@@ -1041,7 +1474,9 @@ function renderFiltered() {
   renderScorers(list);
   renderDiscipline(list);
   renderSquad(list);
+  renderBench(list);
   renderTable(list);
+  renderReferees(list);
 }
 
 function setupSegmented(containerId, onChange) {
@@ -1065,6 +1500,20 @@ $('squadToggle').addEventListener('click', () => {
   renderSquad(filteredMatches());
 });
 
+$('leagueToggle').addEventListener('click', () => {
+  leagueExpanded = !leagueExpanded;
+  renderLeagueTable();
+});
+$('matchesDownload').addEventListener('click', () => {
+  const ids = new Set(filteredMatches().map(m => m.id));
+  downloadCsv(`${FILE_PREFIX}_jogos.csv`, DATA.principal.jogos.filter(row => ids.has(row.id_jogo)));
+});
+$('squadDownload').addEventListener('click', () => {
+  downloadCsv(`${FILE_PREFIX}_elenco.csv`, squadStats(filteredMatches()).map(p => ({
+    atleta: p.name, jogos: p.games, titular: p.starts, minutos: p.minutes, gols: p.goals, amarelos: p.yellows, vermelhos: p.reds
+  })));
+});
+
 applyBranding();
 setupThemeToggle();
 renderHeader();
@@ -1075,6 +1524,9 @@ renderHighlights();
 renderPerformance();
 renderOpponents();
 renderComparison();
+renderLeague();
+renderAttendance();
+renderTravelList();
 renderHome();
 renderFiltered();
 showPage(pageFromHash(), {scroll: false});

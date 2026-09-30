@@ -6,7 +6,12 @@ principal são gerados:
 - {prefixo}_todos_jogos.csv: um registro por partida do clube;
 - {prefixo}_grupo.csv: classificação final do grupo do clube na primeira fase;
 - {prefixo}_gols.csv: todos os gols das partidas do clube (autor, tempo e minuto);
-- {prefixo}_atletas.csv: participação dos atletas do clube em cada partida.
+- {prefixo}_atletas.csv: participação dos atletas do clube em cada partida;
+- {prefixo}_classificacao_geral.csv: campanha de todos os clubes da competição.
+
+Os jogos recebem ainda o público e a renda lidos dos boletins financeiros (quando o PDF tem
+texto; requer a biblioteca pdfplumber, com cache em boletins.json) e as coordenadas da
+cidade, guardadas em coordenadas.json para não repetir consultas ao OpenStreetMap.
 
 Para a temporada de comparação são gerados apenas os jogos e o grupo. Por fim, tudo é
 consolidado em dados.js, o arquivo lido pela dashboard.
@@ -15,10 +20,12 @@ Não exige chave de API. Execute com:  python coleta_detalhada.py
 """
 
 import csv
+import io
 import json
 import re
 import time
 import unicodedata
+import urllib.parse
 import urllib.request
 from collections import defaultdict
 from pathlib import Path
@@ -31,16 +38,23 @@ HEADERS = {
     "Accept": "application/json",
 }
 TIPOS_GOL = {"NR": "Normal", "PN": "Pênalti", "FT": "Falta", "CT": "Contra"}
+GEOCODER_URL = "https://nominatim.openstreetmap.org/search"
+ARQUIVO_COORDENADAS = ROOT / "coordenadas.json"
+ARQUIVO_BOLETINS = ROOT / "boletins.json"
 
 
 # =========================================================
 # 1. ACESSO À CBF
 # =========================================================
 
-def baixar(url, como_json=True):
-    request = urllib.request.Request(url, headers=HEADERS)
+def baixar_bytes(url, headers=HEADERS):
+    request = urllib.request.Request(url, headers=headers)
     with urllib.request.urlopen(request, timeout=30) as response:
-        corpo = response.read()
+        return response.read()
+
+
+def baixar(url, como_json=True):
+    corpo = baixar_bytes(url)
     return json.loads(corpo) if como_json else corpo.decode("utf-8", errors="replace")
 
 
@@ -62,13 +76,25 @@ def descobrir_competicao(slug, ano):
     return competicao.group(1), sorted(fases.values(), key=lambda fase: int(fase["id"]))
 
 
+TENTATIVAS = 4
+
+
 def buscar_rodada(competicao_id, fase_id, rodada):
+    """Busca os jogos de uma rodada, com novas tentativas em caso de falha.
+
+    Se a rodada continuar indisponível, a coleta é interrompida: gravar dados parciais
+    (um jogo a menos, por exemplo) seria pior do que manter os arquivos anteriores.
+    """
     url = f"{API_URL}/jogos/campeonato/{competicao_id}/rodada/{rodada}/fase/{fase_id}"
-    try:
-        dados = baixar(url)
-    except Exception as erro:
-        print(f"   Falha em fase {fase_id}, rodada {rodada}: {erro}")
-        return []
+    for tentativa in range(1, TENTATIVAS + 1):
+        try:
+            dados = baixar(url)
+            break
+        except Exception as erro:
+            print(f"   Falha em fase {fase_id}, rodada {rodada} (tentativa {tentativa}/{TENTATIVAS}): {erro}")
+            if tentativa == TENTATIVAS:
+                raise SystemExit(f"Não foi possível obter a fase {fase_id}, rodada {rodada}. Nenhum arquivo foi alterado.")
+            time.sleep(2 ** tentativa)
 
     jogos = []
     for grupo in dados.get("jogos") or []:
@@ -120,7 +146,9 @@ def nome_clube(clube, nomes):
         return nomes[clube["id"]]
     # Remove sufixos societários que a CBF inclui no nome (ex.: "Rio Branco A.C. SAF").
     sufixos = r"(\s+(S\.?\s?A\.?\s?F\.?|F\.?\s?C\.?|A\.?\s?C\.?|E\.?\s?C\.?))+\s*$"
-    return re.sub(sufixos, "", clube["nome"].strip(), flags=re.IGNORECASE)
+    nome = re.sub(sufixos, "", clube["nome"].strip(), flags=re.IGNORECASE)
+    # Siglas de três letras vêm como nome comum (ex.: "Asa", "Abc", "Csa").
+    return nome.upper() if re.fullmatch(r"[A-Za-z]{3}", nome) else nome
 
 
 def nome_atleta(apelido):
@@ -176,6 +204,14 @@ def cartoes_por_clube(jogo):
         elif "VERMELHO" in resultado:
             contagem[evento.get("clube_id")]["vermelhos"] += 1
     return contagem
+
+
+def documento(jogo, prefixo):
+    """Link de um documento do jogo (ex.: 'súmula', 'boletim')."""
+    for doc in jogo.get("documentos") or []:
+        if (doc.get("title") or "").strip().lower().startswith(prefixo):
+            return doc.get("url", "")
+    return ""
 
 
 def arbitro_principal(jogo):
@@ -239,7 +275,10 @@ def montar_linha(jogo, fase_nome, etapa, clube_id, nomes):
         "penaltis_adversario": penaltis_contra if tem_penaltis else None,
         "estadio": partes_local[0] if partes_local else "",
         "cidade": partes_local[1] if len(partes_local) > 1 else "",
+        "uf": partes_local[2] if len(partes_local) > 2 else "",
         "arbitro": arbitro_principal(jogo),
+        "sumula_url": documento(jogo, "súmula"),
+        "boletim_url": documento(jogo, "boletim"),
         "amarelos_clube": cartoes[clube_id]["amarelos"] if encerrado else None,
         "vermelhos_clube": cartoes[clube_id]["vermelhos"] if encerrado else None,
         "amarelos_adversario": cartoes[adversario["id"]]["amarelos"] if encerrado else None,
@@ -312,6 +351,7 @@ def linhas_de_atletas(jogo, clube_id):
             "atleta_id": atleta_id,
             "atleta": nome_atleta(atletas[atleta_id].get("apelido")),
             "camisa": numero(atletas[atleta_id].get("numero_camisa")),
+            "foto": atletas[atleta_id].get("foto", ""),
             "goleiro": int(atletas[atleta_id].get("goleiro") == "true"),
             "titular": int(inicio == 0),
             "minuto_entrada": inicio,
@@ -371,6 +411,191 @@ def classificacao_do_grupo(jogos_grupo, clube_id, nomes):
     ]
 
 
+def vencedor_do_confronto(partidas):
+    """Id do clube que venceu um confronto de ida e volta (agregado e, se preciso, pênaltis)."""
+    gols = defaultdict(int)
+    penaltis = defaultdict(int)
+    for jogo in partidas:
+        for lado in ("mandante", "visitante"):
+            gols[jogo[lado]["id"]] += numero(jogo[lado].get("gols")) or 0
+            penaltis[jogo[lado]["id"]] += numero(jogo[lado].get("panaltis")) or 0
+    if len(gols) != 2:
+        return None
+    (a, gols_a), (b, gols_b) = gols.items()
+    if gols_a != gols_b:
+        return a if gols_a > gols_b else b
+    if penaltis[a] != penaltis[b]:
+        return a if penaltis[a] > penaltis[b] else b
+    return None
+
+
+def classificacao_geral(partidas, clube_id, nomes):
+    """Campanha de todos os clubes, ordenada pela fase alcançada e depois por pontos.
+
+    partidas: lista de (jogo, nivel_da_fase, nome_da_fase, conta_para_nivel).
+    O playoff de acesso soma pontos, mas não altera a fase alcançada.
+    """
+    tabela = {}
+    confrontos_finais = defaultdict(list)
+    nivel_final = max((nivel for _, nivel, _, conta in partidas if conta), default=0)
+    for jogo, nivel, fase, conta_para_nivel in partidas:
+        gols_m = numero(jogo["mandante"].get("gols"))
+        gols_v = numero(jogo["visitante"].get("gols"))
+        if gols_m is None or gols_v is None:
+            continue
+        cartoes = cartoes_por_clube(jogo)
+        if conta_para_nivel and nivel == nivel_final:
+            confrontos_finais[frozenset((jogo["mandante"]["id"], jogo["visitante"]["id"]))].append(jogo)
+        for clube, pro, contra, casa in (
+            (jogo["mandante"], gols_m, gols_v, True),
+            (jogo["visitante"], gols_v, gols_m, False),
+        ):
+            linha = tabela.setdefault(clube["id"], {
+                "time": nome_clube(clube, nomes), "nivel": 0, "fase_alcancada": "1ª fase",
+                "pontos": 0, "jogos": 0, "vitorias": 0, "empates": 0, "derrotas": 0,
+                "gols_pro": 0, "gols_contra": 0, "amarelos": 0, "vermelhos": 0,
+                "pontos_casa": 0, "jogos_casa": 0, "pontos_fora": 0, "jogos_fora": 0,
+            })
+            if conta_para_nivel and nivel >= linha["nivel"]:
+                linha["nivel"] = nivel
+                linha["fase_alcancada"] = fase
+            pontos = 3 if pro > contra else 1 if pro == contra else 0
+            linha["pontos"] += pontos
+            linha["jogos"] += 1
+            linha["vitorias" if pontos == 3 else "empates" if pontos == 1 else "derrotas"] += 1
+            linha["gols_pro"] += pro
+            linha["gols_contra"] += contra
+            linha["amarelos"] += cartoes[clube["id"]]["amarelos"]
+            linha["vermelhos"] += cartoes[clube["id"]]["vermelhos"]
+            linha["pontos_casa" if casa else "pontos_fora"] += pontos
+            linha["jogos_casa" if casa else "jogos_fora"] += 1
+
+    # O campeão fica um nível acima do vice.
+    for jogos in confrontos_finais.values():
+        campeao = vencedor_do_confronto(jogos)
+        if campeao in tabela:
+            tabela[campeao]["nivel"] += 1
+            tabela[campeao]["fase_alcancada"] = "Campeão"
+
+    ordenada = sorted(
+        tabela.items(),
+        key=lambda item: (
+            item[1]["nivel"], item[1]["pontos"], item[1]["vitorias"],
+            item[1]["gols_pro"] - item[1]["gols_contra"], item[1]["gols_pro"],
+        ),
+        reverse=True,
+    )
+    linhas = []
+    for posicao, (time_id, linha) in enumerate(ordenada, start=1):
+        linha = {"posicao": posicao, **linha, "saldo": linha["gols_pro"] - linha["gols_contra"], "clube": int(time_id == clube_id)}
+        del linha["nivel"]
+        linhas.append(linha)
+    return linhas
+
+
+def resumo_da_liga(partidas):
+    """Números gerais da competição, calculados sobre todos os jogos encerrados."""
+    jogos = [jogo for jogo, *_ in partidas
+             if numero(jogo["mandante"].get("gols")) is not None and numero(jogo["visitante"].get("gols")) is not None]
+    if not jogos:
+        return {}
+    gols = [numero(j["mandante"]["gols"]) + numero(j["visitante"]["gols"]) for j in jogos]
+    mandante = sum(1 for j in jogos if numero(j["mandante"]["gols"]) > numero(j["visitante"]["gols"]))
+    visitante = sum(1 for j in jogos if numero(j["mandante"]["gols"]) < numero(j["visitante"]["gols"]))
+    return {
+        "jogos": len(jogos),
+        "gols": sum(gols),
+        "media_gols_jogo": round(sum(gols) / len(jogos), 3),
+        "vitorias_mandante": mandante,
+        "empates": len(jogos) - mandante - visitante,
+        "vitorias_visitante": visitante,
+    }
+
+
+def ler_boletim(texto):
+    """Extrai público e renda do texto de um boletim financeiro.
+
+    Aceita os modelos da FPF ("TOTAIS 2727 0 2727 R$ 42.130,00") e da FMF
+    ("TOTAL 5.597 4.381 1.216 12.150,00"): à venda, devolvidos, vendidos e arrecadação.
+    """
+    def inteiro(valor):
+        return int(valor.replace(".", ""))
+
+    def moeda(valor):
+        return float(valor.replace(".", "").replace(",", "."))
+
+    totais = re.search(
+        r"^TOTA(?:L|IS)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+(?:R\$\s*)?(-?[\d.]+,\d{2})\s*$",
+        texto, flags=re.MULTILINE,
+    )
+    if not totais:
+        return None
+    liquida = re.search(r"RENDA L[IÍ]QUIDA[^\n]*?(-?[\d.]+,\d{2})", texto)
+    return {
+        "publico": inteiro(totais.group(3)),
+        "renda_bruta": moeda(totais.group(4)),
+        "renda_liquida": moeda(liquida.group(1)) if liquida else None,
+    }
+
+
+def publicos_dos_boletins(jogos):
+    """Público e renda de cada boletim, com cache em boletins.json (chave: link do PDF).
+
+    Um boletim lido fica guardado e não é baixado de novo. Falhas de rede não entram no
+    cache, para que o boletim seja tentado novamente na próxima coleta sem apagar dados.
+    PDFs sem texto (documentos escaneados) ficam registrados como null.
+    """
+    cache = json.loads(ARQUIVO_BOLETINS.read_text(encoding="utf-8")) if ARQUIVO_BOLETINS.exists() else {}
+    try:
+        import pdfplumber
+    except ImportError:
+        print("   pdfplumber não instalado: usando apenas os boletins já guardados em boletins.json")
+        return cache
+    alterado = False
+    for jogo in jogos:
+        url = jogo["boletim_url"]
+        if not url or url in cache:
+            continue
+        try:
+            conteudo = baixar_bytes(url, {"User-Agent": HEADERS["User-Agent"]})
+            with pdfplumber.open(io.BytesIO(conteudo)) as pdf:
+                texto = "\n".join(pagina.extract_text() or "" for pagina in pdf.pages)
+        except Exception as erro:
+            print(f"   Boletim de {jogo['data']} indisponível agora ({erro}); será tentado na próxima coleta")
+            continue
+        cache[url] = ler_boletim(texto)
+        alterado = True
+    if alterado:
+        ARQUIVO_BOLETINS.write_text(json.dumps(cache, ensure_ascii=False, indent=1, sort_keys=True), encoding="utf-8")
+    return cache
+
+
+def coordenadas_das_cidades(jogos):
+    """Latitude e longitude de cada cidade, com cache em coordenadas.json."""
+    cache = {}
+    if ARQUIVO_COORDENADAS.exists():
+        cache = json.loads(ARQUIVO_COORDENADAS.read_text(encoding="utf-8"))
+    alterado = False
+    for jogo in jogos:
+        chave = f"{jogo['cidade']}/{jogo['uf']}"
+        if not jogo["cidade"] or chave in cache:
+            continue
+        consulta = urllib.parse.urlencode({
+            "q": f"{jogo['cidade']}, {jogo['uf']}, Brasil", "format": "json", "limit": 1, "countrycodes": "br",
+        })
+        try:
+            resultado = json.loads(baixar_bytes(f"{GEOCODER_URL}?{consulta}", {"User-Agent": "analise_clube/1.0 (coleta de dados)"}))
+            cache[chave] = [round(float(resultado[0]["lat"]), 5), round(float(resultado[0]["lon"]), 5)] if resultado else None
+        except Exception as erro:
+            print(f"   Coordenadas indisponíveis para {chave}: {erro}")
+            continue
+        alterado = True
+        time.sleep(1.1)  # política de uso do OpenStreetMap: no máximo 1 consulta por segundo
+    if alterado:
+        ARQUIVO_COORDENADAS.write_text(json.dumps(cache, ensure_ascii=False, indent=1, sort_keys=True), encoding="utf-8")
+    return cache
+
+
 # =========================================================
 # 3. COLETA DE UMA TEMPORADA
 # =========================================================
@@ -383,9 +608,10 @@ def coletar_temporada(config, ano):
 
     jogos, gols, atletas = [], [], []
     jogos_primeira_fase = []
+    todas_as_partidas = []
     grupo_clube = None
 
-    for fase in fases:
+    for nivel, fase in enumerate(fases):
         etapa = "Grupos" if fase["tipo"] == "pontuacao" else "Mata-mata"
         jogos_da_fase = []
         for rodada in range(1, fase["rodadas"] + 1):
@@ -395,9 +621,11 @@ def coletar_temporada(config, ano):
 
         fase_nome = nome_fase(fase, len(jogos_da_fase[0]) if jogos_da_fase else 0)
         print(f"\n{fase_nome}")
+        conta_para_nivel = fase_nome != "Playoff de acesso"
         for rodada_jogos in jogos_da_fase:
             if etapa == "Grupos":
                 jogos_primeira_fase.extend(rodada_jogos)
+            todas_as_partidas.extend((jogo, nivel, fase_nome, conta_para_nivel) for jogo in rodada_jogos)
             for jogo in rodada_jogos:
                 if clube_id not in (jogo["mandante"]["id"], jogo["visitante"]["id"]):
                     continue
@@ -429,6 +657,8 @@ def coletar_temporada(config, ano):
         "grupo": classificacao_do_grupo(jogos_grupo, clube_id, nomes),
         "gols": gols,
         "atletas": atletas,
+        "classificacao_geral": classificacao_geral(todas_as_partidas, clube_id, nomes),
+        "liga": resumo_da_liga(todas_as_partidas),
     }
 
 
@@ -481,11 +711,26 @@ def main():
     ano = config["competicao"]["ano"]
     principal = coletar_temporada(config, ano)
 
+    print("\nPúblico e renda (boletins financeiros)")
+    boletins = publicos_dos_boletins(principal["jogos"])
+    for jogo in principal["jogos"]:
+        publico = boletins.get(jogo["boletim_url"]) or {}
+        jogo["publico"] = publico.get("publico")
+        jogo["renda_bruta"] = publico.get("renda_bruta")
+        jogo["renda_liquida"] = publico.get("renda_liquida")
+        print(f"   {jogo['data']} {jogo['adversario']}: {jogo['publico'] if jogo['publico'] is not None else 'sem dados'}")
+
+    coordenadas = coordenadas_das_cidades(principal["jogos"])
+    for jogo in principal["jogos"]:
+        latitude, longitude = coordenadas.get(f"{jogo['cidade']}/{jogo['uf']}") or (None, None)
+        jogo["latitude"], jogo["longitude"] = latitude, longitude
+
     prefixo = prefixo_arquivos(config, ano)
     salvar_csv(ROOT / f"{prefixo}_todos_jogos.csv", principal["jogos"])
     salvar_csv(ROOT / f"{prefixo}_grupo.csv", principal["grupo"])
     salvar_csv(ROOT / f"{prefixo}_gols.csv", principal["gols"])
     salvar_csv(ROOT / f"{prefixo}_atletas.csv", principal["atletas"])
+    salvar_csv(ROOT / f"{prefixo}_classificacao_geral.csv", principal["classificacao_geral"])
 
     comparacao = None
     ano_comparacao = (config.get("comparacao") or {}).get("ano")
