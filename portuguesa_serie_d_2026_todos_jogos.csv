@@ -1,0 +1,17 @@
+id_jogo,data,hora,status,etapa,fase,grupo,rodada,adversario,mando,gols_portuguesa,gols_adversario,resultado,gols_1t_portuguesa,gols_1t_adversario,gols_2t_portuguesa,gols_2t_adversario,resultado_intervalo,penaltis_portuguesa,penaltis_adversario,estadio,cidade,amarelos_portuguesa,vermelhos_portuguesa,amarelos_adversario,vermelhos_adversario
+833757,2026-04-04,19:00,finished,Grupos,1ª fase,A13,R1,Portuguesa-RJ,Fora,1,1,E,1,1,0,0,E,,,Luso Brasileiro,Rio de Janeiro,4,0,3,0
+833827,2026-04-11,19:00,finished,Grupos,1ª fase,A13,R2,Pouso Alegre,Casa,3,0,V,1,0,2,0,V,,,Canindé,Sao Paulo,4,0,3,0
+833886,2026-04-18,15:00,finished,Grupos,1ª fase,A13,R3,America-RJ,Fora,1,1,E,1,0,0,1,V,,,Giulite Coutinho,Mesquita,2,0,2,0
+833950,2026-04-25,16:00,finished,Grupos,1ª fase,A13,R4,Água Santa,Fora,1,0,V,1,0,0,0,V,,,Jardim Inamar,Diadema,6,0,4,0
+833999,2026-05-02,19:00,finished,Grupos,1ª fase,A13,R5,Madureira,Casa,2,1,V,2,0,0,1,V,,,Canindé,Sao Paulo,2,0,4,1
+834195,2026-05-09,16:00,finished,Grupos,1ª fase,A13,R6,Madureira,Fora,0,1,D,0,0,0,1,E,,,Aniceto Moscoso,Rio de Janeiro,1,0,0,0
+834242,2026-05-16,16:00,finished,Grupos,1ª fase,A13,R7,Água Santa,Casa,0,0,E,0,0,0,0,E,,,Canindé,Sao Paulo,0,0,5,0
+834291,2026-05-23,16:00,finished,Grupos,1ª fase,A13,R8,America-RJ,Casa,4,1,V,2,1,2,0,V,,,Canindé,Sao Paulo,3,0,2,0
+834340,2026-05-30,16:00,finished,Grupos,1ª fase,A13,R9,Pouso Alegre,Fora,2,1,V,0,1,2,0,D,,,Manduzão,Pouso Alegre,3,0,2,0
+834770,2026-06-06,15:00,finished,Grupos,1ª fase,A13,R10,Portuguesa-RJ,Casa,2,0,V,0,0,2,0,E,,,Canindé,Sao Paulo,3,0,6,1
+834911,2026-06-20,17:00,finished,Mata-mata,2ª fase,B25,Ida,Sampaio Corrêa-RJ,Fora,1,1,E,0,0,1,1,E,,,Lourival Gomes,Saquarema,5,0,1,0
+834943,2026-06-27,16:00,finished,Mata-mata,2ª fase,B25,Volta,Sampaio Corrêa-RJ,Casa,1,0,V,0,0,1,0,E,,,Canindé,Sao Paulo,2,0,2,0
+834973,2026-07-04,18:00,finished,Mata-mata,3ª fase,C13,Ida,Marcílio Dias,Fora,1,1,E,1,1,0,0,E,,,Hercílio Luz,Itajai,6,0,3,0
+834989,2026-07-11,16:00,finished,Mata-mata,3ª fase,C13,Volta,Marcílio Dias,Casa,2,0,V,1,0,1,0,V,,,Canindé,Sao Paulo,2,0,2,1
+835063,2026-07-18,17:00,finished,Mata-mata,Oitavas de final,D06,Ida,Uberlândia,Fora,0,2,D,0,1,0,1,D,,,Parque do Sabiá,Uberlandia,3,1,3,0
+835071,2026-07-25,16:00,finished,Mata-mata,Oitavas de final,D06,Volta,Uberlândia,Casa,1,0,V,0,0,1,0,E,,,Canindé,Sao Paulo,2,0,1,1

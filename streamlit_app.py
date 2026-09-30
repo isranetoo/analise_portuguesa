@@ -1,4 +1,4 @@
-"""Publica a dashboard HTML do Náutico dentro do Streamlit."""
+"""Publica a dashboard HTML da Portuguesa dentro do Streamlit."""
 
 from __future__ import annotations
 
@@ -17,25 +17,30 @@ def read_text(filename: str) -> str:
     return (ROOT / filename).read_text(encoding="utf-8")
 
 
+def embed_csv(filename: str) -> str:
+    return json.dumps(read_text(filename), ensure_ascii=False).replace("</", "<\\/")
+
+
 def build_dashboard() -> str:
     html = read_text("index.html")
     css = read_text("styles.css")
     javascript = read_text("app.js")
-    csv_text = read_text("nautico_serie_b_2026_todos_jogos.csv")
-    logo = base64.b64encode((ROOT / "nautico-logo.svg").read_bytes()).decode("ascii")
+    logo = base64.b64encode((ROOT / "portuguesa-logo.svg").read_bytes()).decode("ascii")
 
     html = html.replace(
         '<link rel="stylesheet" href="styles.css">',
         f"<style>{css}</style>",
     )
     html = html.replace(
-        'src="nautico-logo.svg"',
+        'src="portuguesa-logo.svg"',
         f'src="data:image/svg+xml;base64,{logo}"',
     )
 
-    embedded_data = json.dumps(csv_text, ensure_ascii=False).replace("</", "<\\/")
     embedded_script = f"""
-      <script>window.__NAUTICO_CSV__ = {embedded_data};</script>
+      <script>
+        window.__PORTUGUESA_CSV__ = {embed_csv("portuguesa_serie_d_2026_todos_jogos.csv")};
+        window.__PORTUGUESA_GRUPO_CSV__ = {embed_csv("portuguesa_serie_d_2026_grupo.csv")};
+      </script>
       <script>{javascript}</script>
       <script>
         (() => {{
@@ -65,8 +70,8 @@ def build_dashboard() -> str:
 
 
 st.set_page_config(
-    page_title="Náutico | Painel de desempenho",
-    page_icon="🔴",
+    page_title="Portuguesa | Painel de desempenho",
+    page_icon="🟢",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
