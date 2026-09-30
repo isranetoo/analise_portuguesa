@@ -11,6 +11,7 @@
     try { const theme = localStorage.getItem('dashboard-theme'); if (theme) document.documentElement.dataset.theme = theme; } catch (_) {}
   </script>
   <link rel="icon" id="favicon" href="portuguesa-logo.svg">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -27,6 +28,8 @@
         <a href="#gols" data-page="gols">Gols</a>
         <a href="#elenco" data-page="elenco">Elenco</a>
         <a href="#jogos" data-page="jogos">Jogos</a>
+        <a href="#serie-d" data-page="serie-d" id="navLeague">Série D</a>
+        <a href="#estadios" data-page="estadios">Público e viagens</a>
         <a href="#comparacao" data-page="comparacao" id="navComparison" hidden>Comparação</a>
       </nav>
       <button type="button" class="theme-toggle" id="themeToggle" aria-label="Alternar tema claro e escuro">◐</button>
@@ -371,7 +374,25 @@
             <tbody id="squadBody"></tbody>
           </table>
         </div>
-        <button type="button" class="show-more" id="squadToggle" hidden>Mostrar todos</button>
+        <div class="table-actions">
+          <button type="button" class="show-more" id="squadToggle" hidden>Mostrar todos</button>
+          <button type="button" class="download-button" id="squadDownload">Baixar CSV do elenco</button>
+        </div>
+
+        <section class="dashboard-grid">
+          <article class="panel wide bench-panel">
+            <div class="panel-head compact">
+              <div>
+                <p class="section-kicker">BANCO DE RESERVAS</p>
+                <h2>Quem entrou fez diferença?</h2>
+              </div>
+              <p>Gols de quem saiu do banco, o momento da primeira substituição e o resultado conforme o técnico mexeu cedo ou tarde.</p>
+            </div>
+            <div class="stat-boxes" id="benchStats"></div>
+            <div class="bench-split" id="benchSplit"></div>
+            <div class="chip-row" id="benchScorers"></div>
+          </article>
+        </section>
 
         <section class="dashboard-grid">
           <article class="panel wide discipline-panel">
@@ -398,6 +419,7 @@
         </header>
         <div class="filter-slot"></div>
         <div class="matches-head">
+          <button type="button" class="download-button" id="matchesDownload">Baixar CSV dos jogos filtrados</button>
           <label class="search-box">
             <span aria-hidden="true">⌕</span>
             <input id="matchSearch" type="search" placeholder="Buscar adversário ou atleta" aria-label="Buscar adversário ou atleta">
@@ -410,6 +432,132 @@
           </table>
         </div>
         <p class="empty-state" id="emptyState" hidden>Nenhum jogo encontrado.</p>
+
+        <section class="dashboard-grid">
+          <article class="panel wide referees-panel">
+            <div class="panel-head compact">
+              <div>
+                <p class="section-kicker">ARBITRAGEM</p>
+                <h2>Quem apitou</h2>
+              </div>
+              <p id="refereesSummary">--</p>
+            </div>
+            <div class="table-wrap flat">
+              <table>
+                <thead><tr><th>Árbitro</th><th>Jogos</th><th>Campanha</th><th>Aproveitamento</th><th>Cartões por jogo</th><th>Partidas</th></tr></thead>
+                <tbody id="refereesBody"></tbody>
+              </table>
+            </div>
+            <small class="method">Cartões por jogo: do time × do adversário, incluindo a comissão técnica.</small>
+          </article>
+        </section>
+      </section>
+
+      <!-- ==================== SÉRIE D ==================== -->
+      <section class="page" data-page="serie-d" data-title="Série D" hidden>
+        <header class="page-header">
+          <p class="eyebrow" id="leagueEyebrow">CONTEXTO DA COMPETIÇÃO</p>
+          <h1 id="leagueTitle">Comparada à Série D</h1>
+          <p id="leagueSummary">--</p>
+        </header>
+
+        <section class="home-kpis league-kpis" id="leagueKpis"></section>
+
+        <section class="dashboard-grid">
+          <article class="panel wide">
+            <div class="panel-head compact">
+              <div>
+                <p class="section-kicker">INDICADORES × MÉDIA DA COMPETIÇÃO</p>
+                <h2>Onde se destacou</h2>
+              </div>
+              <div class="legend"><span><i class="dot for"></i><span id="leagueLegendClub">Portuguesa</span></span><span><i class="dot avg"></i>Média</span><span><i class="dot range"></i>Menor e maior valor</span></div>
+            </div>
+            <div class="league-metrics" id="leagueMetrics"></div>
+            <small class="method">Médias por clube, considerando todos os jogos de cada um. Clubes eliminados cedo têm menos jogos, por isso os indicadores são por partida.</small>
+          </article>
+        </section>
+
+        <section class="page-section">
+          <div class="section-head">
+            <div>
+              <p class="section-kicker">CLASSIFICAÇÃO GERAL</p>
+              <h2>Todos os clubes</h2>
+            </div>
+            <p>Ordenada pela fase alcançada e, dentro dela, por pontos, vitórias, saldo e gols marcados.</p>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>#</th><th>Clube</th><th>Fase alcançada</th><th>P</th><th>J</th><th>V</th><th>E</th><th>D</th><th>SG</th><th>Aproveitamento</th></tr></thead>
+              <tbody id="leagueTable"></tbody>
+            </table>
+          </div>
+          <div class="table-actions"><button type="button" class="show-more" id="leagueToggle">Mostrar todos</button></div>
+        </section>
+      </section>
+
+      <!-- ==================== PÚBLICO E VIAGENS ==================== -->
+      <section class="page" data-page="estadios" data-title="Público e viagens" hidden>
+        <header class="page-header">
+          <p class="eyebrow">ESTÁDIOS</p>
+          <h1>Público e viagens</h1>
+          <p>Quantos torcedores acompanharam os jogos, quanto a bilheteria arrecadou e quantos quilômetros o time percorreu.</p>
+        </header>
+
+        <section class="home-kpis" id="attendanceKpis"></section>
+
+        <section class="dashboard-grid">
+          <article class="panel wide">
+            <div class="panel-head compact">
+              <div>
+                <p class="section-kicker">BILHETERIA</p>
+                <h2>Público por jogo</h2>
+              </div>
+              <div class="legend"><span><i class="dot for"></i>Vitória</span><span><i class="dot draw"></i>Empate</span><span><i class="dot against"></i>Derrota</span></div>
+            </div>
+            <div class="attendance-chart" id="attendanceChart"></div>
+            <div class="analysis-note"><span>LEITURA DO PÚBLICO</span><p id="attendanceInsight"></p></div>
+            <small class="method" id="attendanceMethod">Público = ingressos vendidos, incluindo gratuidades, segundo os boletins financeiros das federações.</small>
+          </article>
+
+          <article class="panel wide travel-panel">
+            <div class="panel-head compact">
+              <div>
+                <p class="section-kicker">VIAGENS</p>
+                <h2>Mapa da campanha</h2>
+              </div>
+              <p id="travelSummary">--</p>
+            </div>
+            <div class="travel-layout">
+              <div class="travel-map" id="travelMap" role="img" aria-label="Mapa das cidades onde o time jogou"></div>
+              <ol class="travel-list" id="travelList"></ol>
+            </div>
+            <small class="method">Distâncias em linha reta entre a cidade-sede e a cidade do jogo, ida e volta. Mapa: Esri e colaboradores do OpenStreetMap.</small>
+          </article>
+        </section>
+      </section>
+
+      <!-- ==================== ATLETA ==================== -->
+      <section class="page" data-page="atleta" data-title="Atleta" hidden>
+        <a class="back-link" href="#elenco" data-page="elenco">← Voltar ao elenco</a>
+        <header class="athlete-header" id="athleteHeader"></header>
+        <section class="home-kpis" id="athleteKpis"></section>
+        <div class="game-strip athlete-strip" id="athleteStrip"></div>
+        <section class="dashboard-grid">
+          <article class="panel wide">
+            <div class="panel-head compact">
+              <div>
+                <p class="section-kicker">JOGO A JOGO</p>
+                <h2>Participação na campanha</h2>
+              </div>
+            </div>
+            <div class="table-wrap flat">
+              <table>
+                <thead><tr><th>Jogo</th><th>Data</th><th>Partida</th><th>Participação</th><th>Minutos</th><th>Gols</th><th>Cartões</th></tr></thead>
+                <tbody id="athleteMatches"></tbody>
+              </table>
+            </div>
+          </article>
+        </section>
       </section>
 
       <!-- ==================== COMPARAÇÃO ==================== -->
@@ -435,6 +583,7 @@
       <span>Fonte: CBF</span>
     </footer>
   </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <script src="dados.js"></script>
   <script src="app.js"></script>
 </body>

@@ -1,257 +1,257 @@
-id_jogo,atleta_id,atleta,camisa,goleiro,titular,minuto_entrada,minuto_saida,minutos,gols,amarelos,vermelhos
-833757,311085,Bruno Bertinato,1,1,1,0,90,90,0,0,0
-833757,568565,João Vitor,2,0,1,0,90,90,0,0,0
-833757,555571,Gustavo Henrique,3,0,1,0,90,90,0,0,0
-833757,522679,Biazus,4,0,1,0,65,65,0,0,0
-833757,406111,Salomão,6,0,1,0,76,76,0,0,0
-833757,406069,Thiaguinho,7,0,1,0,86,86,0,1,0
-833757,582048,Cadorini,9,0,1,0,90,90,1,1,0
-833757,652687,Igor Torres,13,0,1,0,65,65,0,1,0
-833757,639967,Maceió,19,0,1,0,90,90,0,0,0
-833757,541928,Portuga,20,0,1,0,90,90,0,1,0
-833757,618624,Denis,27,0,1,0,65,65,0,0,0
-833757,724087,Cauari,11,0,0,65,90,25,0,0,0
-833757,563757,Guilherme Santos,30,0,0,65,90,25,0,0,0
-833757,581415,Carlos Lima,39,0,0,65,90,25,0,0,0
-833757,345443,Lucas Hipolito,16,0,0,76,90,14,0,0,0
-833757,598740,Mateus Cecchini,25,0,0,86,90,4,0,0,0
-833827,311085,Bruno Bertinato,1,1,1,0,90,90,0,1,0
-833827,568565,João Vitor,2,0,1,0,90,90,0,1,0
-833827,555571,Gustavo Henrique,3,0,1,0,90,90,0,0,0
-833827,522679,Biazus,4,0,1,0,90,90,0,0,0
-833827,406111,Salomão,6,0,1,0,90,90,0,0,0
-833827,406069,Thiaguinho,7,0,1,0,76,76,0,0,0
-833827,582048,Cadorini,9,0,1,0,90,90,0,0,0
-833827,652687,Igor Torres,13,0,1,0,69,69,1,0,0
-833827,639967,Maceió,19,0,1,0,76,76,0,0,0
-833827,541928,Portuga,20,0,1,0,69,69,1,1,0
-833827,618624,Denis,27,0,1,0,61,61,0,0,0
-833827,563757,Guilherme Santos,30,0,0,61,90,29,0,0,0
-833827,598740,Mateus Cecchini,25,0,0,69,90,21,0,0,0
-833827,465349,Joao Diogo,99,0,0,69,90,21,0,1,0
-833827,544845,Hudson,5,0,0,76,90,14,0,0,0
-833827,724087,Cauari,11,0,0,76,90,14,1,0,0
-833886,311085,Bruno Bertinato,1,1,1,0,90,90,0,0,0
-833886,568565,João Vitor,2,0,1,0,90,90,0,0,0
-833886,555571,Gustavo Henrique,3,0,1,0,25,25,0,0,0
-833886,522679,Biazus,4,0,1,0,90,90,0,0,0
-833886,406111,Salomão,6,0,1,0,90,90,0,1,0
-833886,406069,Thiaguinho,7,0,1,0,90,90,0,0,0
-833886,582048,Cadorini,9,0,1,0,79,79,1,0,0
-833886,652687,Igor Torres,13,0,1,0,79,79,0,0,0
-833886,639967,Maceió,19,0,1,0,66,66,0,0,0
-833886,541928,Portuga,20,0,1,0,90,90,0,0,0
-833886,563757,Guilherme Santos,30,0,1,0,66,66,0,1,0
-833886,581415,Carlos Lima,39,0,0,25,90,65,0,0,0
-833886,724087,Cauari,11,0,0,66,90,24,0,0,0
-833886,618624,Denis,27,0,0,66,90,24,0,0,0
-833886,551154,Jonas Toró,10,0,0,79,90,11,0,0,0
-833886,465349,Joao Diogo,99,0,0,79,90,11,0,0,0
-833950,311085,Bruno Bertinato,1,1,1,0,90,90,0,0,0
-833950,568565,João Vitor,2,0,1,0,63,63,0,1,0
-833950,522679,Biazus,4,0,1,0,90,90,0,0,0
-833950,406111,Salomão,6,0,1,0,90,90,0,0,0
-833950,406069,Thiaguinho,7,0,1,0,51,51,0,0,0
-833950,582048,Cadorini,9,0,1,0,90,90,0,1,0
-833950,652687,Igor Torres,13,0,1,0,81,81,0,1,0
-833950,639967,Maceió,19,0,1,0,90,90,0,0,0
-833950,541928,Portuga,20,0,1,0,90,90,0,0,0
-833950,598740,Mateus Cecchini,25,0,1,0,81,81,1,1,0
-833950,170635,Eric,33,0,1,0,63,63,0,0,0
-833950,465349,Joao Diogo,99,0,0,51,90,39,0,0,0
-833950,581415,Carlos Lima,39,0,0,63,90,27,0,0,0
-833950,650773,Sciencia,42,0,0,63,90,27,0,0,0
-833950,345443,Lucas Hipolito,16,0,0,81,90,9,0,0,0
-833950,752447,Romullo,17,0,0,81,90,9,0,0,0
-833999,311085,Bruno Bertinato,1,1,1,0,90,90,0,0,0
-833999,568565,João Vitor,2,0,1,0,86,86,0,0,0
-833999,522679,Biazus,4,0,1,0,90,90,1,0,0
-833999,582048,Cadorini,9,0,1,0,90,90,0,0,0
-833999,652687,Igor Torres,13,0,1,0,57,57,0,0,0
-833999,345443,Lucas Hipolito,16,0,1,0,90,90,0,0,0
-833999,639967,Maceió,19,0,1,0,57,57,1,1,0
-833999,541928,Portuga,20,0,1,0,64,64,0,0,0
-833999,598740,Mateus Cecchini,25,0,1,0,90,90,0,0,0
-833999,170635,Eric,33,0,1,0,86,86,0,0,0
-833999,465349,Joao Diogo,99,0,1,0,90,90,0,1,0
-833999,551154,Jonas Toró,10,0,0,57,90,33,0,0,0
-833999,563757,Guilherme Santos,30,0,0,57,90,33,0,0,0
-833999,544845,Hudson,5,0,0,64,90,26,0,0,0
-833999,581415,Carlos Lima,39,0,0,86,90,4,0,0,0
-833999,650773,Sciencia,42,0,0,86,90,4,0,0,0
-834195,568565,João Vitor,2,0,1,0,90,90,0,0,0
-834195,522679,Biazus,4,0,1,0,90,90,0,0,0
-834195,406111,Salomão,6,0,1,0,74,74,0,0,0
-834195,582048,Cadorini,9,0,1,0,90,90,0,0,0
-834195,540237,Joao Paulo,12,1,1,0,90,90,0,0,0
-834195,652687,Igor Torres,13,0,1,0,61,61,0,0,0
-834195,639967,Maceió,19,0,1,0,90,90,0,0,0
-834195,541928,Portuga,20,0,1,0,74,74,0,0,0
-834195,598740,Mateus Cecchini,25,0,1,0,87,87,0,0,0
-834195,170635,Eric,33,0,1,0,90,90,0,0,0
-834195,465349,Joao Diogo,99,0,1,0,61,61,0,0,0
-834195,551154,Jonas Toró,10,0,0,61,90,29,0,1,0
-834195,563757,Guilherme Santos,30,0,0,61,90,29,0,0,0
-834195,724087,Cauari,11,0,0,74,90,16,0,0,0
-834195,345443,Lucas Hipolito,16,0,0,74,90,16,0,0,0
-834195,544845,Hudson,5,0,0,87,90,3,0,0,0
-834242,311085,Bruno Bertinato,1,1,1,0,90,90,0,0,0
-834242,568565,João Vitor,2,0,1,0,76,76,0,0,0
-834242,406111,Salomão,6,0,1,0,76,76,0,0,0
-834242,652687,Igor Torres,13,0,1,0,90,90,0,0,0
-834242,639967,Maceió,19,0,1,0,90,90,0,0,0
-834242,541928,Portuga,20,0,1,0,90,90,0,0,0
-834242,598740,Mateus Cecchini,25,0,1,0,78,78,0,0,0
-834242,563757,Guilherme Santos,30,0,1,0,58,58,0,0,0
-834242,170635,Eric,33,0,1,0,90,90,0,0,0
-834242,581415,Carlos Lima,39,0,1,0,90,90,0,0,0
-834242,465349,Joao Diogo,99,0,1,0,58,58,0,0,0
-834242,582048,Cadorini,9,0,0,58,90,32,0,0,0
-834242,724087,Cauari,11,0,0,58,90,32,0,0,0
-834242,345443,Lucas Hipolito,16,0,0,76,90,14,0,0,0
-834242,650773,Sciencia,42,0,0,76,90,14,0,0,0
-834242,544845,Hudson,5,0,0,78,90,12,0,0,0
-834291,311085,Bruno Bertinato,1,1,1,0,90,90,0,0,0
-834291,568565,João Vitor,2,0,1,0,90,90,0,0,0
-834291,406111,Salomão,6,0,1,0,82,82,0,0,0
-834291,406069,Thiaguinho,7,0,1,0,56,56,0,0,0
-834291,582048,Cadorini,9,0,1,0,82,82,2,0,0
-834291,652687,Igor Torres,13,0,1,0,90,90,1,0,0
-834291,639967,Maceió,19,0,1,0,75,75,0,0,0
-834291,541928,Portuga,20,0,1,0,90,90,0,1,0
-834291,618624,Denis,27,0,1,0,45,45,0,0,0
-834291,170635,Eric,33,0,1,0,90,90,0,0,0
-834291,581415,Carlos Lima,39,0,1,0,90,90,0,1,0
-834291,465349,Joao Diogo,99,0,0,45,90,45,1,0,0
-834291,544845,Hudson,5,0,0,56,90,34,0,1,0
-834291,551154,Jonas Toró,10,0,0,75,90,15,0,0,0
-834291,345443,Lucas Hipolito,16,0,0,82,90,8,0,0,0
-834291,563757,Guilherme Santos,30,0,0,82,90,8,0,0,0
-834340,311085,Bruno Bertinato,1,1,1,0,90,90,0,0,0
-834340,568565,João Vitor,2,0,1,0,90,90,0,1,0
-834340,544845,Hudson,5,0,1,0,90,90,0,0,0
-834340,406111,Salomão,6,0,1,0,90,90,0,0,0
-834340,406069,Thiaguinho,7,0,1,0,86,86,0,0,0
-834340,582048,Cadorini,9,0,1,0,86,86,1,0,0
-834340,639967,Maceió,19,0,1,0,90,90,0,1,0
-834340,618624,Denis,27,0,1,0,45,45,0,0,0
-834340,563757,Guilherme Santos,30,0,1,0,60,60,0,0,0
-834340,170635,Eric,33,0,1,0,67,67,1,0,0
-834340,581415,Carlos Lima,39,0,1,0,90,90,0,0,0
-834340,465349,Joao Diogo,99,0,0,45,90,45,0,0,0
-834340,724087,Cauari,11,0,0,60,90,30,0,0,0
-834340,800712,WELLINGTON,15,0,0,67,90,23,0,0,0
-834340,345443,Lucas Hipolito,16,0,0,86,90,4,0,0,0
-834340,598740,Mateus Cecchini,25,0,0,86,90,4,0,0,0
-834770,311085,Bruno Bertinato,1,1,1,0,90,90,0,0,0
-834770,544845,Hudson,5,0,1,0,15,15,0,0,0
-834770,406069,Thiaguinho,7,0,1,0,67,67,0,0,0
-834770,724087,Cauari,11,0,1,0,79,79,1,1,0
-834770,345443,Lucas Hipolito,16,0,1,0,90,90,0,1,0
-834770,541928,Portuga,20,0,1,0,90,90,0,0,0
-834770,618624,Denis,27,0,1,0,45,45,0,0,0
-834770,563757,Guilherme Santos,30,0,1,0,79,79,0,0,0
-834770,170635,Eric,33,0,1,0,90,90,0,0,0
-834770,581415,Carlos Lima,39,0,1,0,90,90,0,0,0
-834770,650773,Sciencia,42,0,1,0,90,90,1,0,0
-834770,598740,Mateus Cecchini,25,0,0,15,90,75,0,0,0
-834770,812205,HUCK,41,0,0,45,90,45,0,0,0
-834770,344888,Tontini,8,0,0,67,90,23,0,1,0
-834770,800712,WELLINGTON,15,0,0,79,90,11,0,0,0
-834770,710202,Fellype Gabryel,40,0,0,79,90,11,0,0,0
-834911,311085,Bruno Bertinato,1,1,1,0,90,90,0,0,0
-834911,568565,João Vitor,2,0,1,0,90,90,0,0,0
-834911,406111,Salomão,6,0,1,0,75,75,0,0,0
-834911,406069,Thiaguinho,7,0,1,0,75,75,0,0,0
-834911,582048,Cadorini,9,0,1,0,90,90,1,0,0
-834911,551154,Jonas Toró,10,0,1,0,64,64,0,0,0
-834911,652687,Igor Torres,13,0,1,0,82,82,0,0,0
-834911,541928,Portuga,20,0,1,0,90,90,0,0,0
-834911,170635,Eric,33,0,1,0,90,90,0,0,0
-834911,581415,Carlos Lima,39,0,1,0,90,90,0,0,0
-834911,465349,Joao Diogo,99,0,1,0,64,64,0,1,0
-834911,466651,Thiago Rubim,21,0,0,64,90,26,0,1,0
-834911,618624,Denis,27,0,0,64,90,26,0,0,0
-834911,724087,Cauari,11,0,0,75,90,15,0,0,0
-834911,345443,Lucas Hipolito,16,0,0,75,90,15,0,0,0
-834911,563757,Guilherme Santos,30,0,0,82,90,8,0,1,0
-834943,311085,Bruno Bertinato,1,1,1,0,90,90,0,0,0
-834943,568565,João Vitor,2,0,1,0,65,65,0,0,0
-834943,406111,Salomão,6,0,1,0,81,81,0,0,0
-834943,406069,Thiaguinho,7,0,1,0,90,90,0,0,0
-834943,582048,Cadorini,9,0,1,0,90,90,1,1,0
-834943,551154,Jonas Toró,10,0,1,0,60,60,0,0,0
-834943,652687,Igor Torres,13,0,1,0,81,81,0,0,0
-834943,541928,Portuga,20,0,1,0,90,90,0,0,0
-834943,170635,Eric,33,0,1,0,90,90,0,0,0
-834943,581415,Carlos Lima,39,0,1,0,90,90,0,0,0
-834943,465349,Joao Diogo,99,0,1,0,60,60,0,0,0
-834943,724087,Cauari,11,0,0,60,90,30,0,0,0
-834943,618624,Denis,27,0,0,60,90,30,0,0,0
-834943,650773,Sciencia,42,0,0,65,90,25,0,1,0
-834943,345443,Lucas Hipolito,16,0,0,81,90,9,0,0,0
-834943,466651,Thiago Rubim,21,0,0,81,90,9,0,0,0
-834973,311085,Bruno Bertinato,1,1,1,0,90,90,0,1,0
-834973,568565,João Vitor,2,0,1,0,85,85,0,0,0
-834973,522679,Biazus,4,0,1,0,90,90,0,1,0
-834973,406111,Salomão,6,0,1,0,90,90,0,0,0
-834973,406069,Thiaguinho,7,0,1,0,68,68,0,0,0
-834973,582048,Cadorini,9,0,1,0,90,90,0,0,0
-834973,652687,Igor Torres,13,0,1,0,85,85,1,1,0
-834973,345443,Lucas Hipolito,16,0,1,0,68,68,0,0,0
-834973,541928,Portuga,20,0,1,0,90,90,0,0,0
-834973,170635,Eric,33,0,1,0,90,90,0,1,0
-834973,581415,Carlos Lima,39,0,1,0,90,90,0,0,0
-834973,466651,Thiago Rubim,21,0,0,68,77,9,0,0,0
-834973,598740,Mateus Cecchini,25,0,0,68,90,22,0,0,0
-834973,465349,Joao Diogo,99,0,0,77,90,13,0,0,0
-834973,724087,Cauari,11,0,0,85,90,5,0,0,0
-834973,650773,Sciencia,42,0,0,85,90,5,0,0,0
-834989,311085,Bruno Bertinato,1,1,1,0,90,90,0,0,0
-834989,568565,João Vitor,2,0,1,0,45,45,0,1,0
-834989,522679,Biazus,4,0,1,0,90,90,0,0,0
-834989,406111,Salomão,6,0,1,0,85,85,0,0,0
-834989,406069,Thiaguinho,7,0,1,0,76,76,0,0,0
-834989,582048,Cadorini,9,0,1,0,90,90,1,0,0
-834989,652687,Igor Torres,13,0,1,0,90,90,0,0,0
-834989,345443,Lucas Hipolito,16,0,1,0,61,61,1,0,0
-834989,541928,Portuga,20,0,1,0,61,61,0,1,0
-834989,170635,Eric,33,0,1,0,90,90,0,0,0
-834989,581415,Carlos Lima,39,0,1,0,90,90,0,0,0
-834989,650773,Sciencia,42,0,0,45,90,45,0,0,0
-834989,598740,Mateus Cecchini,25,0,0,61,90,29,0,0,0
-834989,563757,Guilherme Santos,30,0,0,61,90,29,0,0,0
-834989,618624,Denis,27,0,0,76,90,14,0,0,0
-834989,555571,Gustavo Henrique,3,0,0,85,90,5,0,0,0
-835063,311085,Bruno Bertinato,1,1,1,0,90,90,0,0,0
-835063,568565,João Vitor,2,0,1,0,70,70,0,1,0
-835063,522679,Biazus,4,0,1,0,90,90,0,1,0
-835063,406111,Salomão,6,0,1,0,45,45,0,0,0
-835063,406069,Thiaguinho,7,0,1,0,90,90,0,0,0
-835063,582048,Cadorini,9,0,1,0,45,45,0,0,1
-835063,652687,Igor Torres,13,0,1,0,85,85,0,0,0
-835063,345443,Lucas Hipolito,16,0,1,0,45,45,0,0,0
-835063,541928,Portuga,20,0,1,0,82,82,0,1,0
-835063,170635,Eric,33,0,1,0,90,90,0,0,0
-835063,581415,Carlos Lima,39,0,1,0,90,90,0,0,0
-835063,724087,Cauari,11,0,0,45,90,45,0,0,0
-835063,618624,Denis,27,0,0,45,90,45,0,0,0
-835063,650773,Sciencia,42,0,0,70,90,20,0,0,0
-835063,551154,Jonas Toró,10,0,0,82,90,8,0,0,0
-835063,465349,Joao Diogo,99,0,0,85,90,5,0,0,0
-835071,311085,Bruno Bertinato,1,1,1,0,90,90,0,0,0
-835071,568565,João Vitor,2,0,1,0,90,90,0,0,0
-835071,522679,Biazus,4,0,1,0,85,85,0,0,0
-835071,406069,Thiaguinho,7,0,1,0,59,59,0,0,0
-835071,551154,Jonas Toró,10,0,1,0,90,90,1,0,0
-835071,652687,Igor Torres,13,0,1,0,59,59,0,0,0
-835071,345443,Lucas Hipolito,16,0,1,0,90,90,0,1,0
-835071,541928,Portuga,20,0,1,0,90,90,0,0,0
-835071,563757,Guilherme Santos,30,0,1,0,65,65,0,0,0
-835071,170635,Eric,33,0,1,0,90,90,0,0,0
-835071,465349,Joao Diogo,99,0,1,0,59,59,0,1,0
-835071,555571,Gustavo Henrique,3,0,0,59,90,31,0,0,0
-835071,724087,Cauari,11,0,0,59,90,31,0,0,0
-835071,618624,Denis,27,0,0,59,90,31,0,0,0
-835071,344888,Tontini,8,0,0,65,90,25,0,0,0
-835071,598740,Mateus Cecchini,25,0,0,85,90,5,0,0,0
+id_jogo,atleta_id,atleta,camisa,foto,goleiro,titular,minuto_entrada,minuto_saida,minutos,gols,amarelos,vermelhos
+833757,311085,Bruno Bertinato,1,https://conteudo.cbf.com.br/atletas/08441414963/foto.jpg,1,1,0,90,90,0,0,0
+833757,568565,João Vitor,2,https://conteudo.cbf.com.br/atletas/70807538132/foto.jpg,0,1,0,90,90,0,0,0
+833757,555571,Gustavo Henrique,3,https://conteudo.cbf.com.br/atletas/42929769882/foto.jpg,0,1,0,90,90,0,0,0
+833757,522679,Biazus,4,https://conteudo.cbf.com.br/atletas/09984273903/foto.jpg,0,1,0,65,65,0,0,0
+833757,406111,Salomão,6,https://conteudo.cbf.com.br/atletas/11221351656/foto.jpg,0,1,0,76,76,0,0,0
+833757,406069,Thiaguinho,7,https://conteudo.cbf.com.br/atletas/35176340852/foto.jpg,0,1,0,86,86,0,1,0
+833757,582048,Cadorini,9,https://conteudo.cbf.com.br/atletas/50639027822/foto.jpg,0,1,0,90,90,1,1,0
+833757,652687,Igor Torres,13,https://conteudo.cbf.com.br/atletas/49645817803/foto.jpg,0,1,0,65,65,0,1,0
+833757,639967,Maceió,19,https://conteudo.cbf.com.br/atletas/12157395407/foto.jpg,0,1,0,90,90,0,0,0
+833757,541928,Portuga,20,https://conteudo.cbf.com.br/atletas/46001081832/foto.jpg,0,1,0,90,90,0,1,0
+833757,618624,Denis,27,https://conteudo.cbf.com.br/atletas/48268574895/foto.jpg,0,1,0,65,65,0,0,0
+833757,724087,Cauari,11,https://conteudo.cbf.com.br/atletas/55150953830/foto.jpg,0,0,65,90,25,0,0,0
+833757,563757,Guilherme Santos,30,https://conteudo.cbf.com.br/atletas/18745236739/foto.jpg,0,0,65,90,25,0,0,0
+833757,581415,Carlos Lima,39,https://conteudo.cbf.com.br/atletas/06279026183/foto.jpg,0,0,65,90,25,0,0,0
+833757,345443,Lucas Hipolito,16,https://conteudo.cbf.com.br/atletas/12170710671/foto.jpg,0,0,76,90,14,0,0,0
+833757,598740,Mateus Cecchini,25,https://conteudo.cbf.com.br/atletas/01353803082/foto.jpg,0,0,86,90,4,0,0,0
+833827,311085,Bruno Bertinato,1,https://conteudo.cbf.com.br/atletas/08441414963/foto.jpg,1,1,0,90,90,0,1,0
+833827,568565,João Vitor,2,https://conteudo.cbf.com.br/atletas/70807538132/foto.jpg,0,1,0,90,90,0,1,0
+833827,555571,Gustavo Henrique,3,https://conteudo.cbf.com.br/atletas/42929769882/foto.jpg,0,1,0,90,90,0,0,0
+833827,522679,Biazus,4,https://conteudo.cbf.com.br/atletas/09984273903/foto.jpg,0,1,0,90,90,0,0,0
+833827,406111,Salomão,6,https://conteudo.cbf.com.br/atletas/11221351656/foto.jpg,0,1,0,90,90,0,0,0
+833827,406069,Thiaguinho,7,https://conteudo.cbf.com.br/atletas/35176340852/foto.jpg,0,1,0,76,76,0,0,0
+833827,582048,Cadorini,9,https://conteudo.cbf.com.br/atletas/50639027822/foto.jpg,0,1,0,90,90,0,0,0
+833827,652687,Igor Torres,13,https://conteudo.cbf.com.br/atletas/49645817803/foto.jpg,0,1,0,69,69,1,0,0
+833827,639967,Maceió,19,https://conteudo.cbf.com.br/atletas/12157395407/foto.jpg,0,1,0,76,76,0,0,0
+833827,541928,Portuga,20,https://conteudo.cbf.com.br/atletas/46001081832/foto.jpg,0,1,0,69,69,1,1,0
+833827,618624,Denis,27,https://conteudo.cbf.com.br/atletas/48268574895/foto.jpg,0,1,0,61,61,0,0,0
+833827,563757,Guilherme Santos,30,https://conteudo.cbf.com.br/atletas/18745236739/foto.jpg,0,0,61,90,29,0,0,0
+833827,598740,Mateus Cecchini,25,https://conteudo.cbf.com.br/atletas/01353803082/foto.jpg,0,0,69,90,21,0,0,0
+833827,465349,Joao Diogo,99,https://conteudo.cbf.com.br/atletas/01334740208/foto.jpg,0,0,69,90,21,0,1,0
+833827,544845,Hudson,5,https://conteudo.cbf.com.br/atletas/50352888890/foto.jpg,0,0,76,90,14,0,0,0
+833827,724087,Cauari,11,https://conteudo.cbf.com.br/atletas/55150953830/foto.jpg,0,0,76,90,14,1,0,0
+833886,311085,Bruno Bertinato,1,https://conteudo.cbf.com.br/atletas/08441414963/foto.jpg,1,1,0,90,90,0,0,0
+833886,568565,João Vitor,2,https://conteudo.cbf.com.br/atletas/70807538132/foto.jpg,0,1,0,90,90,0,0,0
+833886,555571,Gustavo Henrique,3,https://conteudo.cbf.com.br/atletas/42929769882/foto.jpg,0,1,0,25,25,0,0,0
+833886,522679,Biazus,4,https://conteudo.cbf.com.br/atletas/09984273903/foto.jpg,0,1,0,90,90,0,0,0
+833886,406111,Salomão,6,https://conteudo.cbf.com.br/atletas/11221351656/foto.jpg,0,1,0,90,90,0,1,0
+833886,406069,Thiaguinho,7,https://conteudo.cbf.com.br/atletas/35176340852/foto.jpg,0,1,0,90,90,0,0,0
+833886,582048,Cadorini,9,https://conteudo.cbf.com.br/atletas/50639027822/foto.jpg,0,1,0,79,79,1,0,0
+833886,652687,Igor Torres,13,https://conteudo.cbf.com.br/atletas/49645817803/foto.jpg,0,1,0,79,79,0,0,0
+833886,639967,Maceió,19,https://conteudo.cbf.com.br/atletas/12157395407/foto.jpg,0,1,0,66,66,0,0,0
+833886,541928,Portuga,20,https://conteudo.cbf.com.br/atletas/46001081832/foto.jpg,0,1,0,90,90,0,0,0
+833886,563757,Guilherme Santos,30,https://conteudo.cbf.com.br/atletas/18745236739/foto.jpg,0,1,0,66,66,0,1,0
+833886,581415,Carlos Lima,39,https://conteudo.cbf.com.br/atletas/06279026183/foto.jpg,0,0,25,90,65,0,0,0
+833886,724087,Cauari,11,https://conteudo.cbf.com.br/atletas/55150953830/foto.jpg,0,0,66,90,24,0,0,0
+833886,618624,Denis,27,https://conteudo.cbf.com.br/atletas/48268574895/foto.jpg,0,0,66,90,24,0,0,0
+833886,551154,Jonas Toró,10,https://conteudo.cbf.com.br/atletas/12624099425/foto.jpg,0,0,79,90,11,0,0,0
+833886,465349,Joao Diogo,99,https://conteudo.cbf.com.br/atletas/01334740208/foto.jpg,0,0,79,90,11,0,0,0
+833950,311085,Bruno Bertinato,1,https://conteudo.cbf.com.br/atletas/08441414963/foto.jpg,1,1,0,90,90,0,0,0
+833950,568565,João Vitor,2,https://conteudo.cbf.com.br/atletas/70807538132/foto.jpg,0,1,0,63,63,0,1,0
+833950,522679,Biazus,4,https://conteudo.cbf.com.br/atletas/09984273903/foto.jpg,0,1,0,90,90,0,0,0
+833950,406111,Salomão,6,https://conteudo.cbf.com.br/atletas/11221351656/foto.jpg,0,1,0,90,90,0,0,0
+833950,406069,Thiaguinho,7,https://conteudo.cbf.com.br/atletas/35176340852/foto.jpg,0,1,0,51,51,0,0,0
+833950,582048,Cadorini,9,https://conteudo.cbf.com.br/atletas/50639027822/foto.jpg,0,1,0,90,90,0,1,0
+833950,652687,Igor Torres,13,https://conteudo.cbf.com.br/atletas/49645817803/foto.jpg,0,1,0,81,81,0,1,0
+833950,639967,Maceió,19,https://conteudo.cbf.com.br/atletas/12157395407/foto.jpg,0,1,0,90,90,0,0,0
+833950,541928,Portuga,20,https://conteudo.cbf.com.br/atletas/46001081832/foto.jpg,0,1,0,90,90,0,0,0
+833950,598740,Mateus Cecchini,25,https://conteudo.cbf.com.br/atletas/01353803082/foto.jpg,0,1,0,81,81,1,1,0
+833950,170635,Eric,33,https://conteudo.cbf.com.br/atletas/34271288810/foto.jpg,0,1,0,63,63,0,0,0
+833950,465349,Joao Diogo,99,https://conteudo.cbf.com.br/atletas/01334740208/foto.jpg,0,0,51,90,39,0,0,0
+833950,581415,Carlos Lima,39,https://conteudo.cbf.com.br/atletas/06279026183/foto.jpg,0,0,63,90,27,0,0,0
+833950,650773,Sciencia,42,https://conteudo.cbf.com.br/atletas/47945936865/foto.jpg,0,0,63,90,27,0,0,0
+833950,345443,Lucas Hipolito,16,https://conteudo.cbf.com.br/atletas/12170710671/foto.jpg,0,0,81,90,9,0,0,0
+833950,752447,Romullo,17,https://conteudo.cbf.com.br/atletas/49525008886/foto.jpg,0,0,81,90,9,0,0,0
+833999,311085,Bruno Bertinato,1,https://conteudo.cbf.com.br/atletas/08441414963/foto.jpg,1,1,0,90,90,0,0,0
+833999,568565,João Vitor,2,https://conteudo.cbf.com.br/atletas/70807538132/foto.jpg,0,1,0,86,86,0,0,0
+833999,522679,Biazus,4,https://conteudo.cbf.com.br/atletas/09984273903/foto.jpg,0,1,0,90,90,1,0,0
+833999,582048,Cadorini,9,https://conteudo.cbf.com.br/atletas/50639027822/foto.jpg,0,1,0,90,90,0,0,0
+833999,652687,Igor Torres,13,https://conteudo.cbf.com.br/atletas/49645817803/foto.jpg,0,1,0,57,57,0,0,0
+833999,345443,Lucas Hipolito,16,https://conteudo.cbf.com.br/atletas/12170710671/foto.jpg,0,1,0,90,90,0,0,0
+833999,639967,Maceió,19,https://conteudo.cbf.com.br/atletas/12157395407/foto.jpg,0,1,0,57,57,1,1,0
+833999,541928,Portuga,20,https://conteudo.cbf.com.br/atletas/46001081832/foto.jpg,0,1,0,64,64,0,0,0
+833999,598740,Mateus Cecchini,25,https://conteudo.cbf.com.br/atletas/01353803082/foto.jpg,0,1,0,90,90,0,0,0
+833999,170635,Eric,33,https://conteudo.cbf.com.br/atletas/34271288810/foto.jpg,0,1,0,86,86,0,0,0
+833999,465349,Joao Diogo,99,https://conteudo.cbf.com.br/atletas/01334740208/foto.jpg,0,1,0,90,90,0,1,0
+833999,551154,Jonas Toró,10,https://conteudo.cbf.com.br/atletas/12624099425/foto.jpg,0,0,57,90,33,0,0,0
+833999,563757,Guilherme Santos,30,https://conteudo.cbf.com.br/atletas/18745236739/foto.jpg,0,0,57,90,33,0,0,0
+833999,544845,Hudson,5,https://conteudo.cbf.com.br/atletas/50352888890/foto.jpg,0,0,64,90,26,0,0,0
+833999,581415,Carlos Lima,39,https://conteudo.cbf.com.br/atletas/06279026183/foto.jpg,0,0,86,90,4,0,0,0
+833999,650773,Sciencia,42,https://conteudo.cbf.com.br/atletas/47945936865/foto.jpg,0,0,86,90,4,0,0,0
+834195,568565,João Vitor,2,https://conteudo.cbf.com.br/atletas/70807538132/foto.jpg,0,1,0,90,90,0,0,0
+834195,522679,Biazus,4,https://conteudo.cbf.com.br/atletas/09984273903/foto.jpg,0,1,0,90,90,0,0,0
+834195,406111,Salomão,6,https://conteudo.cbf.com.br/atletas/11221351656/foto.jpg,0,1,0,74,74,0,0,0
+834195,582048,Cadorini,9,https://conteudo.cbf.com.br/atletas/50639027822/foto.jpg,0,1,0,90,90,0,0,0
+834195,540237,Joao Paulo,12,https://conteudo.cbf.com.br/atletas/02926394063/foto.jpg,1,1,0,90,90,0,0,0
+834195,652687,Igor Torres,13,https://conteudo.cbf.com.br/atletas/49645817803/foto.jpg,0,1,0,61,61,0,0,0
+834195,639967,Maceió,19,https://conteudo.cbf.com.br/atletas/12157395407/foto.jpg,0,1,0,90,90,0,0,0
+834195,541928,Portuga,20,https://conteudo.cbf.com.br/atletas/46001081832/foto.jpg,0,1,0,74,74,0,0,0
+834195,598740,Mateus Cecchini,25,https://conteudo.cbf.com.br/atletas/01353803082/foto.jpg,0,1,0,87,87,0,0,0
+834195,170635,Eric,33,https://conteudo.cbf.com.br/atletas/34271288810/foto.jpg,0,1,0,90,90,0,0,0
+834195,465349,Joao Diogo,99,https://conteudo.cbf.com.br/atletas/01334740208/foto.jpg,0,1,0,61,61,0,0,0
+834195,551154,Jonas Toró,10,https://conteudo.cbf.com.br/atletas/12624099425/foto.jpg,0,0,61,90,29,0,1,0
+834195,563757,Guilherme Santos,30,https://conteudo.cbf.com.br/atletas/18745236739/foto.jpg,0,0,61,90,29,0,0,0
+834195,724087,Cauari,11,https://conteudo.cbf.com.br/atletas/55150953830/foto.jpg,0,0,74,90,16,0,0,0
+834195,345443,Lucas Hipolito,16,https://conteudo.cbf.com.br/atletas/12170710671/foto.jpg,0,0,74,90,16,0,0,0
+834195,544845,Hudson,5,https://conteudo.cbf.com.br/atletas/50352888890/foto.jpg,0,0,87,90,3,0,0,0
+834242,311085,Bruno Bertinato,1,https://conteudo.cbf.com.br/atletas/08441414963/foto.jpg,1,1,0,90,90,0,0,0
+834242,568565,João Vitor,2,https://conteudo.cbf.com.br/atletas/70807538132/foto.jpg,0,1,0,76,76,0,0,0
+834242,406111,Salomão,6,https://conteudo.cbf.com.br/atletas/11221351656/foto.jpg,0,1,0,76,76,0,0,0
+834242,652687,Igor Torres,13,https://conteudo.cbf.com.br/atletas/49645817803/foto.jpg,0,1,0,90,90,0,0,0
+834242,639967,Maceió,19,https://conteudo.cbf.com.br/atletas/12157395407/foto.jpg,0,1,0,90,90,0,0,0
+834242,541928,Portuga,20,https://conteudo.cbf.com.br/atletas/46001081832/foto.jpg,0,1,0,90,90,0,0,0
+834242,598740,Mateus Cecchini,25,https://conteudo.cbf.com.br/atletas/01353803082/foto.jpg,0,1,0,78,78,0,0,0
+834242,563757,Guilherme Santos,30,https://conteudo.cbf.com.br/atletas/18745236739/foto.jpg,0,1,0,58,58,0,0,0
+834242,170635,Eric,33,https://conteudo.cbf.com.br/atletas/34271288810/foto.jpg,0,1,0,90,90,0,0,0
+834242,581415,Carlos Lima,39,https://conteudo.cbf.com.br/atletas/06279026183/foto.jpg,0,1,0,90,90,0,0,0
+834242,465349,Joao Diogo,99,https://conteudo.cbf.com.br/atletas/01334740208/foto.jpg,0,1,0,58,58,0,0,0
+834242,582048,Cadorini,9,https://conteudo.cbf.com.br/atletas/50639027822/foto.jpg,0,0,58,90,32,0,0,0
+834242,724087,Cauari,11,https://conteudo.cbf.com.br/atletas/55150953830/foto.jpg,0,0,58,90,32,0,0,0
+834242,345443,Lucas Hipolito,16,https://conteudo.cbf.com.br/atletas/12170710671/foto.jpg,0,0,76,90,14,0,0,0
+834242,650773,Sciencia,42,https://conteudo.cbf.com.br/atletas/47945936865/foto.jpg,0,0,76,90,14,0,0,0
+834242,544845,Hudson,5,https://conteudo.cbf.com.br/atletas/50352888890/foto.jpg,0,0,78,90,12,0,0,0
+834291,311085,Bruno Bertinato,1,https://conteudo.cbf.com.br/atletas/08441414963/foto.jpg,1,1,0,90,90,0,0,0
+834291,568565,João Vitor,2,https://conteudo.cbf.com.br/atletas/70807538132/foto.jpg,0,1,0,90,90,0,0,0
+834291,406111,Salomão,6,https://conteudo.cbf.com.br/atletas/11221351656/foto.jpg,0,1,0,82,82,0,0,0
+834291,406069,Thiaguinho,7,https://conteudo.cbf.com.br/atletas/35176340852/foto.jpg,0,1,0,56,56,0,0,0
+834291,582048,Cadorini,9,https://conteudo.cbf.com.br/atletas/50639027822/foto.jpg,0,1,0,82,82,2,0,0
+834291,652687,Igor Torres,13,https://conteudo.cbf.com.br/atletas/49645817803/foto.jpg,0,1,0,90,90,1,0,0
+834291,639967,Maceió,19,https://conteudo.cbf.com.br/atletas/12157395407/foto.jpg,0,1,0,75,75,0,0,0
+834291,541928,Portuga,20,https://conteudo.cbf.com.br/atletas/46001081832/foto.jpg,0,1,0,90,90,0,1,0
+834291,618624,Denis,27,https://conteudo.cbf.com.br/atletas/48268574895/foto.jpg,0,1,0,45,45,0,0,0
+834291,170635,Eric,33,https://conteudo.cbf.com.br/atletas/34271288810/foto.jpg,0,1,0,90,90,0,0,0
+834291,581415,Carlos Lima,39,https://conteudo.cbf.com.br/atletas/06279026183/foto.jpg,0,1,0,90,90,0,1,0
+834291,465349,Joao Diogo,99,https://conteudo.cbf.com.br/atletas/01334740208/foto.jpg,0,0,45,90,45,1,0,0
+834291,544845,Hudson,5,https://conteudo.cbf.com.br/atletas/50352888890/foto.jpg,0,0,56,90,34,0,1,0
+834291,551154,Jonas Toró,10,https://conteudo.cbf.com.br/atletas/12624099425/foto.jpg,0,0,75,90,15,0,0,0
+834291,345443,Lucas Hipolito,16,https://conteudo.cbf.com.br/atletas/12170710671/foto.jpg,0,0,82,90,8,0,0,0
+834291,563757,Guilherme Santos,30,https://conteudo.cbf.com.br/atletas/18745236739/foto.jpg,0,0,82,90,8,0,0,0
+834340,311085,Bruno Bertinato,1,https://conteudo.cbf.com.br/atletas/08441414963/foto.jpg,1,1,0,90,90,0,0,0
+834340,568565,João Vitor,2,https://conteudo.cbf.com.br/atletas/70807538132/foto.jpg,0,1,0,90,90,0,1,0
+834340,544845,Hudson,5,https://conteudo.cbf.com.br/atletas/50352888890/foto.jpg,0,1,0,90,90,0,0,0
+834340,406111,Salomão,6,https://conteudo.cbf.com.br/atletas/11221351656/foto.jpg,0,1,0,90,90,0,0,0
+834340,406069,Thiaguinho,7,https://conteudo.cbf.com.br/atletas/35176340852/foto.jpg,0,1,0,86,86,0,0,0
+834340,582048,Cadorini,9,https://conteudo.cbf.com.br/atletas/50639027822/foto.jpg,0,1,0,86,86,1,0,0
+834340,639967,Maceió,19,https://conteudo.cbf.com.br/atletas/12157395407/foto.jpg,0,1,0,90,90,0,1,0
+834340,618624,Denis,27,https://conteudo.cbf.com.br/atletas/48268574895/foto.jpg,0,1,0,45,45,0,0,0
+834340,563757,Guilherme Santos,30,https://conteudo.cbf.com.br/atletas/18745236739/foto.jpg,0,1,0,60,60,0,0,0
+834340,170635,Eric,33,https://conteudo.cbf.com.br/atletas/34271288810/foto.jpg,0,1,0,67,67,1,0,0
+834340,581415,Carlos Lima,39,https://conteudo.cbf.com.br/atletas/06279026183/foto.jpg,0,1,0,90,90,0,0,0
+834340,465349,Joao Diogo,99,https://conteudo.cbf.com.br/atletas/01334740208/foto.jpg,0,0,45,90,45,0,0,0
+834340,724087,Cauari,11,https://conteudo.cbf.com.br/atletas/55150953830/foto.jpg,0,0,60,90,30,0,0,0
+834340,800712,WELLINGTON,15,https://conteudo.cbf.com.br/atletas/49521383801/foto.jpg,0,0,67,90,23,0,0,0
+834340,345443,Lucas Hipolito,16,https://conteudo.cbf.com.br/atletas/12170710671/foto.jpg,0,0,86,90,4,0,0,0
+834340,598740,Mateus Cecchini,25,https://conteudo.cbf.com.br/atletas/01353803082/foto.jpg,0,0,86,90,4,0,0,0
+834770,311085,Bruno Bertinato,1,https://conteudo.cbf.com.br/atletas/08441414963/foto.jpg,1,1,0,90,90,0,0,0
+834770,544845,Hudson,5,https://conteudo.cbf.com.br/atletas/50352888890/foto.jpg,0,1,0,15,15,0,0,0
+834770,406069,Thiaguinho,7,https://conteudo.cbf.com.br/atletas/35176340852/foto.jpg,0,1,0,67,67,0,0,0
+834770,724087,Cauari,11,https://conteudo.cbf.com.br/atletas/55150953830/foto.jpg,0,1,0,79,79,1,1,0
+834770,345443,Lucas Hipolito,16,https://conteudo.cbf.com.br/atletas/12170710671/foto.jpg,0,1,0,90,90,0,1,0
+834770,541928,Portuga,20,https://conteudo.cbf.com.br/atletas/46001081832/foto.jpg,0,1,0,90,90,0,0,0
+834770,618624,Denis,27,https://conteudo.cbf.com.br/atletas/48268574895/foto.jpg,0,1,0,45,45,0,0,0
+834770,563757,Guilherme Santos,30,https://conteudo.cbf.com.br/atletas/18745236739/foto.jpg,0,1,0,79,79,0,0,0
+834770,170635,Eric,33,https://conteudo.cbf.com.br/atletas/34271288810/foto.jpg,0,1,0,90,90,0,0,0
+834770,581415,Carlos Lima,39,https://conteudo.cbf.com.br/atletas/06279026183/foto.jpg,0,1,0,90,90,0,0,0
+834770,650773,Sciencia,42,https://conteudo.cbf.com.br/atletas/47945936865/foto.jpg,0,1,0,90,90,1,0,0
+834770,598740,Mateus Cecchini,25,https://conteudo.cbf.com.br/atletas/01353803082/foto.jpg,0,0,15,90,75,0,0,0
+834770,812205,HUCK,41,https://conteudo.cbf.com.br/atletas/13125073570/foto.jpg,0,0,45,90,45,0,0,0
+834770,344888,Tontini,8,https://conteudo.cbf.com.br/atletas/09142375940/foto.jpg,0,0,67,90,23,0,1,0
+834770,800712,WELLINGTON,15,https://conteudo.cbf.com.br/atletas/49521383801/foto.jpg,0,0,79,90,11,0,0,0
+834770,710202,Fellype Gabryel,40,https://conteudo.cbf.com.br/atletas/18260860724/foto.jpg,0,0,79,90,11,0,0,0
+834911,311085,Bruno Bertinato,1,https://conteudo.cbf.com.br/atletas/08441414963/foto.jpg,1,1,0,90,90,0,0,0
+834911,568565,João Vitor,2,https://conteudo.cbf.com.br/atletas/70807538132/foto.jpg,0,1,0,90,90,0,0,0
+834911,406111,Salomão,6,https://conteudo.cbf.com.br/atletas/11221351656/foto.jpg,0,1,0,75,75,0,0,0
+834911,406069,Thiaguinho,7,https://conteudo.cbf.com.br/atletas/35176340852/foto.jpg,0,1,0,75,75,0,0,0
+834911,582048,Cadorini,9,https://conteudo.cbf.com.br/atletas/50639027822/foto.jpg,0,1,0,90,90,1,0,0
+834911,551154,Jonas Toró,10,https://conteudo.cbf.com.br/atletas/12624099425/foto.jpg,0,1,0,64,64,0,0,0
+834911,652687,Igor Torres,13,https://conteudo.cbf.com.br/atletas/49645817803/foto.jpg,0,1,0,82,82,0,0,0
+834911,541928,Portuga,20,https://conteudo.cbf.com.br/atletas/46001081832/foto.jpg,0,1,0,90,90,0,0,0
+834911,170635,Eric,33,https://conteudo.cbf.com.br/atletas/34271288810/foto.jpg,0,1,0,90,90,0,0,0
+834911,581415,Carlos Lima,39,https://conteudo.cbf.com.br/atletas/06279026183/foto.jpg,0,1,0,90,90,0,0,0
+834911,465349,Joao Diogo,99,https://conteudo.cbf.com.br/atletas/01334740208/foto.jpg,0,1,0,64,64,0,1,0
+834911,466651,Thiago Rubim,21,https://conteudo.cbf.com.br/atletas/45994767816/foto.jpg,0,0,64,90,26,0,1,0
+834911,618624,Denis,27,https://conteudo.cbf.com.br/atletas/48268574895/foto.jpg,0,0,64,90,26,0,0,0
+834911,724087,Cauari,11,https://conteudo.cbf.com.br/atletas/55150953830/foto.jpg,0,0,75,90,15,0,0,0
+834911,345443,Lucas Hipolito,16,https://conteudo.cbf.com.br/atletas/12170710671/foto.jpg,0,0,75,90,15,0,0,0
+834911,563757,Guilherme Santos,30,https://conteudo.cbf.com.br/atletas/18745236739/foto.jpg,0,0,82,90,8,0,1,0
+834943,311085,Bruno Bertinato,1,https://conteudo.cbf.com.br/atletas/08441414963/foto.jpg,1,1,0,90,90,0,0,0
+834943,568565,João Vitor,2,https://conteudo.cbf.com.br/atletas/70807538132/foto.jpg,0,1,0,65,65,0,0,0
+834943,406111,Salomão,6,https://conteudo.cbf.com.br/atletas/11221351656/foto.jpg,0,1,0,81,81,0,0,0
+834943,406069,Thiaguinho,7,https://conteudo.cbf.com.br/atletas/35176340852/foto.jpg,0,1,0,90,90,0,0,0
+834943,582048,Cadorini,9,https://conteudo.cbf.com.br/atletas/50639027822/foto.jpg,0,1,0,90,90,1,1,0
+834943,551154,Jonas Toró,10,https://conteudo.cbf.com.br/atletas/12624099425/foto.jpg,0,1,0,60,60,0,0,0
+834943,652687,Igor Torres,13,https://conteudo.cbf.com.br/atletas/49645817803/foto.jpg,0,1,0,81,81,0,0,0
+834943,541928,Portuga,20,https://conteudo.cbf.com.br/atletas/46001081832/foto.jpg,0,1,0,90,90,0,0,0
+834943,170635,Eric,33,https://conteudo.cbf.com.br/atletas/34271288810/foto.jpg,0,1,0,90,90,0,0,0
+834943,581415,Carlos Lima,39,https://conteudo.cbf.com.br/atletas/06279026183/foto.jpg,0,1,0,90,90,0,0,0
+834943,465349,Joao Diogo,99,https://conteudo.cbf.com.br/atletas/01334740208/foto.jpg,0,1,0,60,60,0,0,0
+834943,724087,Cauari,11,https://conteudo.cbf.com.br/atletas/55150953830/foto.jpg,0,0,60,90,30,0,0,0
+834943,618624,Denis,27,https://conteudo.cbf.com.br/atletas/48268574895/foto.jpg,0,0,60,90,30,0,0,0
+834943,650773,Sciencia,42,https://conteudo.cbf.com.br/atletas/47945936865/foto.jpg,0,0,65,90,25,0,1,0
+834943,345443,Lucas Hipolito,16,https://conteudo.cbf.com.br/atletas/12170710671/foto.jpg,0,0,81,90,9,0,0,0
+834943,466651,Thiago Rubim,21,https://conteudo.cbf.com.br/atletas/45994767816/foto.jpg,0,0,81,90,9,0,0,0
+834973,311085,Bruno Bertinato,1,https://conteudo.cbf.com.br/atletas/08441414963/foto.jpg,1,1,0,90,90,0,1,0
+834973,568565,João Vitor,2,https://conteudo.cbf.com.br/atletas/70807538132/foto.jpg,0,1,0,85,85,0,0,0
+834973,522679,Biazus,4,https://conteudo.cbf.com.br/atletas/09984273903/foto.jpg,0,1,0,90,90,0,1,0
+834973,406111,Salomão,6,https://conteudo.cbf.com.br/atletas/11221351656/foto.jpg,0,1,0,90,90,0,0,0
+834973,406069,Thiaguinho,7,https://conteudo.cbf.com.br/atletas/35176340852/foto.jpg,0,1,0,68,68,0,0,0
+834973,582048,Cadorini,9,https://conteudo.cbf.com.br/atletas/50639027822/foto.jpg,0,1,0,90,90,0,0,0
+834973,652687,Igor Torres,13,https://conteudo.cbf.com.br/atletas/49645817803/foto.jpg,0,1,0,85,85,1,1,0
+834973,345443,Lucas Hipolito,16,https://conteudo.cbf.com.br/atletas/12170710671/foto.jpg,0,1,0,68,68,0,0,0
+834973,541928,Portuga,20,https://conteudo.cbf.com.br/atletas/46001081832/foto.jpg,0,1,0,90,90,0,0,0
+834973,170635,Eric,33,https://conteudo.cbf.com.br/atletas/34271288810/foto.jpg,0,1,0,90,90,0,1,0
+834973,581415,Carlos Lima,39,https://conteudo.cbf.com.br/atletas/06279026183/foto.jpg,0,1,0,90,90,0,0,0
+834973,466651,Thiago Rubim,21,https://conteudo.cbf.com.br/atletas/45994767816/foto.jpg,0,0,68,77,9,0,0,0
+834973,598740,Mateus Cecchini,25,https://conteudo.cbf.com.br/atletas/01353803082/foto.jpg,0,0,68,90,22,0,0,0
+834973,465349,Joao Diogo,99,https://conteudo.cbf.com.br/atletas/01334740208/foto.jpg,0,0,77,90,13,0,0,0
+834973,724087,Cauari,11,https://conteudo.cbf.com.br/atletas/55150953830/foto.jpg,0,0,85,90,5,0,0,0
+834973,650773,Sciencia,42,https://conteudo.cbf.com.br/atletas/47945936865/foto.jpg,0,0,85,90,5,0,0,0
+834989,311085,Bruno Bertinato,1,https://conteudo.cbf.com.br/atletas/08441414963/foto.jpg,1,1,0,90,90,0,0,0
+834989,568565,João Vitor,2,https://conteudo.cbf.com.br/atletas/70807538132/foto.jpg,0,1,0,45,45,0,1,0
+834989,522679,Biazus,4,https://conteudo.cbf.com.br/atletas/09984273903/foto.jpg,0,1,0,90,90,0,0,0
+834989,406111,Salomão,6,https://conteudo.cbf.com.br/atletas/11221351656/foto.jpg,0,1,0,85,85,0,0,0
+834989,406069,Thiaguinho,7,https://conteudo.cbf.com.br/atletas/35176340852/foto.jpg,0,1,0,76,76,0,0,0
+834989,582048,Cadorini,9,https://conteudo.cbf.com.br/atletas/50639027822/foto.jpg,0,1,0,90,90,1,0,0
+834989,652687,Igor Torres,13,https://conteudo.cbf.com.br/atletas/49645817803/foto.jpg,0,1,0,90,90,0,0,0
+834989,345443,Lucas Hipolito,16,https://conteudo.cbf.com.br/atletas/12170710671/foto.jpg,0,1,0,61,61,1,0,0
+834989,541928,Portuga,20,https://conteudo.cbf.com.br/atletas/46001081832/foto.jpg,0,1,0,61,61,0,1,0
+834989,170635,Eric,33,https://conteudo.cbf.com.br/atletas/34271288810/foto.jpg,0,1,0,90,90,0,0,0
+834989,581415,Carlos Lima,39,https://conteudo.cbf.com.br/atletas/06279026183/foto.jpg,0,1,0,90,90,0,0,0
+834989,650773,Sciencia,42,https://conteudo.cbf.com.br/atletas/47945936865/foto.jpg,0,0,45,90,45,0,0,0
+834989,598740,Mateus Cecchini,25,https://conteudo.cbf.com.br/atletas/01353803082/foto.jpg,0,0,61,90,29,0,0,0
+834989,563757,Guilherme Santos,30,https://conteudo.cbf.com.br/atletas/18745236739/foto.jpg,0,0,61,90,29,0,0,0
+834989,618624,Denis,27,https://conteudo.cbf.com.br/atletas/48268574895/foto.jpg,0,0,76,90,14,0,0,0
+834989,555571,Gustavo Henrique,3,https://conteudo.cbf.com.br/atletas/42929769882/foto.jpg,0,0,85,90,5,0,0,0
+835063,311085,Bruno Bertinato,1,https://conteudo.cbf.com.br/atletas/08441414963/foto.jpg,1,1,0,90,90,0,0,0
+835063,568565,João Vitor,2,https://conteudo.cbf.com.br/atletas/70807538132/foto.jpg,0,1,0,70,70,0,1,0
+835063,522679,Biazus,4,https://conteudo.cbf.com.br/atletas/09984273903/foto.jpg,0,1,0,90,90,0,1,0
+835063,406111,Salomão,6,https://conteudo.cbf.com.br/atletas/11221351656/foto.jpg,0,1,0,45,45,0,0,0
+835063,406069,Thiaguinho,7,https://conteudo.cbf.com.br/atletas/35176340852/foto.jpg,0,1,0,90,90,0,0,0
+835063,582048,Cadorini,9,https://conteudo.cbf.com.br/atletas/50639027822/foto.jpg,0,1,0,45,45,0,0,1
+835063,652687,Igor Torres,13,https://conteudo.cbf.com.br/atletas/49645817803/foto.jpg,0,1,0,85,85,0,0,0
+835063,345443,Lucas Hipolito,16,https://conteudo.cbf.com.br/atletas/12170710671/foto.jpg,0,1,0,45,45,0,0,0
+835063,541928,Portuga,20,https://conteudo.cbf.com.br/atletas/46001081832/foto.jpg,0,1,0,82,82,0,1,0
+835063,170635,Eric,33,https://conteudo.cbf.com.br/atletas/34271288810/foto.jpg,0,1,0,90,90,0,0,0
+835063,581415,Carlos Lima,39,https://conteudo.cbf.com.br/atletas/06279026183/foto.jpg,0,1,0,90,90,0,0,0
+835063,724087,Cauari,11,https://conteudo.cbf.com.br/atletas/55150953830/foto.jpg,0,0,45,90,45,0,0,0
+835063,618624,Denis,27,https://conteudo.cbf.com.br/atletas/48268574895/foto.jpg,0,0,45,90,45,0,0,0
+835063,650773,Sciencia,42,https://conteudo.cbf.com.br/atletas/47945936865/foto.jpg,0,0,70,90,20,0,0,0
+835063,551154,Jonas Toró,10,https://conteudo.cbf.com.br/atletas/12624099425/foto.jpg,0,0,82,90,8,0,0,0
+835063,465349,Joao Diogo,99,https://conteudo.cbf.com.br/atletas/01334740208/foto.jpg,0,0,85,90,5,0,0,0
+835071,311085,Bruno Bertinato,1,https://conteudo.cbf.com.br/atletas/08441414963/foto.jpg,1,1,0,90,90,0,0,0
+835071,568565,João Vitor,2,https://conteudo.cbf.com.br/atletas/70807538132/foto.jpg,0,1,0,90,90,0,0,0
+835071,522679,Biazus,4,https://conteudo.cbf.com.br/atletas/09984273903/foto.jpg,0,1,0,85,85,0,0,0
+835071,406069,Thiaguinho,7,https://conteudo.cbf.com.br/atletas/35176340852/foto.jpg,0,1,0,59,59,0,0,0
+835071,551154,Jonas Toró,10,https://conteudo.cbf.com.br/atletas/12624099425/foto.jpg,0,1,0,90,90,1,0,0
+835071,652687,Igor Torres,13,https://conteudo.cbf.com.br/atletas/49645817803/foto.jpg,0,1,0,59,59,0,0,0
+835071,345443,Lucas Hipolito,16,https://conteudo.cbf.com.br/atletas/12170710671/foto.jpg,0,1,0,90,90,0,1,0
+835071,541928,Portuga,20,https://conteudo.cbf.com.br/atletas/46001081832/foto.jpg,0,1,0,90,90,0,0,0
+835071,563757,Guilherme Santos,30,https://conteudo.cbf.com.br/atletas/18745236739/foto.jpg,0,1,0,65,65,0,0,0
+835071,170635,Eric,33,https://conteudo.cbf.com.br/atletas/34271288810/foto.jpg,0,1,0,90,90,0,0,0
+835071,465349,Joao Diogo,99,https://conteudo.cbf.com.br/atletas/01334740208/foto.jpg,0,1,0,59,59,0,1,0
+835071,555571,Gustavo Henrique,3,https://conteudo.cbf.com.br/atletas/42929769882/foto.jpg,0,0,59,90,31,0,0,0
+835071,724087,Cauari,11,https://conteudo.cbf.com.br/atletas/55150953830/foto.jpg,0,0,59,90,31,0,0,0
+835071,618624,Denis,27,https://conteudo.cbf.com.br/atletas/48268574895/foto.jpg,0,0,59,90,31,0,0,0
+835071,344888,Tontini,8,https://conteudo.cbf.com.br/atletas/09142375940/foto.jpg,0,0,65,90,25,0,0,0
+835071,598740,Mateus Cecchini,25,https://conteudo.cbf.com.br/atletas/01353803082/foto.jpg,0,0,85,90,5,0,0,0

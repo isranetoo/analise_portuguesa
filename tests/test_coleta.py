@@ -120,6 +120,58 @@ class NomesTest(unittest.TestCase):
         self.assertEqual(coleta.nome_clube({"id": "9", "nome": "Porto Vitória F. C."}, {}), "Porto Vitória")
         self.assertEqual(coleta.nome_clube({"id": "9", "nome": "Uberlândia Saf"}, {}), "Uberlândia")
         self.assertEqual(coleta.nome_clube({"id": "9", "nome": "Madureira"}, {"9": "Madureira-RJ"}), "Madureira-RJ")
+        self.assertEqual(coleta.nome_clube({"id": "9", "nome": "Asa"}, {}), "ASA")
+
+
+class BoletimTest(unittest.TestCase):
+    def test_modelo_fpf(self):
+        texto = "LOCALIDADES A VENDA\nTOTAIS 2727 0 2727 R$ 42.130,00\nRENDA LÍQUIDA (RECEITA - DESPESA) R$ -41.009,68"
+        self.assertEqual(coleta.ler_boletim(texto), {"publico": 2727, "renda_bruta": 42130.0, "renda_liquida": -41009.68})
+
+    def test_modelo_fmf(self):
+        texto = "SETOR\nTOTAL 5.597 4.381 1.216 12.150,00\nTOTAL 38,91"
+        self.assertEqual(coleta.ler_boletim(texto), {"publico": 1216, "renda_bruta": 12150.0, "renda_liquida": None})
+
+    def test_boletim_sem_texto(self):
+        self.assertIsNone(coleta.ler_boletim(""))
+
+    def test_cache_de_boletins_resiste_a_falha_de_rede(self):
+        import json
+        import tempfile
+        from pathlib import Path
+        from unittest import mock
+
+        with tempfile.TemporaryDirectory() as pasta:
+            arquivo = Path(pasta) / "boletins.json"
+            guardado = {"publico": 100, "renda_bruta": 1000.0, "renda_liquida": None}
+            arquivo.write_text(json.dumps({"https://cbf/a.pdf": guardado}), encoding="utf-8")
+            jogos = [{"data": "2026-01-01", "boletim_url": "https://cbf/a.pdf"},
+                     {"data": "2026-01-08", "boletim_url": "https://cbf/b.pdf"}]
+            falha = mock.Mock(side_effect=OSError("conexão recusada"))
+            with mock.patch.object(coleta, "ARQUIVO_BOLETINS", arquivo), mock.patch.object(coleta, "baixar_bytes", falha):
+                cache = coleta.publicos_dos_boletins(jogos)
+            # O boletim já lido não é baixado de novo; o que falhou não entra no cache.
+            self.assertEqual(cache["https://cbf/a.pdf"], guardado)
+            self.assertNotIn("https://cbf/b.pdf", cache)
+            self.assertEqual(falha.call_count, 1)
+            self.assertEqual(json.loads(arquivo.read_text(encoding="utf-8")), {"https://cbf/a.pdf": guardado})
+
+
+class ClassificacaoGeralTest(unittest.TestCase):
+    def test_fase_alcancada_e_campeao(self):
+        def partida(m, v, gm, gv, pen=(0, 0)):
+            return {"mandante": {"id": m, "nome": m, "gols": str(gm), "panaltis": str(pen[0])},
+                    "visitante": {"id": v, "nome": v, "gols": str(gv), "panaltis": str(pen[1])}}
+        partidas = [
+            (partida("A", "B", 3, 0), 0, "1ª fase", True),
+            (partida("C", "D", 0, 0), 0, "1ª fase", True),
+            # Final entre C e B: empate no agregado, C vence nos pênaltis.
+            (partida("C", "B", 1, 0), 1, "Final", True),
+            (partida("B", "C", 1, 0, (5, 6)), 1, "Final", True),
+        ]
+        tabela = coleta.classificacao_geral(partidas, "A", {})
+        self.assertEqual([(l["time"], l["fase_alcancada"]) for l in tabela][:2], [("C", "Campeão"), ("B", "Final")])
+        self.assertEqual(tabela[2]["time"], "A")  # 3 pontos, mas parou na 1ª fase
 
 
 class ClassificacaoTest(unittest.TestCase):

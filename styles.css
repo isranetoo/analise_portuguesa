@@ -682,3 +682,100 @@ nav a[aria-current="page"] { color: var(--primary); box-shadow: inset 0 -2px var
   .page-pager a { min-width: 0; flex: 1; }
   .section-head .section-link { align-self: flex-start; }
 }
+
+/* ---------- Atletas ---------- */
+.avatar { position: relative; flex: 0 0 auto; display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; overflow: hidden; background: var(--secondary-soft); color: var(--secondary-deep); font-size: 10px; font-weight: 800; }
+.avatar::before { content: attr(data-initials); }
+.avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top; background: var(--surface); }
+.avatar.lg { width: 96px; height: 96px; font-size: 28px; border: 3px solid var(--card); box-shadow: 0 0 0 2px var(--secondary); }
+.athlete-link { color: inherit; text-decoration: none; border-bottom: 1px dotted var(--faint); }
+.athlete-link:hover { color: var(--primary); border-bottom-color: var(--primary); }
+.scorer-main { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.scorer-main > div { min-width: 0; flex: 1; }
+.back-link { display: inline-block; margin-top: 22px; color: var(--primary); font-size: 12px; font-weight: 750; text-decoration: none; }
+.athlete-header { display: flex; align-items: center; gap: 22px; padding: 18px 0 22px; border-bottom: 1px solid var(--line); }
+.athlete-header h1 { margin: 0; font-size: clamp(28px, 3vw, 38px); letter-spacing: -.025em; }
+.athlete-header p:last-child { margin: 8px 0 0; color: var(--muted); font-size: 13px; }
+.athlete-strip { margin-top: 16px; }
+.game-tile.participation.starter { color: var(--secondary-deep); border-top-color: var(--secondary); background: var(--secondary-soft); }
+.game-tile.participation.sub { color: var(--draw-deep); border-top-color: var(--draw); background: var(--draw-soft); }
+.game-tile.participation.none { color: var(--faint); border-top-color: var(--line); background: var(--surface); }
+.game-tile.participation strong { font-size: 14px; }
+.muted-row td { color: var(--faint); }
+.table-wrap.flat { max-height: none; box-shadow: none; border-radius: var(--radius-md); }
+
+/* ---------- Ações ---------- */
+.table-actions { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+.table-actions .show-more { margin: 14px 0 0; }
+.download-button { margin-top: 14px; border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 99px; padding: 8px 16px; font-size: 11px; font-weight: 750; cursor: pointer; }
+.download-button::before { content: "↓ "; color: var(--primary); }
+.download-button:hover { border-color: var(--primary); }
+.matches-head .download-button { margin: 0; }
+.matches-head { align-items: center; }
+.panel .table-wrap.flat td, .panel .table-wrap.flat th { padding: 11px 14px; }
+
+/* ---------- Série D ---------- */
+.league-kpis { grid-template-columns: repeat(4, 1fr); }
+.league-metrics { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px 28px; }
+.league-metric { padding: 14px 0; border-bottom: 1px solid var(--line-soft); }
+.lm-head { display: flex; align-items: baseline; gap: 10px; }
+.lm-head span { flex: 1; color: var(--muted); font-size: 11px; font-weight: 750; }
+.lm-head span small { font-weight: 600; color: var(--faint); }
+.lm-head b { font: 650 20px/1 var(--font-sans); }
+.lm-track { position: relative; height: 10px; margin: 14px 6px 6px; border-radius: 99px; background: var(--track); }
+.lm-track i { position: absolute; top: 50%; transform: translate(-50%, -50%); border-radius: 50%; }
+.lm-track i.avg { width: 12px; height: 12px; background: var(--card); border: 2px solid var(--loss-strong); }
+.lm-track i.own { width: 16px; height: 16px; background: var(--primary); border: 2px solid var(--card); box-shadow: 0 0 0 1px var(--primary); }
+.lm-scale { display: flex; justify-content: space-between; color: var(--faint); font-size: 9px; }
+.legend i.dot.avg { background: var(--card); border: 2px solid var(--loss-strong); border-radius: 50%; }
+.legend i.dot.range { background: var(--track); }
+.legend i.dot.draw { background: var(--draw); }
+.legend i.dot.for { background: var(--win); }
+.own-row td { background: var(--secondary-soft); font-weight: 700; }
+
+/* ---------- Banco de reservas ---------- */
+.bench-split { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 12px; }
+.bench-card { background: var(--surface); border-radius: var(--radius-sm); padding: 14px 16px; border-left: 3px solid var(--secondary); }
+.bench-card:last-child { border-left-color: var(--draw); }
+.bench-card span { display: block; color: var(--muted); font-size: 9px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+.bench-card b { display: block; margin: 8px 0 4px; font: 650 24px/1 var(--font-sans); }
+.bench-card small { color: var(--muted); font-size: 10px; }
+
+/* ---------- Público ---------- */
+.attendance-chart { display: grid; grid-template-columns: repeat(auto-fit, minmax(38px, 1fr)); gap: 6px; align-items: end; min-height: 230px; padding-top: 10px; }
+.attendance-col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 5px; min-width: 0; }
+.attendance-col b { font-size: 9px; white-space: nowrap; }
+.attendance-col i { display: block; width: 70%; max-width: 34px; border-radius: 6px 6px 0 0; background: var(--loss); }
+.attendance-col i.V { background: var(--win); }
+.attendance-col i.E { background: var(--draw); }
+.attendance-col i.D { background: var(--primary); }
+.attendance-col.missing i { background: repeating-linear-gradient(45deg, var(--track), var(--track) 4px, transparent 4px, transparent 8px); border: 1px dashed var(--line); }
+.attendance-col.missing b { color: var(--faint); }
+.attendance-col span { color: var(--muted); font-size: 9px; font-weight: 800; }
+.attendance-col small { color: var(--faint); font-size: 8px; margin-top: -4px; }
+
+/* ---------- Viagens ---------- */
+.travel-layout { display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px; }
+.travel-map { min-height: 420px; border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--line); background: var(--surface); z-index: 0; }
+.travel-list { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; align-content: start; }
+.travel-list li { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; padding: 10px 12px; background: var(--surface); border-radius: var(--radius-sm); }
+.travel-list b { display: block; font-size: 12px; }
+.travel-list small { display: block; color: var(--muted); font-size: 10px; margin-top: 2px; }
+.travel-list em { font-style: normal; font-weight: 800; font-size: 12px; white-space: nowrap; }
+.leaflet-popup-content { font: 12px/1.45 var(--font-sans); }
+
+@media (max-width: 1240px) {
+  nav { gap: 18px; overflow-x: auto; scrollbar-width: none; }
+  nav::-webkit-scrollbar { display: none; }
+  nav a { white-space: nowrap; }
+}
+@media (max-width: 960px) {
+  .league-metrics, .travel-layout, .bench-split { grid-template-columns: 1fr; }
+  .league-kpis { grid-template-columns: repeat(2, 1fr); }
+  .travel-map { min-height: 320px; }
+}
+@media (max-width: 680px) {
+  .athlete-header { flex-direction: column; align-items: flex-start; }
+  .avatar.lg { width: 76px; height: 76px; }
+  .matches-head { flex-direction: column; align-items: stretch; }
+}

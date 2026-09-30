@@ -54,6 +54,7 @@ Os dados cobrem a campanha completa, de 4 de abril a 25 de julho de 2026.
 - Marcar primeiro foi determinante: o time **abriu o placar em 10 jogos e somou 26 dos 30 pontos** possíveis neles.
 - A faixa mais produtiva foi **dos 61 aos 75 minutos** (6 gols), e o time ganhou **6 pontos** em relação aos placares de intervalo.
 - **28 atletas** foram utilizados; o goleiro Bruno Bertinato esteve em campo em **93,8% dos minutos**.
+- Na classificação geral da Série D, a Portuguesa ficou em **10º entre 96 clubes**, com o **melhor aproveitamento em casa** de toda a competição (91,7%).
 - Em relação a 2025 (eliminação na 2ª fase, nos pênaltis), o time **foi mais longe**, com aproveitamento semelhante (**66,7%** contra 68,8%).
 
 ## O que a dashboard entrega
@@ -66,9 +67,12 @@ O painel é dividido em páginas, acessíveis pelo menu superior (cada uma tem s
 | **Trajetória** | Classificação do grupo, confrontos de ida e volta do mata-mata e retrospecto por adversário |
 | **Desempenho** | Indicadores, evolução dos pontos (com tooltip de cada jogo), resultados, mando de campo e consistência |
 | **Gols** | Artilharia (gols por fase, pênaltis, faltas e decisivos), gols por faixa de 15 minutos e antes e depois do intervalo |
-| **Elenco** | Atletas utilizados, time-base, titularidades, minutos estimados e disciplina |
-| **Jogos** | Tabela completa com busca por adversário ou atleta e detalhes de cada partida (gols, escalação, árbitro) |
+| **Elenco** | Atletas utilizados, time-base, titularidades, minutos estimados, banco de reservas, disciplina e download em CSV |
+| **Jogos** | Tabela completa com busca por adversário ou atleta, detalhes de cada partida (gols, escalação, árbitro, público, links da súmula e do boletim), arbitragem e download em CSV |
+| **Série D** | Indicadores comparados à média dos 96 clubes, ranking em cada um e classificação geral completa |
+| **Público e viagens** | Público e renda por jogo (boletins financeiros) e mapa das viagens com a quilometragem da campanha |
 | **2025 × 2026** | Comparação com a temporada anterior |
+| **Atleta** | Página de cada jogador (aberta ao clicar no nome): foto, jogos, minutos, gols e participação jogo a jogo |
 
 Os filtros por mando de campo (casa/fora) e por fase (grupos/mata-mata) aparecem nas páginas Desempenho, Gols, Elenco e Jogos e valem para todas elas. O painel também tem tema claro e escuro.
 
@@ -83,7 +87,10 @@ O painel considera somente partidas com <code>status</code> igual a <code>finish
 
 - gols contra são atribuídos ao adversário do autor;
 - o minuto do gol é contado dentro de cada tempo, e os acréscimos entram na última faixa (45+ e 90+);
-- um **gol decisivo** é aquele que colocou o time à frente de vez numa vitória;
+- um **gol decisivo** é aquele que colocou o time à frente de vez numa vitória; o **gol da vaga** é o que deixou o time à frente de vez no placar agregado de um confronto de mata-mata;
+- a **classificação geral** ordena os clubes pela fase alcançada e, dentro dela, por pontos, vitórias, saldo e gols marcados;
+- o **público** é o total de ingressos vendidos (incluindo gratuidades) informado nos boletins financeiros; boletins escaneados, sem texto, ficam sem dados;
+- as **distâncias** são em linha reta entre a cidade-sede e a cidade do jogo, ida e volta;
 - os **minutos jogados** são estimados a partir das substituições e expulsões, com 90 minutos por partida (sem acréscimos);
 - os cartões do time incluem a comissão técnica; os cartões por atleta consideram só os jogadores.
 
@@ -101,7 +108,9 @@ O painel considera somente partidas com <code>status</code> igual a <code>finish
 <pre><code>analise_portuguesa/
 ├── app.js                      # cálculos e renderização da dashboard
 ├── coleta_detalhada.py         # coleta na CBF e geração dos CSVs e do dados.js
+├── boletins.json               # cache do público e da renda lidos dos boletins (gerado)
 ├── config.json                 # clube, competição, cores e temporada de comparação
+├── coordenadas.json            # cache das coordenadas das cidades (gerado)
 ├── dados.js                    # dados da dashboard (gerado pela coleta)
 ├── dashboard-preview.png
 ├── index.html
@@ -110,14 +119,19 @@ O painel considera somente partidas com <code>status</code> igual a <code>finish
 ├── portuguesa_serie_d_2025_grupo.csv
 ├── portuguesa_serie_d_2025_todos_jogos.csv
 ├── portuguesa_serie_d_2026_atletas.csv
+├── portuguesa_serie_d_2026_classificacao_geral.csv
 ├── portuguesa_serie_d_2026_gols.csv
 ├── portuguesa_serie_d_2026_grupo.csv
 ├── portuguesa_serie_d_2026_todos_jogos.csv
-├── requirements.txt
+├── requirements.txt            # dependências do Streamlit
+├── requirements-coleta.txt     # dependências da coleta (leitura dos PDFs)
+├── requirements-dev.txt        # dependências dos testes
 ├── server.js
 ├── streamlit_app.py
 ├── styles.css
 ├── tests/test_coleta.py        # testes do tratamento das súmulas
+├── tests/test_painel.py        # testes da dashboard no navegador (Playwright)
+├── .github/workflows/          # testes a cada push e coleta automática semanal
 └── windows_asyncio.py
 </code></pre>
 
@@ -153,11 +167,27 @@ O arquivo <code>coleta_detalhada.py</code> busca os jogos na API pública usada 
 
 Para a temporada de comparação, gera apenas os jogos e o grupo. Por fim, tudo é consolidado em <code>dados.js</code>, que é o arquivo lido pela dashboard.
 
-<pre><code>python coleta_detalhada.py
-python -m unittest        # testes do tratamento das súmulas
+<pre><code>python -m pip install -r requirements-coleta.txt
+python coleta_detalhada.py
 </code></pre>
 
+A coleta é resiliente: cada consulta à CBF tem novas tentativas e, se uma rodada continuar indisponível, o coletor encerra com erro sem alterar os arquivos. Boletins financeiros e coordenadas ficam em cache (<code>boletins.json</code> e <code>coordenadas.json</code>), então uma falha de rede nunca apaga dados já obtidos.
+
 Após atualizar os dados e enviar um novo commit para a branch <code>main</code>, o Streamlit Community Cloud realiza o redeploy da aplicação.
+
+### Testes
+
+<pre><code>python -m pip install -r requirements-dev.txt
+python -m playwright install chromium
+python -m unittest
+</code></pre>
+
+São testados o tratamento das súmulas (gol contra, pênaltis, minutos jogados, boletins, classificação) e a dashboard no navegador (páginas, filtros, página do atleta, download de CSV e funcionamento sem internet). Sem o Playwright instalado, os testes do navegador são ignorados.
+
+### Automação no GitHub
+
+- **Testes** (<code>.github/workflows/testes.yml</code>): rodam a cada push e pull request.
+- **Coleta automática** (<code>.github/workflows/coleta.yml</code>): toda segunda-feira, de abril a novembro, executa a coleta e, se os dados mudarem, faz um commit na branch <code>main</code> (o que dispara o redeploy do Streamlit). Também pode ser executada manualmente pela aba *Actions*. Para uma nova temporada, basta atualizar o ano no <code>config.json</code>.
 
 ### Analisar outro clube ou temporada
 

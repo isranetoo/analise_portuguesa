@@ -1,0 +1,48 @@
+name: Coleta automática
+
+# Toda segunda-feira, de abril a novembro (período da Série D), às 9h UTC.
+# Também pode ser executada manualmente pela aba Actions do GitHub.
+on:
+  schedule:
+    - cron: "0 9 * 4-11 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: coleta
+  cancel-in-progress: false
+
+jobs:
+  coleta:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Instalar dependências
+        run: python -m pip install -r requirements-coleta.txt
+
+      # Se a CBF falhar, o coletor encerra com erro sem alterar os arquivos.
+      - name: Coletar dados na CBF
+        run: python coleta_detalhada.py
+
+      - name: Validar o tratamento das súmulas
+        run: python -m unittest tests.test_coleta
+
+      - name: Publicar dados atualizados
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898341+github-actions[bot]@users.noreply.github.com"
+          git add dados.js coordenadas.json boletins.json *.csv
+          if git diff --cached --quiet; then
+            echo "Nenhuma mudança nos dados."
+          else
+            git commit -m "dados: atualizar coleta da CBF"
+            git push
+          fi
