@@ -89,7 +89,7 @@ O painel considera somente partidas com <code>status</code> igual a <code>finish
 - o minuto do gol é contado dentro de cada tempo, e os acréscimos entram na última faixa (45+ e 90+);
 - um **gol decisivo** é aquele que colocou o time à frente de vez numa vitória; o **gol da vaga** é o que deixou o time à frente de vez no placar agregado de um confronto de mata-mata;
 - a **classificação geral** ordena os clubes pela fase alcançada e, dentro dela, por pontos, vitórias, saldo e gols marcados;
-- o **público** é o total de ingressos vendidos (incluindo gratuidades) informado nos boletins financeiros; boletins escaneados ou com layout desconhecido ficam sem dados (o cache guarda <code>{"erro": "sem_texto"}</code> para PDFs sem camada de texto e <code>{"erro": "formato_desconhecido"}</code> para layouts não reconhecidos, que são tentados novamente a cada coleta);
+- o **público** é o total de ingressos vendidos (incluindo gratuidades) informado nos boletins financeiros; boletins ilegíveis ou com layout desconhecido têm dados vazio na coleta;
 - as **distâncias** são em linha reta entre a cidade-sede e a cidade do jogo, ida e volta;
 - os **minutos jogados** são estimados a partir das substituições e expulsões, com 90 minutos por partida (sem acréscimos);
 - os cartões do time incluem a comissão técnica; os cartões por atleta consideram só os jogadores.
@@ -171,7 +171,7 @@ Para a temporada de comparação, gera apenas os jogos e o grupo. Por fim, tudo 
 python coleta_detalhada.py
 </code></pre>
 
-A coleta é resiliente: ao descobrir a competição e buscar rodadas, usa novas tentativas com backoff exponencial; se uma rodada continuar indisponível, o coletor encerra com erro sem alterar os arquivos. O download dos boletins financeiros e do geocoder chamam a rede direto sem novas tentativas (falhas ali caem no cache ou continuam). Boletins financeiros e coordenadas ficam em cache (<code>boletins.json</code> e <code>coordenadas.json</code>), então uma falha de rede nunca apaga dados já obtidos. A validação aborta sem gravar quando a coleta é inconsistente, e a gravação é atômica, para evitar CSVs truncados.
+A coleta é resiliente: ao descobrir a competição e buscar rodadas, usa novas tentativas com backoff exponencial; se uma rodada continuar indisponível, o coletor encerra com erro sem alterar os arquivos. O download dos boletins financeiros e do geocoder chamam a rede direto sem novas tentativas (falhas ali caem no cache ou continuam). Falhas em boletins e coordenadas não entram no cache e são tentadas na próxima coleta. A validação aborta sem gravar quando a coleta é inconsistente, e a gravação é atômica, para evitar CSVs truncados.
 
 Após atualizar os dados e enviar um novo commit para a branch <code>main</code>, o Streamlit Community Cloud realiza o redeploy da aplicação.
 
