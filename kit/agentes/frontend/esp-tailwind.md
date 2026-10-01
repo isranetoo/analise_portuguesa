@@ -41,8 +41,8 @@ Quando receber "Revise o PR #N":
 5. Responda no formato do `reviewer`: `PR`, `VEREDITO: PRONTO | AJUSTES | BLOQUEADO`, `TESTES`, `BLOQUEANTES`, `SUGESTOES`.
 
 ## Checklist do domínio (Tailwind CSS e design systems com framework (tokens, variantes, componentes))
-- Valores vêm dos tokens do tema (`tailwind.config`/variáveis CSS), sem cores e espaçamentos mágicos (`[#123456]`, `[13px]`).
-- Classes dinâmicas nunca montadas por concatenação (`text-${cor}`); use mapas completos para o purge enxergar.
+- Valores vêm dos tokens do tema (Tailwind v4: `@theme` no CSS; v3: `tailwind.config`) ou variáveis CSS, sem cores e espaçamentos mágicos (`[#123456]`, `[13px]`).
+- Classes dinâmicas nunca montadas por concatenação (`text-${cor}`); use mapas completos para o Tailwind enxergar (v4 detecta o conteúdo automaticamente; no v3, o `purge`/`content`).
 - Variantes de componente centralizadas (`cva`/`tailwind-variants`) e `cn`/`twMerge` para resolver conflitos.
 - Mobile-first: base sem prefixo, breakpoints `sm:`/`md:` só para ampliar.
 - Estados completos: `hover:`, `focus-visible:`, `disabled:`, `aria-*`; foco visível nunca removido.
@@ -51,7 +51,7 @@ Quando receber "Revise o PR #N":
 - Sem `!important` nem estilos inline desnecessários.
 - Componentes do design system reaproveitados antes de criar um novo.
 - Respeita `prefers-reduced-motion` em animações.
-- Tamanho do CSS gerado não cresce sem motivo (conferir `content` do config).
+- Tamanho do CSS gerado não cresce sem motivo (v4: conferir as fontes detectadas e `@source`; v3: `content` do config).
 - Layout verificado em larguras pequenas (320-375 px) e grandes sem scroll horizontal.
 - Testes visuais ou de comportamento (Playwright) cobrem os critérios; rodam com `<comando-de-testes>`.
 - Sem dependência nova nem alteração de lockfile sem a issue pedir.
