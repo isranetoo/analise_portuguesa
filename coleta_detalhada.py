@@ -538,12 +538,44 @@ def ler_boletim(texto):
     }
 
 
+BOLETIM_SEM_TEXTO = "sem_texto"
+BOLETIM_FORMATO_DESCONHECIDO = "formato_desconhecido"
+
+
+def resultado_do_boletim(texto):
+    """Dados do boletim ou o motivo de não haver dados, no formato guardado em boletins.json.
+
+    - {"publico": ..., "renda_bruta": ..., "renda_liquida": ...}: boletim lido;
+    - {"erro": "sem_texto"}: PDF sem camada de texto (documento escaneado);
+    - {"erro": "formato_desconhecido"}: tem texto, mas nenhum modelo de ler_boletim reconheceu.
+    """
+    if not texto.strip():
+        return {"erro": BOLETIM_SEM_TEXTO}
+    return ler_boletim(texto) or {"erro": BOLETIM_FORMATO_DESCONHECIDO}
+
+
+def boletim_precisa_ser_lido(cache, url):
+    """Diz se o boletim deve ser baixado: ainda não está no cache ou pode ter mudado de resultado.
+
+    Boletins lidos e escaneados (sem texto) não mudam, então não são baixados de novo.
+    Formato desconhecido é tentado a cada coleta, para aproveitar modelos novos de
+    ler_boletim; null de versões anteriores (motivo não registrado) também é relido.
+    """
+    if url not in cache:
+        return True
+    entrada = cache[url]
+    return entrada is None or (isinstance(entrada, dict) and entrada.get("erro") == BOLETIM_FORMATO_DESCONHECIDO)
+
+
 def publicos_dos_boletins(jogos):
     """Público e renda de cada boletim, com cache em boletins.json (chave: link do PDF).
 
-    Um boletim lido fica guardado e não é baixado de novo. Falhas de rede não entram no
-    cache, para que o boletim seja tentado novamente na próxima coleta sem apagar dados.
-    PDFs sem texto (documentos escaneados) ficam registrados como null.
+    Cada entrada do cache é o retorno de resultado_do_boletim: os dados do boletim ou
+    {"erro": "sem_texto"} (PDF escaneado, não é baixado de novo) ou
+    {"erro": "formato_desconhecido"} (layout que ler_boletim não reconhece; é baixado e
+    lido de novo a cada coleta). Entradas null, gravadas por versões anteriores sem o
+    motivo, também são relidas. Falhas de rede não entram no cache, para que o boletim
+    seja tentado novamente na próxima coleta sem apagar dados.
     """
     cache = json.loads(ARQUIVO_BOLETINS.read_text(encoding="utf-8")) if ARQUIVO_BOLETINS.exists() else {}
     try:
@@ -554,7 +586,7 @@ def publicos_dos_boletins(jogos):
     alterado = False
     for jogo in jogos:
         url = jogo["boletim_url"]
-        if not url or url in cache:
+        if not url or not boletim_precisa_ser_lido(cache, url):
             continue
         try:
             conteudo = baixar_bytes(url, {"User-Agent": HEADERS["User-Agent"]})
@@ -563,8 +595,12 @@ def publicos_dos_boletins(jogos):
         except Exception as erro:
             print(f"   Boletim de {jogo['data']} indisponível agora ({erro}); será tentado na próxima coleta")
             continue
-        cache[url] = ler_boletim(texto)
-        alterado = True
+        resultado = resultado_do_boletim(texto)
+        if resultado.get("erro"):
+            print(f"   Boletim de {jogo['data']} sem dados ({resultado['erro']}): {url}")
+        if url not in cache or cache[url] != resultado:
+            cache[url] = resultado
+            alterado = True
     if alterado:
         ARQUIVO_BOLETINS.write_text(json.dumps(cache, ensure_ascii=False, indent=1, sort_keys=True), encoding="utf-8")
     return cache
@@ -721,11 +757,13 @@ def main():
     print("\nPúblico e renda (boletins financeiros)")
     boletins = publicos_dos_boletins(principal["jogos"])
     for jogo in principal["jogos"]:
+        # Entradas com "erro" (sem texto, formato desconhecido) deixam público e renda vazios.
         publico = boletins.get(jogo["boletim_url"]) or {}
         jogo["publico"] = publico.get("publico")
         jogo["renda_bruta"] = publico.get("renda_bruta")
         jogo["renda_liquida"] = publico.get("renda_liquida")
-        print(f"   {jogo['data']} {jogo['adversario']}: {jogo['publico'] if jogo['publico'] is not None else 'sem dados'}")
+        sem_dados = f"sem dados ({publico['erro']})" if publico.get("erro") else "sem dados"
+        print(f"   {jogo['data']} {jogo['adversario']}: {jogo['publico'] if jogo['publico'] is not None else sem_dados}")
 
     coordenadas = coordenadas_das_cidades(principal["jogos"])
     for jogo in principal["jogos"]:
