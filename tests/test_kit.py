@@ -9,12 +9,30 @@ except ImportError:  # PyYAML e opcional
     yaml = None
 
 RAIZ = Path(__file__).resolve().parent.parent
+KIT = RAIZ / "Claude-kit"
+
+AGENTES_DO_KIT = {
+    "dev-junior", "dev-pleno", "dev-senior", "reviewer", "tech-lead",
+    "arquiteto-software", "esp-python", "esp-qa", "esp-e2e", "esp-cicd",
+    "esp-appsec", "esp-a11y", "esp-css", "esp-uiux", "esp-performance-web",
+    "esp-dados", "esp-scraping",
+}
+SKILLS_DO_KIT = {"abrir-pr", "atualizar-pr", "criar-issue", "revisar-pr"}
+
+# Referencias a este projeto que nao podem aparecer no kit generico.
+REFERENCIAS_DO_PROJETO = re.compile(
+    r"isranetoo|portuguesa|\bcbf\b|streamlit|coleta_detalhada|\bapp\.js\b"
+    r"|projects/2\b|item-edit 2\b|test_painel|test_coleta|dados\.js",
+    re.IGNORECASE,
+)
 
 
 def arquivos_do_kit():
-    arquivos = list(RAIZ.glob(".claude/agents/*.md"))
-    arquivos += RAIZ.glob(".claude/skills/*/SKILL.md")
-    arquivos += [p for p in RAIZ.glob("kit/agentes/**/*.md") if p.name != "README.md"]
+    arquivos = []
+    for base in (RAIZ, KIT):
+        arquivos += base.glob(".claude/agents/*.md")
+        arquivos += base.glob(".claude/skills/*/SKILL.md")
+    arquivos += [p for p in KIT.glob("agentes/**/*.md") if p.name != "README.md"]
     return sorted(arquivos)
 
 
@@ -57,6 +75,53 @@ class FrontmatterKitTest(unittest.TestCase):
                     self.assertIsInstance(dados, dict)
                     self.assertTrue(dados.get("name"))
                     self.assertTrue(dados.get("description"))
+
+
+class ClaudeKitTest(unittest.TestCase):
+    def test_estrutura_completa(self):
+        esperados = ["README.md", "CLAUDE.md", ".worktreeinclude",
+                     "scripts/setup-cto.sh", ".claude/commands/cto.md",
+                     "agentes/README.md"]
+        esperados += [f".claude/agents/{nome}.md" for nome in AGENTES_DO_KIT]
+        esperados += [f".claude/skills/{nome}/SKILL.md" for nome in SKILLS_DO_KIT]
+        for relativo in esperados:
+            with self.subTest(arquivo=relativo):
+                self.assertTrue((KIT / relativo).is_file())
+        nomes = {p.stem for p in KIT.glob(".claude/agents/*.md")}
+        self.assertEqual(nomes, AGENTES_DO_KIT)
+
+    def test_biblioteca_movida_para_o_kit(self):
+        restantes = [p for p in (RAIZ / "kit").rglob("*") if p.is_file()]
+        self.assertEqual(restantes, [], "kit/ deveria ter sido movido")
+        self.assertTrue(list(KIT.glob("agentes/*/*.md")))
+
+    def test_kit_sem_referencia_ao_projeto(self):
+        for caminho in sorted(p for p in KIT.rglob("*") if p.is_file()):
+            texto = caminho.read_text(encoding="utf-8")
+            with self.subTest(arquivo=caminho.relative_to(RAIZ).as_posix()):
+                achado = REFERENCIAS_DO_PROJETO.search(texto)
+                self.assertIsNone(achado, achado and achado.group(0))
+
+    def test_name_igual_ao_nome_do_arquivo(self):
+        for caminho in KIT.glob(".claude/agents/*.md"):
+            with self.subTest(arquivo=caminho.name):
+                linhas = extrair_frontmatter(caminho.read_text(encoding="utf-8"))
+                self.assertIn(f"name: {caminho.stem}", linhas)
+
+    def test_setup_cria_label_de_todos_os_agentes(self):
+        script = (KIT / "scripts" / "setup-cto.sh").read_text(encoding="utf-8")
+        for nome in AGENTES_DO_KIT:
+            with self.subTest(agente=nome):
+                self.assertIn(f'"{nome}:', script)
+
+    def test_sem_referencia_antiga_a_kit_agentes(self):
+        arquivos = [RAIZ / "CLAUDE.md", RAIZ / "README-CTO.md"]
+        arquivos += RAIZ.glob(".claude/**/*.md")
+        arquivos += KIT.rglob("*.md")
+        for caminho in arquivos:
+            with self.subTest(arquivo=caminho.relative_to(RAIZ).as_posix()):
+                texto = caminho.read_text(encoding="utf-8")
+                self.assertNotRegex(texto, r"(?<!Claude-)kit/agentes")
 
 
 if __name__ == "__main__":
