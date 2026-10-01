@@ -19,9 +19,9 @@ Descubra o nível pela label `difficulty:` da issue (`gh issue view <N> --json l
 - **Sênior (`difficulty:hard`):** ANTES de codar, comente o plano na issue (`gh issue comment <N> --body-file -`): abordagem, arquivos (e áreas), riscos e rollback. Pode tocar várias áreas se listadas no plano; registra no PR a decisão técnica e as alternativas descartadas. Ex.: mudança no schema de `dados.js` (exige `app.js` e `tests/test_painel.py`), migração de formato ou regeneração completa dos dados: plano com rollback.
 
 ## Antes de tudo
-1. `git fetch origin && git show origin/main:CLAUDE.md` — leia o CLAUDE.md da `main` (o do seu worktree pode estar desatualizado) e siga TODAS as regras da seção "Regras para todos os devs".
+1. `git fetch origin && git show origin/main:CLAUDE.md` — leia o CLAUDE.md da `main` (o do seu worktree pode estar desatualizado) e siga TODAS as regras da seção "Regras para todos os devs" e "Ritmo das chamadas ao GitHub".
 2. `gh issue view <N> --comments`. Os critérios de aceite e os "Arquivos prováveis" são o contrato; a label `difficulty:` define o seu nível.
-3. Nível sênior: comente o plano na issue antes de codar.
+3. Nível sênior: comente o plano na issue antes de codar e faça `sleep 5` antes da próxima chamada `gh`.
 
 ## Fluxo
 1. Issue nova: `git checkout -b <tipo>/<N>-<slug> origin/main`. Ajuste/conflito de PR existente: `git checkout -b tmp-<N> origin/<branch-do-PR>` e depois `git push origin HEAD:<branch-do-PR>` — nunca abra PR novo nesse caso; atualize o corpo do PR se ele ficar desatualizado.
@@ -36,11 +36,12 @@ Descubra o nível pela label `difficulty:` da issue (`gh issue view <N> --json l
    - Checklist dos critérios de aceite marcados
    - Riscos e rollback (sênior)
    - `Testes: <total> OK`
+7. Ritmo das chamadas ao GitHub: `sleep 5` depois de `gh pr create`, `gh pr edit` e `gh issue comment`, antes de qualquer outra chamada `gh`; nunca chamadas de escrita em laço sem pausa.
 
 ## Modo revisão
 Quando receber "Revise o PR #<N>" você é somente leitura: não edita, não commita, não faz push.
-1. `git fetch origin && git show origin/main:CLAUDE.md`.
-2. `gh pr view <PR> --comments --json body,files,mergeable,closingIssuesReferences` e `gh pr diff <PR>`. `closingIssuesReferences` vazio = bloqueante (`Closes #N` na primeira linha). Leia a issue e confira cada critério de aceite.
+1. `git fetch origin && git show origin/main:CLAUDE.md` — as regras valem a partir do CLAUDE.md da `main`, inclusive "Ritmo das chamadas ao GitHub".
+2. `gh pr view <PR> --comments --json body,files,mergeable,closingIssuesReferences` (mínimo 10 s entre consultas; 20–30 s no polling de CI) e `gh pr diff <PR>`. `closingIssuesReferences` vazio = bloqueante (`Closes #N` na primeira linha). Leia a issue e confira cada critério de aceite.
 3. Testes num worktree temporário, nunca no checkout principal: `git worktree add <pasta-temp> origin/<branch-do-PR>` → `git -C <pasta-temp> merge --no-edit origin/main` (conflito = bloqueante: "precisa atualizar com a main") → `python -m unittest -v` dentro dela → `git worktree remove --force <pasta-temp>`.
 4. Aplique o "Checklist do domínio" aos arquivos do diff, citando `arquivo:linha`. Escopo geral e convenções também contam (arquivo de outra área sem justificativa = bloqueante).
 5. Comente com `gh pr review <PR> --comment --body-file -`, separando **bloqueante** de **sugestão**. Nunca aprove, nunca faça merge, nunca troque a branch do checkout principal.
@@ -52,7 +53,7 @@ Veredito: PRONTO = sem bloqueantes. AJUSTES = há bloqueantes corrigíveis pelo 
 - [ ] Schema de `dados.js` = `window.__DASHBOARD_DATA__ = {config, principal, comparacao};` — chave nova/renomeada exige `app.js` e `tests/test_painel.py::dados()` atualizados (outra área: plano ou `ESCALAR`).
 - [ ] Chaves em português snake_case, iguais no CSV e no `dados.js` (`id_jogo`, `gols_clube`, `gols_adversario`, `resultado` V/E/D, `status` `finished`).
 - [ ] Tipos consistentes: número é `int`/`float` (não string); ausência é `None`/`null` (não `0` nem `""`); `publico`/`renda_*` ficam nulos quando o boletim falha.
-- [ ] `validar()` cobre a invariante nova (hoje: `id_jogo` único, jogo encerrado com data/adversário/placar, encerrados não diminuem no mesmo ano), com teste que a faz falhar.
+- [ ] `validar()` cobre a invariante nova, com teste que a faz falhar, e mantém ao menos as atuais: `id_jogo` único, jogo encerrado com data/adversário/placar, encerrados não diminuem no mesmo ano.
 - [ ] As duas temporadas são coletadas e validadas antes de qualquer gravação (atomicidade do conjunto).
 - [ ] CSV: todas as linhas com as mesmas chaves na mesma ordem (cabeçalho vem de `linhas[0]`); lista vazia remove o arquivo (`salvar_csv`).
 - [ ] Nomes via `prefixo_arquivos(config, ano)`; o `coleta.yml` só publica `dados.js *.csv` e os dois caches — arquivo gerado fora disso não chega à `main`.

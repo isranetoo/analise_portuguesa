@@ -18,9 +18,9 @@ Descubra o nível pela label `difficulty:` da issue (`gh issue view <N> --json l
 - **Sênior (`difficulty:hard`):** ANTES de codar, comente o plano na issue (`gh issue comment <N> --body-file -`): abordagem, arquivos (e áreas), riscos e rollback. Pode tocar várias áreas se listadas no plano; registra no PR a decisão técnica e as alternativas descartadas. Ex.: mudança de permissões, do commit automático da coleta, de gatilhos que afetem a publicação no Streamlit ou de segredos: plano com rollback.
 
 ## Antes de tudo
-1. `git fetch origin && git show origin/main:CLAUDE.md` — leia o CLAUDE.md da `main` (o do seu worktree pode estar desatualizado) e siga TODAS as regras da seção "Regras para todos os devs".
+1. `git fetch origin && git show origin/main:CLAUDE.md` — leia o CLAUDE.md da `main` (o do seu worktree pode estar desatualizado) e siga TODAS as regras da seção "Regras para todos os devs" e "Ritmo das chamadas ao GitHub".
 2. `gh issue view <N> --comments`. Os critérios de aceite e os "Arquivos prováveis" são o contrato; a label `difficulty:` define o seu nível.
-3. Nível sênior: comente o plano na issue antes de codar.
+3. Nível sênior: comente o plano na issue antes de codar e faça `sleep 5` antes da próxima chamada `gh`.
 
 ## Fluxo
 1. Issue nova: `git checkout -b <tipo>/<N>-<slug> origin/main`. Ajuste/conflito de PR existente: `git checkout -b tmp-<N> origin/<branch-do-PR>` e depois `git push origin HEAD:<branch-do-PR>` — nunca abra PR novo nesse caso; atualize o corpo do PR se ele ficar desatualizado.
@@ -35,11 +35,12 @@ Descubra o nível pela label `difficulty:` da issue (`gh issue view <N> --json l
    - Checklist dos critérios de aceite marcados
    - Riscos e rollback (sênior)
    - `Testes: <total> OK`
+7. Ritmo das chamadas ao GitHub: `sleep 5` depois de `gh pr create`, `gh pr edit` e `gh issue comment`, antes de qualquer outra chamada `gh`; nunca chamadas de escrita em laço sem pausa.
 
 ## Modo revisão
 Quando receber "Revise o PR #<N>" você é somente leitura: não edita, não commita, não faz push.
-1. `git fetch origin && git show origin/main:CLAUDE.md`.
-2. `gh pr view <PR> --comments --json body,files,mergeable,closingIssuesReferences` e `gh pr diff <PR>`. `closingIssuesReferences` vazio = bloqueante (`Closes #N` na primeira linha). Leia a issue e confira cada critério de aceite.
+1. `git fetch origin && git show origin/main:CLAUDE.md` — as regras valem a partir do CLAUDE.md da `main`, inclusive "Ritmo das chamadas ao GitHub".
+2. `gh pr view <PR> --comments --json body,files,mergeable,closingIssuesReferences` (mínimo 10 s entre consultas; 20–30 s no polling de CI) e `gh pr diff <PR>`. `closingIssuesReferences` vazio = bloqueante (`Closes #N` na primeira linha). Leia a issue e confira cada critério de aceite.
 3. Testes num worktree temporário, nunca no checkout principal: `git worktree add <pasta-temp> origin/<branch-do-PR>` → `git -C <pasta-temp> merge --no-edit origin/main` (conflito = bloqueante: "precisa atualizar com a main") → `python -m unittest -v` dentro dela → `git worktree remove --force <pasta-temp>`.
 4. Aplique o "Checklist do domínio" aos arquivos do diff, citando `arquivo:linha`. Escopo geral e convenções também contam (arquivo de outra área sem justificativa = bloqueante).
 5. Comente com `gh pr review <PR> --comment --body-file -`, separando **bloqueante** de **sugestão**. Nunca aprove, nunca faça merge, nunca troque a branch do checkout principal.
@@ -56,7 +57,7 @@ Veredito: PRONTO = sem bloqueantes. AJUSTES = há bloqueantes corrigíveis pelo 
 - [ ] Falha da CBF faz o job falhar sem commit (o coletor sai com `SystemExit` antes de gravar).
 - [ ] Nenhum segredo em texto; `${{ secrets.* }}` só se a issue pedir; nada de `pull_request_target` com checkout do PR.
 - [ ] Sem interpolar `${{ github.event.* }}` direto em `run:` (injeção); passe por `env:`.
-- [ ] Gatilhos coerentes com o `CLAUDE.md` (após a #37: testes só em push na `main` + `workflow_dispatch`).
+- [ ] Gatilhos coerentes com o que o CI deve rodar, conforme a seção Comandos do `CLAUDE.md`.
 - [ ] YAML validado localmente (`python -c "import yaml,sys; yaml.safe_load(open(sys.argv[1]))" <arquivo>` se PyYAML existir) e explicado como testar via `workflow_dispatch` no PR.
 - [ ] O efeito na `main` foi descrito (o CTO confere `gh run list --branch main --limit 1` após o merge).
 
