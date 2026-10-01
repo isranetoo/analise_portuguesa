@@ -1,6 +1,12 @@
 """Testes do tratamento das súmulas da CBF.  Execute com:  python -m unittest"""
 
+import json
+import re
+import tempfile
 import unittest
+import urllib.error
+from pathlib import Path
+from unittest import mock
 
 import coleta_detalhada as coleta
 
@@ -155,6 +161,75 @@ class BoletimTest(unittest.TestCase):
             self.assertNotIn("https://cbf/b.pdf", cache)
             self.assertEqual(falha.call_count, 1)
             self.assertEqual(json.loads(arquivo.read_text(encoding="utf-8")), {"https://cbf/a.pdf": guardado})
+
+    def test_resultado_distingue_sem_texto_de_formato_desconhecido(self):
+        self.assertEqual(coleta.resultado_do_boletim(""), {"erro": "sem_texto"})
+        self.assertEqual(coleta.resultado_do_boletim(" \n\n "), {"erro": "sem_texto"})
+        self.assertEqual(coleta.resultado_do_boletim("BORDERÔ\nPÚBLICO PAGANTE 1.000"), {"erro": "formato_desconhecido"})
+        texto = "SETOR\nTOTAL 5.597 4.381 1.216 12.150,00"
+        self.assertEqual(coleta.resultado_do_boletim(texto), coleta.ler_boletim(texto))
+
+    def _coletar_com_pdfs(self, guardado, textos):
+        """Roda publicos_dos_boletins com um cache inicial e PDFs falsos (url -> texto)."""
+        import json
+        import sys
+        import tempfile
+        import types
+        from pathlib import Path
+        from unittest import mock
+
+        def abrir(conteudo):
+            pagina = mock.Mock()
+            pagina.extract_text.return_value = textos[conteudo.decode()]
+            pdf = mock.MagicMock()
+            pdf.__enter__.return_value.pages = [pagina]
+            return pdf
+
+        pdfplumber = types.SimpleNamespace(open=lambda arquivo: abrir(arquivo.getvalue()))
+        baixar = mock.Mock(side_effect=lambda url, headers: url.encode())
+        with tempfile.TemporaryDirectory() as pasta:
+            arquivo = Path(pasta) / "boletins.json"
+            arquivo.write_text(json.dumps(guardado), encoding="utf-8")
+            jogos = [{"data": "2026-01-01", "boletim_url": url} for url in list(guardado) + list(textos) if url]
+            jogos = list({jogo["boletim_url"]: jogo for jogo in jogos}.values())
+            with mock.patch.object(coleta, "ARQUIVO_BOLETINS", arquivo), \
+                    mock.patch.object(coleta, "baixar_bytes", baixar), \
+                    mock.patch.dict(sys.modules, {"pdfplumber": pdfplumber}):
+                cache = coleta.publicos_dos_boletins(jogos)
+            gravado = json.loads(arquivo.read_text(encoding="utf-8"))
+        return cache, gravado, [chamada.args[0] for chamada in baixar.call_args_list]
+
+    def test_cache_reprocessa_formato_desconhecido_e_null_antigo(self):
+        lido = {"publico": 100, "renda_bruta": 1000.0, "renda_liquida": None}
+        guardado = {
+            "https://cbf/lido.pdf": lido,
+            "https://cbf/escaneado.pdf": {"erro": "sem_texto"},
+            "https://cbf/desconhecido.pdf": {"erro": "formato_desconhecido"},
+            "https://cbf/antigo.pdf": None,
+        }
+        textos = {
+            # O parser passou a entender o boletim que antes era desconhecido.
+            "https://cbf/desconhecido.pdf": "TOTAL 10 0 10 100,00",
+            # null de versões anteriores: motivo desconhecido, então é lido de novo.
+            "https://cbf/antigo.pdf": "",
+            "https://cbf/novo.pdf": "LAYOUT QUE NINGUEM CONHECE",
+        }
+        cache, gravado, baixados = self._coletar_com_pdfs(guardado, textos)
+        self.assertEqual(sorted(baixados), sorted(textos))
+        self.assertEqual(cache["https://cbf/lido.pdf"], lido)
+        self.assertEqual(cache["https://cbf/escaneado.pdf"], {"erro": "sem_texto"})
+        self.assertEqual(cache["https://cbf/desconhecido.pdf"], {"publico": 10, "renda_bruta": 100.0, "renda_liquida": None})
+        self.assertEqual(cache["https://cbf/antigo.pdf"], {"erro": "sem_texto"})
+        self.assertEqual(cache["https://cbf/novo.pdf"], {"erro": "formato_desconhecido"})
+        self.assertEqual(gravado, cache)
+
+    def test_formato_desconhecido_continua_sendo_tentado(self):
+        guardado = {"https://cbf/desconhecido.pdf": {"erro": "formato_desconhecido"}}
+        textos = {"https://cbf/desconhecido.pdf": "AINDA DESCONHECIDO"}
+        cache, gravado, baixados = self._coletar_com_pdfs(guardado, textos)
+        self.assertEqual(baixados, ["https://cbf/desconhecido.pdf"])
+        self.assertEqual(cache, guardado)
+        self.assertEqual(gravado, guardado)
 
 
 class ClassificacaoGeralTest(unittest.TestCase):
@@ -362,6 +437,135 @@ class ExportacaoTest(unittest.TestCase):
         self.assertEqual(dados["comparacao"], {"ano": 2025, "grupo_nome": "B1", "jogos": [], "grupo": []})
         self.assertIn("São José", texto)  # sem escapes \u
         self.assertIsNone(json.loads(re.search(padrao, texto_sem, re.S).group(1))["comparacao"])
+
+
+class ValidarTest(unittest.TestCase):
+    @staticmethod
+    def linha(id_jogo="1", status="finished", **extra):
+        base = {"id_jogo": id_jogo, "status": status, "data": "2026-04-04",
+                "adversario": "Rival", "gols_clube": 1, "gols_adversario": 0}
+        base.update(extra)
+        return base
+
+    def principal(self, *jogos, ano=2026):
+        return {"ano": ano, "jogos": list(jogos)}
+
+    def test_coleta_valida(self):
+        anterior = {"principal": self.principal(self.linha("1"))}
+        coleta.validar(self.principal(self.linha("1"), self.linha("2")), anterior)
+
+    def test_sem_dados_anteriores(self):
+        coleta.validar(self.principal(self.linha("1")), None)
+
+    def test_agendado_sem_placar_e_aceito(self):
+        agendado = self.linha("2", status="scheduled", gols_clube=None, gols_adversario=None)
+        coleta.validar(self.principal(self.linha("1"), agendado), None)
+
+    def test_menos_encerrados_que_o_anterior(self):
+        anterior = {"principal": self.principal(self.linha("1"), self.linha("2"))}
+        with self.assertRaises(SystemExit):
+            coleta.validar(self.principal(self.linha("1")), anterior)
+
+    def test_temporada_diferente_nao_compara(self):
+        anterior = {"principal": self.principal(self.linha("1"), self.linha("2"), ano=2025)}
+        coleta.validar(self.principal(self.linha("1")), anterior)
+
+    def test_encerrado_sem_campo_obrigatorio(self):
+        for campo in ("data", "adversario", "gols_clube", "gols_adversario"):
+            with self.subTest(campo=campo):
+                with self.assertRaises(SystemExit):
+                    coleta.validar(self.principal(self.linha("1", **{campo: None})), None)
+
+    def test_id_duplicado(self):
+        with self.assertRaises(SystemExit):
+            coleta.validar(self.principal(self.linha("1"), self.linha("1")), None)
+
+
+class DadosVersionadosTest(unittest.TestCase):
+    def test_estrutura_do_dados_js(self):
+        texto = (Path(__file__).resolve().parents[1] / "dados.js").read_text(encoding="utf-8")
+        dados = json.loads(re.search(r"window\.__DASHBOARD_DATA__ = (.*);\s*$", texto, re.S).group(1))
+        self.assertIn("principal", dados)
+        self.assertIn("jogos", dados["principal"])
+        encerrados = [j for j in dados["principal"]["jogos"] if j["status"] == "finished"]
+        for jogo in encerrados:
+            for campo in ("id_jogo", "data", "adversario", "gols_clube", "gols_adversario"):
+                self.assertNotIn(jogo.get(campo), (None, ""), f"{campo} em {jogo.get('id_jogo')}")
+        # A coleta real versionada precisa passar na própria validação.
+        coleta.validar(dados["principal"], dados)
+
+
+class TentativasTest(unittest.TestCase):
+    def test_sucesso_na_terceira_tentativa(self):
+        respostas = [urllib.error.URLError("rede"), TimeoutError(), '{"ok": 1}']
+
+        def baixar(url, como_json=True):
+            resposta = respostas.pop(0)
+            if isinstance(resposta, Exception):
+                raise resposta
+            return json.loads(resposta)
+
+        dormir = mock.Mock()
+        with mock.patch.object(coleta, "baixar", baixar):
+            self.assertEqual(coleta.baixar_com_tentativas("http://x", dormir=dormir), {"ok": 1})
+        self.assertEqual(dormir.call_count, 2)
+
+    def test_falha_em_todas_encerra_com_erro(self):
+        dormir = mock.Mock()
+        with mock.patch.object(coleta, "baixar", side_effect=urllib.error.URLError("rede")) as baixar:
+            with self.assertRaises(SystemExit) as ctx:
+                coleta.baixar_com_tentativas("http://x", tentativas=3, dormir=dormir)
+        self.assertEqual(baixar.call_count, 3)
+        self.assertIn("3 tentativas", str(ctx.exception))
+
+    def test_http_4xx_nao_repete(self):
+        erro = urllib.error.HTTPError("http://x", 404, "nf", {}, None)
+        with mock.patch.object(coleta, "baixar", side_effect=erro) as baixar:
+            with self.assertRaises(urllib.error.HTTPError):
+                coleta.baixar_com_tentativas("http://x", dormir=mock.Mock())
+        self.assertEqual(baixar.call_count, 1)
+
+    def test_http_503_e_429_repetem(self):
+        for codigo in (429, 503):
+            erro = urllib.error.HTTPError("http://x", codigo, "e", {}, None)
+            with mock.patch.object(coleta, "baixar", side_effect=[erro, "ok"]):
+                self.assertEqual(coleta.baixar_com_tentativas("http://x", dormir=mock.Mock()), "ok")
+
+    def test_descobrir_competicao_usa_tentativas(self):
+        with mock.patch.object(coleta, "baixar_com_tentativas", return_value='"competitionId":"7"') as b:
+            self.assertEqual(coleta.descobrir_competicao("serie-d", 2026), ("7", []))
+        b.assert_called_once()
+
+    def test_buscar_rodada_usa_tentativas(self):
+        with mock.patch.object(coleta, "baixar_com_tentativas", return_value={"jogos": [{"jogo": [1, 2]}]}) as b:
+            self.assertEqual(coleta.buscar_rodada("7", "1", 1), [1, 2])
+        b.assert_called_once()
+
+
+class GravacaoTest(unittest.TestCase):
+    def test_salvar_csv_vazio_remove_arquivo_antigo(self):
+        with tempfile.TemporaryDirectory() as pasta:
+            caminho = Path(pasta) / "a.csv"
+            caminho.write_text("velho\n", encoding="utf-8")
+            coleta.salvar_csv(caminho, [])
+            self.assertFalse(caminho.exists())
+            coleta.salvar_csv(caminho, [])  # sem arquivo: não falha
+
+    def test_salvar_csv_grava_linhas(self):
+        with tempfile.TemporaryDirectory() as pasta:
+            caminho = Path(pasta) / "a.csv"
+            coleta.salvar_csv(caminho, [{"a": 1, "b": "x"}])
+            self.assertEqual(caminho.read_bytes().decode().splitlines(), ["a,b", "1,x"])
+
+    def test_gravar_atomico_preserva_original_se_falhar(self):
+        with tempfile.TemporaryDirectory() as pasta:
+            caminho = Path(pasta) / "a.json"
+            caminho.write_text("original", encoding="utf-8")
+            with mock.patch.object(coleta.os, "replace", side_effect=OSError("boom")):
+                with self.assertRaises(OSError):
+                    coleta.gravar_atomico(caminho, "novo")
+            self.assertEqual(caminho.read_text(encoding="utf-8"), "original")
+            self.assertEqual([p.name for p in Path(pasta).iterdir()], ["a.json"])
 
 
 if __name__ == "__main__":
