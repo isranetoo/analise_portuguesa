@@ -156,6 +156,75 @@ class BoletimTest(unittest.TestCase):
             self.assertEqual(falha.call_count, 1)
             self.assertEqual(json.loads(arquivo.read_text(encoding="utf-8")), {"https://cbf/a.pdf": guardado})
 
+    def test_resultado_distingue_sem_texto_de_formato_desconhecido(self):
+        self.assertEqual(coleta.resultado_do_boletim(""), {"erro": "sem_texto"})
+        self.assertEqual(coleta.resultado_do_boletim(" \n\n "), {"erro": "sem_texto"})
+        self.assertEqual(coleta.resultado_do_boletim("BORDERÔ\nPÚBLICO PAGANTE 1.000"), {"erro": "formato_desconhecido"})
+        texto = "SETOR\nTOTAL 5.597 4.381 1.216 12.150,00"
+        self.assertEqual(coleta.resultado_do_boletim(texto), coleta.ler_boletim(texto))
+
+    def _coletar_com_pdfs(self, guardado, textos):
+        """Roda publicos_dos_boletins com um cache inicial e PDFs falsos (url -> texto)."""
+        import json
+        import sys
+        import tempfile
+        import types
+        from pathlib import Path
+        from unittest import mock
+
+        def abrir(conteudo):
+            pagina = mock.Mock()
+            pagina.extract_text.return_value = textos[conteudo.decode()]
+            pdf = mock.MagicMock()
+            pdf.__enter__.return_value.pages = [pagina]
+            return pdf
+
+        pdfplumber = types.SimpleNamespace(open=lambda arquivo: abrir(arquivo.getvalue()))
+        baixar = mock.Mock(side_effect=lambda url, headers: url.encode())
+        with tempfile.TemporaryDirectory() as pasta:
+            arquivo = Path(pasta) / "boletins.json"
+            arquivo.write_text(json.dumps(guardado), encoding="utf-8")
+            jogos = [{"data": "2026-01-01", "boletim_url": url} for url in list(guardado) + list(textos) if url]
+            jogos = list({jogo["boletim_url"]: jogo for jogo in jogos}.values())
+            with mock.patch.object(coleta, "ARQUIVO_BOLETINS", arquivo), \
+                    mock.patch.object(coleta, "baixar_bytes", baixar), \
+                    mock.patch.dict(sys.modules, {"pdfplumber": pdfplumber}):
+                cache = coleta.publicos_dos_boletins(jogos)
+            gravado = json.loads(arquivo.read_text(encoding="utf-8"))
+        return cache, gravado, [chamada.args[0] for chamada in baixar.call_args_list]
+
+    def test_cache_reprocessa_formato_desconhecido_e_null_antigo(self):
+        lido = {"publico": 100, "renda_bruta": 1000.0, "renda_liquida": None}
+        guardado = {
+            "https://cbf/lido.pdf": lido,
+            "https://cbf/escaneado.pdf": {"erro": "sem_texto"},
+            "https://cbf/desconhecido.pdf": {"erro": "formato_desconhecido"},
+            "https://cbf/antigo.pdf": None,
+        }
+        textos = {
+            # O parser passou a entender o boletim que antes era desconhecido.
+            "https://cbf/desconhecido.pdf": "TOTAL 10 0 10 100,00",
+            # null de versões anteriores: motivo desconhecido, então é lido de novo.
+            "https://cbf/antigo.pdf": "",
+            "https://cbf/novo.pdf": "LAYOUT QUE NINGUEM CONHECE",
+        }
+        cache, gravado, baixados = self._coletar_com_pdfs(guardado, textos)
+        self.assertEqual(sorted(baixados), sorted(textos))
+        self.assertEqual(cache["https://cbf/lido.pdf"], lido)
+        self.assertEqual(cache["https://cbf/escaneado.pdf"], {"erro": "sem_texto"})
+        self.assertEqual(cache["https://cbf/desconhecido.pdf"], {"publico": 10, "renda_bruta": 100.0, "renda_liquida": None})
+        self.assertEqual(cache["https://cbf/antigo.pdf"], {"erro": "sem_texto"})
+        self.assertEqual(cache["https://cbf/novo.pdf"], {"erro": "formato_desconhecido"})
+        self.assertEqual(gravado, cache)
+
+    def test_formato_desconhecido_continua_sendo_tentado(self):
+        guardado = {"https://cbf/desconhecido.pdf": {"erro": "formato_desconhecido"}}
+        textos = {"https://cbf/desconhecido.pdf": "AINDA DESCONHECIDO"}
+        cache, gravado, baixados = self._coletar_com_pdfs(guardado, textos)
+        self.assertEqual(baixados, ["https://cbf/desconhecido.pdf"])
+        self.assertEqual(cache, guardado)
+        self.assertEqual(gravado, guardado)
+
 
 class ClassificacaoGeralTest(unittest.TestCase):
     def test_fase_alcancada_e_campeao(self):
