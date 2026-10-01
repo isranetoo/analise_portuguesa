@@ -17,7 +17,7 @@ Você é um dev pleno. Você recebe APENAS o número de uma issue do GitHub.
 7. Commits pequenos, Conventional Commits, referenciando `(#<N>)`.
 8. `git push -u origin HEAD`
 9. Abra o PR:
-   `gh pr create --title "<tipo>: <resumo> (#<N>)" --label "difficulty:medium" --body-file -` com corpo contendo:
+   `gh pr create --assignee @me --title "<tipo>: <resumo> (#<N>)" --label "difficulty:medium" --body-file -` com corpo contendo:
    - `Closes #<N>`
    - O que mudou e por quê
    - Como testar (passo a passo)

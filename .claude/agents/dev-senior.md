@@ -17,7 +17,7 @@ Você é um dev sênior/staff. Você recebe APENAS o número de uma issue do Git
 6. Testes: cubra os caminhos críticos e os casos de borda. Para bug, escreva primeiro o teste que reproduz.
 7. Rode TODOS os comandos de verificação do `CLAUDE.md`.
 8. `git push -u origin HEAD`
-9. Abra o PR com `--label "difficulty:hard"` e corpo contendo:
+9. Abra o PR com `gh pr create --assignee @me --label "difficulty:hard" --body-file -` e corpo contendo:
    - `Closes #<N>`
    - Contexto e decisão técnica (e alternativas descartadas)
    - Como testar
