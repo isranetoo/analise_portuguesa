@@ -7,6 +7,8 @@ description: Use para revisar um PR em worktree temporario (testes, vinculo, esc
 
 Troque `<PR>`, `<N>` (issue) e `<branch>` (head do PR). Nunca troque a branch do checkout principal; nunca aprove nem mergeie.
 
+IMPORTANTE: rode os passos 2 a 6 numa UNICA chamada de shell, porque `TMP` e uma variavel de shell e se perde entre chamadas separadas (o `git worktree remove` do passo 6 falharia). Nao use `cd` solto: use `git -C "$TMP"` ou subshell `( cd "$TMP" && ... )`.
+
 ## 1. Dados do PR e da issue
 ```bash
 gh pr view <PR> --json headRefName,files,mergeable,closingIssuesReferences,body
@@ -24,7 +26,7 @@ Se o merge conflitar, registre como bloqueante (`CONFLICTING`) e va ao passo 5.
 
 ## 3. Testes
 ```bash
-cd "$TMP" && python -m unittest -v
+( cd "$TMP" && python -m unittest -v )
 ```
 Anote o total e as falhas.
 

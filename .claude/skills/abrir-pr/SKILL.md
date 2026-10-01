@@ -12,7 +12,7 @@ Troque `<N>` pelo numero da issue e `<branch>` pela sua branch (`<tipo>/<N>-<slu
 gh pr list --state all --search "Closes #<N>" --json number,headRefName,state
 gh pr list --state all --json number,headRefName,state --jq '.[] | select(.headRefName | test("/<N>-"))'
 ```
-Se algum PR aberto aparecer: PARE, nao abra outro. Use a skill `atualizar-pr` na branch desse PR.
+Se aparecer algum PR com `state` OPEN: PARE, nao abra outro. So PR ABERTO da issue bloqueia; PR fechado ou mergeado (`CLOSED`/`MERGED`) nao conta. Use a skill `atualizar-pr` na branch desse PR.
 
 ## 2. Sincronize e teste
 ```bash

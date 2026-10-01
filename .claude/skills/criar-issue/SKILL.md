@@ -39,6 +39,7 @@ BODY
 Guarde a URL impressa.
 
 ## 3. Preencha os campos do projeto (5 s entre chamadas)
+So preencha Priority, Size e Status depois de o item entrar no projeto (o `--project` do passo 2 ja faz isso); se a criacao falhar ou o item nao aparecer no projeto, nao rode o `item-edit`.
 ```bash
 sleep 5
 gh project item-edit 2 --owner isranetoo --url <url> --field "Priority" --value <P0|P1|P2>
