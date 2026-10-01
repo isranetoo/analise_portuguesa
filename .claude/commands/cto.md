@@ -57,7 +57,15 @@ Para cada retorno:
 - `STATUS: ESCALAR` → atualize a label da issue para o próximo nível e redespache para o agente maior.
 - `STATUS: FALHOU` → comente o motivo na issue e reporte ao usuário.
 - Se o `reviewer` retornar `AJUSTES`, redespache o mesmo agente com: "Aplique os comentários de review do PR #<PR> (issue #<N>)".
-- Se o `reviewer` retornar `PRONTO` → avise o usuário NA HORA, no chat, sem esperar os outros PRs nem o relatório final: link do PR, issue, o que mudou (1–2 linhas), status do CI (`gh pr checks <PR>`) e sugestões não bloqueantes do review. Peça a aprovação dele para o merge. Só faça o merge se ele aprovar aquele PR explicitamente.
+- Se o `reviewer` retornar `PRONTO` → mande a mensagem abaixo NO CHAT, NA HORA, sem esperar os outros PRs nem o relatório final. Se o CI ainda estiver rodando, mande assim mesmo e avise de novo quando terminar (ou se falhar).
+  ```
+  ✅ Pronto para revisar e mergear: PR #<PR> (issue #<N> — <título>)
+  O que mudou: <1–2 linhas>
+  CI: <passou | rodando | falhou> · Review: PRONTO
+  Sugestões não bloqueantes: <lista ou "nenhuma">
+  Responda "aprova #<PR>" para eu fazer o merge.
+  ```
+- Quando o usuário aprovar um PR explicitamente ("aprova #<PR>", "aprova todos"): confira `gh pr checks <PR>` e `mergeable`, faça o merge com `gh pr merge <PR> --merge`, confirme que a issue fechou e atualize a `main` local. Se houver conflito, não resolva sozinho: avise e redespache o mesmo agente com "Resolva os conflitos do PR #<PR> com a main (issue #<N>)". Depois do merge, despache o próximo da fila que dependia daquele PR.
 
 ## 7. Relatório final
 Entregue uma tabela: issue | PR | agente/modelo | veredito do review | pendências.
