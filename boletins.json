@@ -1,5 +1,7 @@
 {
- "https://conteudo.cbf.com.br/sumulas/2026/542133b.pdf": null,
+ "https://conteudo.cbf.com.br/sumulas/2026/542133b.pdf": {
+  "erro": "sem_texto"
+ },
  "https://conteudo.cbf.com.br/sumulas/2026/542181b.pdf": {
   "publico": 2551,
   "renda_bruta": 39770.0,
@@ -10,7 +12,9 @@
   "renda_bruta": 46320.0,
   "renda_liquida": -29331.4
  },
- "https://conteudo.cbf.com.br/sumulas/2026/542278b.pdf": null,
+ "https://conteudo.cbf.com.br/sumulas/2026/542278b.pdf": {
+  "erro": "sem_texto"
+ },
  "https://conteudo.cbf.com.br/sumulas/2026/542325b.pdf": {
   "publico": 2701,
   "renda_bruta": 37120.0,
@@ -21,7 +25,9 @@
   "renda_bruta": 25620.0,
   "renda_liquida": -47496.07
  },
- "https://conteudo.cbf.com.br/sumulas/2026/54237b.pdf": null,
+ "https://conteudo.cbf.com.br/sumulas/2026/54237b.pdf": {
+  "erro": "sem_texto"
+ },
  "https://conteudo.cbf.com.br/sumulas/2026/542422b.pdf": {
   "publico": 1216,
   "renda_bruta": 12150.0,
@@ -32,7 +38,9 @@
   "renda_bruta": 38330.0,
   "renda_liquida": -39890.22
  },
- "https://conteudo.cbf.com.br/sumulas/2026/542505b.pdf": null,
+ "https://conteudo.cbf.com.br/sumulas/2026/542505b.pdf": {
+  "erro": "sem_texto"
+ },
  "https://conteudo.cbf.com.br/sumulas/2026/542537b.pdf": {
   "publico": 4087,
   "renda_bruta": 56490.0,
