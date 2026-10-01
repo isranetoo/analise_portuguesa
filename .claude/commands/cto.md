@@ -29,8 +29,15 @@ Para cada item, crie a issue:
 ```
 gh issue create --title "<tipo>: <título claro>" \
   --label "difficulty:<easy|medium|hard>,type:<bug|feature|chore>,agent:<dev-junior|dev-pleno|dev-senior>" \
+  --project "Portuguesa" \
+  --assignee @me \
   --body "<corpo>"
 ```
+Depois de criar, preencha o campo **Size** do projeto (XS/S/M/L/XL, critérios na seção "Issues, PRs e projeto no GitHub" do `CLAUDE.md`):
+```
+gh project item-edit 2 --owner isranetoo --url <url da issue> --field "Size" --value <XS|S|M|L|XL>
+```
+Não adicione os PRs ao projeto: eles aparecem na issue pelo `Closes #<N>`.
 O corpo DEVE ter: Contexto, Comportamento atual (bugs), Comportamento esperado, Critérios de aceite (checklist), Arquivos prováveis, Fora de escopo.
 Uma issue bem escrita é o único contexto que o dev recebe — seja completo.
 
@@ -46,11 +53,12 @@ Antes de despachar, compare os "arquivos prováveis" das issues:
 
 ## 6. Pós-execução
 Para cada retorno:
-- `STATUS: OK` → rode o subagent `reviewer` no PR.
+- `STATUS: OK` → coloque `isranetoo` como assignee do PR (`gh pr edit <PR> --add-assignee @me`) e confira o vínculo com `gh pr view <PR> --json closingIssuesReferences`. Se a issue #<N> não estiver na lista, edite o corpo do PR (`gh pr edit <PR> --body-file -`) colocando `Closes #<N>` na primeira linha. Depois rode o subagent `reviewer` no PR.
 - `STATUS: ESCALAR` → atualize a label da issue para o próximo nível e redespache para o agente maior.
 - `STATUS: FALHOU` → comente o motivo na issue e reporte ao usuário.
 - Se o `reviewer` retornar `AJUSTES`, redespache o mesmo agente com: "Aplique os comentários de review do PR #<PR> (issue #<N>)".
+- Se o `reviewer` retornar `PRONTO` → avise o usuário NA HORA, no chat, sem esperar os outros PRs nem o relatório final: link do PR, issue, o que mudou (1–2 linhas), status do CI (`gh pr checks <PR>`) e sugestões não bloqueantes do review. Peça a aprovação dele para o merge. Só faça o merge se ele aprovar aquele PR explicitamente.
 
 ## 7. Relatório final
 Entregue uma tabela: issue | PR | agente/modelo | veredito do review | pendências.
-Nunca faça merge. A decisão de merge é do usuário.
+Nunca faça merge sem a aprovação explícita do usuário para aquele PR.

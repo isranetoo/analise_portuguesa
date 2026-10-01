@@ -44,12 +44,29 @@ tests/                  Testes unitários (unittest) e Playwright
 ## Convenções
 - Branches: `fix/<issue>-slug`, `feat/<issue>-slug`, `chore/<issue>-slug`
 - Commits: Conventional Commits em português, minúsculo, sem acento (ex.: `fix: publico dos boletins`), sempre com `(#<issue>)` no final
-- PR: sempre com `Closes #<issue>` no corpo
+- PR: sempre com `Closes #<issue>` na primeira linha do corpo (é o que vincula o PR à issue)
 - Idioma: seguir o do arquivo sendo editado
   - UI: português (pt-BR)
   - Python (coleta, testes): português nas docstrings/comentários, nomes de variáveis em português (`baixar`, `montar_linha`)
   - JavaScript (`app.js`, `server.js`): nomes e comentários em inglês
   - JSON (chaves de dados): português (`jogos`, `gols`, `atletas`)
+
+## Issues, PRs e projeto no GitHub
+- Toda issue entra no projeto **Portuguesa** (https://github.com/users/isranetoo/projects/2).
+- Assignee de toda issue e de todo PR: `isranetoo` (`--assignee @me`).
+- Toda issue recebe o campo **Size** do projeto:
+
+| Size | Quando usar |
+|---|---|
+| XS | texto, typo, ajuste trivial em 1 arquivo |
+| S | 1 arquivo com pouca lógica, sem ou com poucos testes |
+| M | um módulo com lógica nova e testes |
+| L | vários arquivos, investigação ou causa incerta |
+| XL | vários módulos ou mudança de arquitetura |
+
+- Labels obrigatórias: `difficulty:<easy|medium|hard>`, `type:<bug|feature|chore>`, `agent:<dev-junior|dev-pleno|dev-senior>`.
+- PRs não são adicionados ao projeto; aparecem na issue pela coluna "Linked pull requests".
+- Quando um PR passa no review (veredito PRONTO), ele é enviado no chat para `isranetoo` aprovar. O merge só acontece com a aprovação explícita dele para aquele PR.
 
 ## Banco de dados
 Projeto não possui banco de dados. Dados provêm da API pública da CBF e são armazenados em arquivos gerados (`dados.js`, `*.csv`, `boletins.json`, `coordenadas.json`).
