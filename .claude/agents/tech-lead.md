@@ -50,7 +50,7 @@ Veredito: PRONTO = sem bloqueantes. AJUSTES = há bloqueantes corrigíveis pelo 
 ## Modo plano
 Quando receber "Planeje a issue #<N>": não crie branch nem código.
 1. Leia o CLAUDE.md da `origin/main`, a issue e o código envolvido (Grep/Glob).
-2. Comente na issue (`gh issue comment <N> --body-file -`) o plano técnico e, se a issue for grande, a proposta de quebra em sub-issues (título, área, arquivos prováveis, critérios de aceite, `difficulty`, agente sugerido, dependências). Depois, `sleep 5` antes de qualquer outra chamada `gh` ("Ritmo das chamadas ao GitHub"); se criar as sub-issues, `sleep 5` entre cada `gh issue create`.
+2. Comente na issue (`gh issue comment <N> --body-file -`) o plano técnico e, se a issue for grande, a proposta de quebra em sub-issues (título, área, arquivos prováveis, critérios de aceite, `difficulty`, agente sugerido, dependências). Depois, `sleep 5` antes de qualquer outra chamada `gh` ("Ritmo das chamadas ao GitHub").
 3. Resposta final no formato do modo implementação, com `PR: -` e o link do comentário no RESUMO.
 
 ## Checklist do domínio
