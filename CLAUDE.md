@@ -1,82 +1,89 @@
 # CLAUDE.md — Portuguesa: Painel de Desempenho
 
-Dashboard gerencial que transforma dados da Associação Portuguesa de Desportos na Série D 2026 (coleta da API pública da CBF) em indicadores, análises por fase, mata-mata, público, viagens e comparação com 2025.
+Painel estático da Associação Portuguesa de Desportos na Série D 2026: a coleta lê a API pública da CBF e gera os dados; o painel (JS puro) mostra indicadores, fases, mata-mata, público, viagens e comparação com 2025. Publicado no Streamlit Community Cloud a cada push na `main`.
 
-## Visão geral
-Painel estático que consome dados da Série D 2026 via coleta automática (segunda-feira 09:00 UTC, abr–nov), oferece leitura interativa com mapas (Leaflet), e é publicado no Streamlit Community Cloud. Dados no repositório: `dados.js` (frontend), `*.csv` e `boletins.json` (análises).
+Este arquivo vale para TODOS os agentes (CTO, devs e reviewer). O fluxo detalhado do CTO está em `.claude/commands/cto.md`.
 
-## Stack
-- Frontend: JavaScript puro (ES6), HTML5, CSS3 (sem framework, sem build)
-- Coleta: Python 3.12 + pdfplumber (para boletins em PDF)
-- Publicação: Streamlit Community Cloud (redeploya a cada push na `main`)
-- Servidor local opcional: Node.js (sem dependências externas)
-- API de dados: CBF (pública, sem autenticação)
-- Gerenciador de pacotes: pip (sem lockfile)
+## 1. Regras de ouro
+1. **Todo pedido vira issue.** Qualquer bug, pedido, ajuste ou informação que o usuário passar no chat vira uma issue na hora, no padrão da seção 5, antes de qualquer implementação. Responda com o link. Só perguntas que não pedem mudança ficam fora.
+2. **Uma issue = uma branch = um PR.** Ajustes de review vão na MESMA branch e no MESMO PR. Nunca abra um segundo PR para a mesma issue.
+3. **Sem conflitos por construção.** Duas issues só rodam ao mesmo tempo se não tiverem nenhum arquivo em comum (seção 4). Toda branch parte de `origin/main` atualizada e é sincronizada com ela antes do PR.
+4. **Testes locais são o portão.** Todo dev e o reviewer rodam `python -m unittest -v` e informam o resultado. O CI vai rodar só na `main` (issue #37); até essa mudança entrar, ele também roda nos PRs.
+5. **Merge só com aprovação explícita** do usuário (`isranetoo`) para aquele PR.
+6. **Nunca troque a branch do checkout principal** (`C:/Users/IsraelAntunes/Desktop/fastapi/analise_portuguesa`). Use o seu worktree ou um worktree temporário.
 
-## Comandos de verificação (OBRIGATÓRIO rodar antes de abrir PR)
+## 2. Stack
+- Frontend: JavaScript puro (ES6), HTML, CSS — sem framework e sem build. Leaflet 1.9.4 via cdnjs.
+- Coleta: Python 3.12 + `pdfplumber` (boletins em PDF). API da CBF pública, sem chave.
+- Publicação: Streamlit (`streamlit_app.py` embute o HTML). Servidor local opcional: `node server.js`.
+- Pacotes: pip (`requirements.txt`, `requirements-coleta.txt`, `requirements-dev.txt`). Sem banco de dados.
+
+## 3. Comandos
 ```bash
 python -m pip install -r requirements-dev.txt
 python -m playwright install chromium
-python -m unittest -v
+python -m unittest -v          # OBRIGATÓRIO antes de abrir/atualizar PR
 ```
+Não há lint, typecheck nem build. Rodar local: `node server.js` (http://localhost:8000) ou `python iniciar.py` (Streamlit, http://localhost:8501). Coleta manual: `python coleta_detalhada.py`.
 
-**Notas**: Não há lint, typecheck, nem build configurados. Para executar localmente:
-- **Frontend**: `node server.js` (http://localhost:8000) — servidor sem dependências
-- **Streamlit**: `python -m pip install -r requirements.txt && python iniciar.py` (http://localhost:8501)
-- **Coleta manual**: `python -m pip install -r requirements-coleta.txt && python coleta_detalhada.py`
+CI (`.github/workflows/testes.yml`): depois da issue #37, roda só em push na `main` e manualmente (hoje ainda roda também em PRs). Depois de cada lote de merges, o CTO confere `gh run list --branch main --limit 1`; CI vermelho na `main` vira issue P0.
 
-## Estrutura de pastas
-```
-index.html              Front-end estático (UI principal)
-app.js                  Lógica de interação e visualização (JS puro)
-styles.css              Estilos do painel
-dados.js                Dados dos jogos/atletas/gols (gerado pela coleta)
-coleta_detalhada.py     Script Python que baixa dados da CBF e gera os arquivos
-streamlit_app.py        Página de publicação no Streamlit
-server.js               Servidor local Node.js (opcional)
-iniciar.py              Script para rodar Streamlit no Windows
-config.json             Configuração de clube/competição (refletida em todo o pipeline)
-requirements*.txt       Dependências pip (dev, coleta, runtime)
-tests/                  Testes unitários (unittest) e Playwright
-.github/workflows/      CI/CD e coleta automática (NÃO EDITAR)
-```
+## 4. Áreas e arquivos
+Cada issue tem uma label `area:*`. Os arquivos de uma área são compartilhados: issues da mesma área rodam em sequência (a próxima só começa depois do merge do PR anterior).
 
-## Convenções
-- Branches: `fix/<issue>-slug`, `feat/<issue>-slug`, `chore/<issue>-slug`
-- Commits: Conventional Commits em português, minúsculo, sem acento (ex.: `fix: publico dos boletins`), sempre com `(#<issue>)` no final
-- PR: sempre com `Closes #<issue>` na primeira linha do corpo (é o que vincula o PR à issue)
-- Idioma: seguir o do arquivo sendo editado
-  - UI: português (pt-BR)
-  - Python (coleta, testes): português nas docstrings/comentários, nomes de variáveis em português (`baixar`, `montar_linha`)
-  - JavaScript (`app.js`, `server.js`): nomes e comentários em inglês
-  - JSON (chaves de dados): português (`jogos`, `gols`, `atletas`)
+| Área | Arquivos |
+|---|---|
+| `area:painel` | `index.html`, `app.js`, `styles.css`, `tests/test_painel.py` |
+| `area:coleta` | `coleta_detalhada.py`, `config.json`, `tests/test_coleta.py`, dados gerados |
+| `area:publicacao` | `streamlit_app.py`, `iniciar.py`, `windows_asyncio.py`, `server.js`, `requirements*.txt` |
+| `area:docs` | `README.md` |
+| `area:ci` | `.github/workflows/` |
+| `area:kit` | `CLAUDE.md`, `.claude/`, `scripts/`, `README-CTO.md`, `.worktreeinclude` |
 
-## Issues, PRs e projeto no GitHub
-- Toda issue entra no projeto **Portuguesa** (https://github.com/users/isranetoo/projects/2).
-- Assignee de toda issue e de todo PR: `isranetoo` (`--assignee @me`).
-- Toda issue recebe o campo **Size** do projeto:
+Dados gerados (`dados.js`, `*.csv`, `boletins.json`, `coordenadas.json`): só mudam rodando `coleta_detalhada.py`, nunca à mão.
 
-| Size | Quando usar |
+## 5. Padrão de issue
+- Título: `<tipo>: <descrição>` (tipos: fix, feat, chore, docs, ci, test).
+- Labels: `difficulty:<easy|medium|hard>`, `type:<bug|feature|chore>`, `agent:<dev-junior|dev-pleno|dev-senior>`, `area:<...>`.
+- Projeto **Portuguesa** (https://github.com/users/isranetoo/projects/2), assignee `isranetoo`, campos **Priority**, **Size** e **Status**.
+- Corpo: Contexto · Comportamento atual · Comportamento esperado · Critérios de aceite (checklist) · Arquivos prováveis · Fora de escopo.
+
+| Priority | Quando |
+|---|---|
+| P0 | painel ou coleta quebrados em produção, dados errados publicados, CI vermelho na `main` |
+| P1 | bug visível ao usuário ou pedido explícito do usuário |
+| P2 | melhoria, refatoração, testes, documentação |
+
+| Size | Quando |
 |---|---|
 | XS | texto, typo, ajuste trivial em 1 arquivo |
-| S | 1 arquivo com pouca lógica, sem ou com poucos testes |
+| S | 1 arquivo com pouca lógica |
 | M | um módulo com lógica nova e testes |
 | L | vários arquivos, investigação ou causa incerta |
 | XL | vários módulos ou mudança de arquitetura |
 
-- Labels obrigatórias: `difficulty:<easy|medium|hard>`, `type:<bug|feature|chore>`, `agent:<dev-junior|dev-pleno|dev-senior>`.
-- PRs não são adicionados ao projeto; aparecem na issue pela coluna "Linked pull requests".
-- Quando a issue fica pronta (PR com review PRONTO), uma mensagem é enviada na hora no chat para `isranetoo` revisar e aprovar o merge, com link do PR, issue, resumo, CI e sugestões do review. Antes do pedido, o CTO analisa conflitos (com a `main` e entre os PRs prontos), manda o dev atualizar PRs em conflito e mostra a ordem recomendada de merge. O pedido de aprovação é feito com uma caixa de seleção no chat (`AskUserQuestion`, múltipla escolha, agrupada por fila, com a ordem de merge). O merge só acontece com a aprovação explícita dele para aquele PR (opção marcada ou "aprova #<PR>"); aí o próprio CTO faz o merge.
+Status: `Backlog` (criada ou bloqueada) → `Ready` (triada, sem bloqueio) → `In progress` (dev trabalhando) → `In review` (PR aberto) → `Done` (merge).
 
-## Banco de dados
-Projeto não possui banco de dados. Dados provêm da API pública da CBF e são armazenados em arquivos gerados (`dados.js`, `*.csv`, `boletins.json`, `coordenadas.json`).
+## 6. Regras para todos os devs
+1. **Comece de `origin/main`:** `git fetch origin && git checkout -b <tipo>/<N>-<slug> origin/main`. Não trabalhe na branch `worktree-agent-*` criada automaticamente.
+2. **Escopo:** altere só os "Arquivos prováveis" da issue. Precisou de outro arquivo? Se for da mesma área e pequeno, explique no PR; se for de outra área, pare e reporte `ESCALAR` com o motivo.
+3. **Testes:** cubra os critérios de aceite; rode `python -m unittest -v` e escreva o total (ex.: "54 testes OK") no PR.
+4. **Antes de abrir ou atualizar o PR:** `git fetch origin && git merge origin/main`, resolva conflitos mantendo os dois lados (inclusive os testes de ambos) e rode os testes de novo. Nunca force push.
+5. **Commits:** Conventional Commits em português, minúsculo, sem acento, terminando em `(#<N>)`.
+6. **PR:** `gh pr create --assignee @me --label "difficulty:<...>" --body-file -`, com `Closes #<N>` na PRIMEIRA linha, depois "O que mudou", "Como testar" e "Testes: <total> OK".
+7. **Ajustes de review ou conflito:** trabalhe na branch do PR existente (`git fetch origin && git checkout -b tmp-<N> origin/<branch-do-PR>`, depois `git push origin HEAD:<branch-do-PR>`) e atualize o corpo do PR se ele ficar desatualizado.
+8. **Nunca:** merge, force push, editar `.env`/secrets/workflows sem a issue pedir, editar dados gerados à mão, trocar a branch do checkout principal.
 
-## Não mexer sem pedido explícito
-- `.env`, secrets (contém `FSAPI_KEY`, não usado pelo código)
-- `.github/workflows/` (`testes.yml` = CI; `coleta.yml` = coleta semanal abr–nov seg 09:00 UTC, commita dados direto)
-- Dados gerados — regenerar sempre com `coleta_detalhada.py`, nunca editar à mão: `dados.js`, `*.csv`, `boletins.json`, `coordenadas.json`
-- `config.json` (muda clube/competição de todo o pipeline)
-- Kit CTO: `.claude/`, `scripts/setup-cto.sh`, `.worktreeinclude`, `README-CTO.md`
+## 7. Convenções de código
+- Idioma: siga o do arquivo editado. UI em pt-BR. Python (coleta, testes): nomes, docstrings e comentários em português. JS (`app.js`, `server.js`): nomes e comentários em inglês. Chaves de dados/JSON em português.
+- Mudança mínima: não refatore fora do pedido; siga o padrão existente no arquivo.
+- Testes em `unittest` (não pytest); Playwright em `tests/test_painel.py`; nenhum teste acessa a rede.
 
-## Variáveis de ambiente necessárias para rodar testes
-Nenhuma. A API da CBF não exige chave; os workflows não usam `secrets.*`. `PORT` (opcional) em `server.js` default é 8000.
+## 8. Não mexer sem pedido explícito na issue
+- `.env` e secrets (`FSAPI_KEY` não é usado pelo código).
+- `.github/workflows/` (`testes.yml` = CI; `coleta.yml` = coleta semanal abr–nov, seg 09:00 UTC, commita os dados direto na `main`).
+- `config.json` (muda clube/competição de todo o pipeline).
+- Kit de agentes (`area:kit`).
+
+## 9. Variáveis de ambiente
+Nenhuma é necessária para os testes. `PORT` (opcional) em `server.js`, padrão 8000.
