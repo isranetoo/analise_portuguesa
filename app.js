@@ -21,7 +21,11 @@ const clubRef = (capitalize = false) => {
 const $ = (id) => document.getElementById(id);
 const pct = (n) => `${n.toLocaleString('pt-BR', {minimumFractionDigits: 1, maximumFractionDigits: 1})}%`;
 const decimal = (n) => n.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-const formatDate = (date) => new Intl.DateTimeFormat('pt-BR', {day: '2-digit', month: 'short'}).format(new Date(`${date}T12:00:00`)).replace('.', '');
+const formatDate = (date) => {
+  const parsed = date ? new Date(`${date}T12:00:00`) : null;
+  if (!parsed || Number.isNaN(parsed.getTime())) return '—';
+  return new Intl.DateTimeFormat('pt-BR', {day: '2-digit', month: 'short'}).format(parsed).replace('.', '');
+};
 const plural = (value, singular, pluralForm) => `${value} ${value === 1 ? singular : pluralForm}`;
 const signedNumber = (value) => (value > 0 ? '+' : '') + value;
 const score = (a, b) => `${a} <i>×</i> ${b}`;
@@ -1226,14 +1230,15 @@ function renderLeague() {
   $('leagueTitle').textContent = `${CLUB.nome} na ${COMPETITION.nome} ${COMPETITION.ano}`;
   $('leagueLegendClub').textContent = CLUB.nome;
   const behind = LEAGUE_ROWS.filter(row => row.posicao > own.posicao).length;
-  const reach = own.fase_alcancada === 'Campeão' ? 'com o título' : `com a campanha encerrada ${PHASE_WITH_ARTICLE[own.fase_alcancada] || `na ${own.fase_alcancada.toLowerCase()}`}`;
+  const phase = own.fase_alcancada || '';
+  const reach = !phase ? 'sem fase alcançada registrada' : phase === 'Campeão' ? 'com o título' : `com a campanha encerrada ${PHASE_WITH_ARTICLE[phase] || `na ${phase.toLowerCase()}`}`;
   $('leagueSummary').textContent = `${own.posicao}º lugar na classificação geral entre ${total} clubes, ${reach}. ` +
     `${clubRef(true)} ficou à frente de ${pct(behind / Math.max(total - 1, 1) * 100)} dos participantes.`;
 
   const efficiency = LEAGUE_METRICS[0];
   const avgEfficiency = sum(LEAGUE_ROWS, efficiency.value) / total;
   const tiles = [
-    {label: 'Classificação geral', value: `${own.posicao}º de ${total}`, note: own.fase_alcancada},
+    {label: 'Classificação geral', value: `${own.posicao}º de ${total}`, note: phase || '—'},
     {label: 'Aproveitamento', value: pct(efficiency.value(own)), note: `${leagueRank(efficiency, own)}º melhor · média ${pct(avgEfficiency)}`},
     {label: 'Gols por jogo na competição', value: decimal(league.media_gols_jogo || 0), note: `${(league.jogos || 0).toLocaleString('pt-BR')} jogos disputados`},
     {label: 'Vitórias do mandante', value: pct(league.jogos ? league.vitorias_mandante / league.jogos * 100 : 0), note: `empates ${pct(league.jogos ? league.empates / league.jogos * 100 : 0)} · visitante ${pct(league.jogos ? league.vitorias_visitante / league.jogos * 100 : 0)}`}
@@ -1242,6 +1247,7 @@ function renderLeague() {
 
   $('leagueMetrics').innerHTML = LEAGUE_METRICS.map(metric => {
     const values = LEAGUE_ROWS.filter(r => r.jogos).map(metric.value);
+    if (!values.length) return `<div class="league-metric"><div class="lm-head"><span>${metric.label}</span><b>—</b></div></div>`;
     const min = Math.min(...values), max = Math.max(...values);
     const avg = values.reduce((a, b) => a + b, 0) / values.length;
     const ownValue = metric.value(own);
