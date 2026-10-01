@@ -85,5 +85,26 @@ Status: `Backlog` (criada ou bloqueada) → `Ready` (triada, sem bloqueio) → `
 - `config.json` (muda clube/competição de todo o pipeline).
 - Kit de agentes (`area:kit`).
 
-## 9. Variáveis de ambiente
+## 9. Ritmo das chamadas ao GitHub
+A API do GitHub tem dois limites: primário (5000 requisições/hora por usuário) e secundário (para evitar abuso em padrões específicos). Para evitar bloqueios:
+
+**Chamadas que escrevem** (`gh issue create/edit`, `gh pr create/edit/merge`, `gh project item-edit`, `gh label`):
+- Nunca em laço sem pausa: adicione um `sleep 5` entre chamadas em sequência.
+- Exceção: `gh pr edit` para adicionar labels/assignees a um único PR não precisa de pausa.
+
+**Polling e consultas** (CI, `gh pr view --json mergeable`, verificação de status):
+- Mínimo 10 s entre consultas (20–30 s para CI que pode ser lento).
+
+**Tratamento de rate limit:**
+- Se `gh` retornar "API rate limit exceeded":
+  1. Rode `gh api rate_limit --jq '.resources'` para diagnosticar.
+  2. Se ainda há cota, é limite secundário: espere em background (parar outras chamadas) testando a cada 60 s com uma consulta leve (`gh api graphql -f query='query{viewer{login}}'`) até ela voltar.
+  3. Se a cota acabou, espere até `reset` (timestamp em segundos).
+  4. Retome uma chamada por vez; não dispare laços.
+
+**Limites gerais:**
+- No máximo 4 agentes/devs usando `gh` ao mesmo tempo (limite de dev).
+- Evitar disparar vários reviewers de uma vez em lotes grandes de PRs.
+
+## 10. Variáveis de ambiente
 Nenhuma é necessária para os testes. `PORT` (opcional) em `server.js`, padrão 8000.
