@@ -711,6 +711,13 @@ def main():
     ano = config["competicao"]["ano"]
     principal = coletar_temporada(config, ano)
 
+    # Coleta as duas temporadas antes de gravar qualquer arquivo: se a CBF falhar na
+    # comparação, os CSVs e o dados.js continuam todos da coleta anterior.
+    comparacao = None
+    ano_comparacao = (config.get("comparacao") or {}).get("ano")
+    if ano_comparacao:
+        comparacao = coletar_temporada(config, ano_comparacao)
+
     print("\nPúblico e renda (boletins financeiros)")
     boletins = publicos_dos_boletins(principal["jogos"])
     for jogo in principal["jogos"]:
@@ -732,10 +739,7 @@ def main():
     salvar_csv(ROOT / f"{prefixo}_atletas.csv", principal["atletas"])
     salvar_csv(ROOT / f"{prefixo}_classificacao_geral.csv", principal["classificacao_geral"])
 
-    comparacao = None
-    ano_comparacao = (config.get("comparacao") or {}).get("ano")
-    if ano_comparacao:
-        comparacao = coletar_temporada(config, ano_comparacao)
+    if comparacao:
         prefixo_comparacao = prefixo_arquivos(config, ano_comparacao)
         salvar_csv(ROOT / f"{prefixo_comparacao}_todos_jogos.csv", comparacao["jogos"])
         salvar_csv(ROOT / f"{prefixo_comparacao}_grupo.csv", comparacao["grupo"])

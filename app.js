@@ -96,6 +96,8 @@ function buildGroup(rows) {
 }
 
 const matches = buildMatches(DATA.principal.jogos);
+// No início de uma temporada a coleta já traz os jogos agendados, mas nenhum encerrado.
+const SEASON_STARTED = matches.length > 0;
 const groupName = DATA.principal.grupo_nome;
 const groupTable = buildGroup(DATA.principal.grupo);
 const goalsByMatch = groupBy(DATA.principal.gols || [], 'id_jogo');
@@ -1105,12 +1107,12 @@ function showPage(id, {push = false, scroll = true} = {}) {
 
 document.addEventListener('click', event => {
   const link = event.target.closest('a[data-page]');
-  if (!link || event.ctrlKey || event.metaKey || event.shiftKey) return;
+  if (!SEASON_STARTED || !link || event.ctrlKey || event.metaKey || event.shiftKey) return;
   event.preventDefault();
   showPage(link.dataset.param ? `${link.dataset.page}/${link.dataset.param}` : link.dataset.page, {push: true});
 });
-window.addEventListener('popstate', () => showPage(pageFromHash()));
-window.addEventListener('hashchange', () => showPage(pageFromHash()));
+window.addEventListener('popstate', () => { if (SEASON_STARTED) showPage(pageFromHash()); });
+window.addEventListener('hashchange', () => { if (SEASON_STARTED) showPage(pageFromHash()); });
 
 // ---------- Utilidades de exportação e formatação ----------
 function money(value) {
@@ -1514,19 +1516,34 @@ $('squadDownload').addEventListener('click', () => {
   })));
 });
 
+// Sem jogos encerrados não há o que analisar: mostra só o aviso e a data da estreia.
+function renderNotStarted() {
+  const next = DATA.principal.jogos
+    .filter(row => row.status !== 'finished')
+    .sort((a, b) => `${a.data} ${a.hora}`.localeCompare(`${b.data} ${b.hora}`))[0];
+  const debut = next ? ` A estreia será em ${formatDate(next.data)}, contra ${escapeHtml(next.adversario)}.` : '';
+  $('mainNav').hidden = true;
+  $('filterRow').hidden = true;
+  document.querySelector('main').innerHTML = `<p class="empty-data">${escapeHtml(clubRef(true))} ainda não disputou jogos na ${escapeHtml(COMPETITION.nome)} ${COMPETITION.ano}.${debut} O painel será preenchido após o primeiro jogo encerrado.</p>`;
+}
+
 applyBranding();
 setupThemeToggle();
-renderHeader();
-renderChart();
-renderVenue();
-renderJourney();
-renderHighlights();
-renderPerformance();
-renderOpponents();
-renderComparison();
-renderLeague();
-renderAttendance();
-renderTravelList();
-renderHome();
-renderFiltered();
-showPage(pageFromHash(), {scroll: false});
+if (SEASON_STARTED) {
+  renderHeader();
+  renderChart();
+  renderVenue();
+  renderJourney();
+  renderHighlights();
+  renderPerformance();
+  renderOpponents();
+  renderComparison();
+  renderLeague();
+  renderAttendance();
+  renderTravelList();
+  renderHome();
+  renderFiltered();
+  showPage(pageFromHash(), {scroll: false});
+} else {
+  renderNotStarted();
+}
