@@ -1,6 +1,6 @@
 ---
 name: esp-llm-prompt
-description: Especialista em LLM: prompts, saída estruturada, avaliação e uso de APIs de modelos de linguagem. Use quando a issue tocar `<ARQUIVOS_DA_AREA>` de <PROJETO> (<STACK>).
+description: "Especialista em LLM: prompts, saída estruturada, avaliação e uso de APIs de modelos de linguagem. Use quando a issue tocar `<ARQUIVOS_DA_AREA>` de <PROJETO> (<STACK>)."
 model: sonnet
 isolation: worktree
 tools: Read, Edit, Write, Bash, Grep, Glob

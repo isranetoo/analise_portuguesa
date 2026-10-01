@@ -1,6 +1,6 @@
 ---
 name: esp-redis
-description: Especialista Redis: cache, filas, rate limit, estruturas de dados, TTL e persistência. Use quando a issue tocar `<ARQUIVOS_DA_AREA>` de <PROJETO> (<STACK>).
+description: "Especialista Redis: cache, filas, rate limit, estruturas de dados, TTL e persistência. Use quando a issue tocar `<ARQUIVOS_DA_AREA>` de <PROJETO> (<STACK>)."
 model: sonnet
 isolation: worktree
 tools: Read, Edit, Write, Bash, Grep, Glob

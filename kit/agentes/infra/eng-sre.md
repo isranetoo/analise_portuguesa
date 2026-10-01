@@ -1,6 +1,6 @@
 ---
 name: eng-sre
-description: SRE: SLOs, observabilidade, alertas, runbooks, resposta a incidentes e confiabilidade de pipelines e publicação. Use quando a issue tocar `<ARQUIVOS_DA_AREA>` de <PROJETO> (<STACK>).
+description: "SRE: SLOs, observabilidade, alertas, runbooks, resposta a incidentes e confiabilidade de pipelines e publicação. Use quando a issue tocar `<ARQUIVOS_DA_AREA>` de <PROJETO> (<STACK>)."
 model: sonnet
 isolation: worktree
 tools: Read, Edit, Write, Bash, Grep, Glob

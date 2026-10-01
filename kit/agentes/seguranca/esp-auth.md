@@ -1,6 +1,6 @@
 ---
 name: esp-auth
-description: Especialista em Auth: OAuth 2.0/OIDC, JWT, sessões, cookies e controle de acesso. Use quando a issue tocar `<ARQUIVOS_DA_AREA>` de <PROJETO> (<STACK>).
+description: "Especialista em Auth: OAuth 2.0/OIDC, JWT, sessões, cookies e controle de acesso. Use quando a issue tocar `<ARQUIVOS_DA_AREA>` de <PROJETO> (<STACK>)."
 model: opus
 isolation: worktree
 tools: Read, Edit, Write, Bash, Grep, Glob

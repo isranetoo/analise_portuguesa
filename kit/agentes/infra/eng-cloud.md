@@ -1,6 +1,6 @@
 ---
 name: eng-cloud
-description: Engenheiro cloud: desenho e configuração de recursos em AWS, GCP e Azure como código, custo e segurança. Use quando a issue tocar `<ARQUIVOS_DA_AREA>` de <PROJETO> (<STACK>).
+description: "Engenheiro cloud: desenho e configuração de recursos em AWS, GCP e Azure como código, custo e segurança. Use quando a issue tocar `<ARQUIVOS_DA_AREA>` de <PROJETO> (<STACK>)."
 model: opus
 isolation: worktree
 tools: Read, Edit, Write, Bash, Grep, Glob
