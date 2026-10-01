@@ -1,6 +1,11 @@
 """Testes do tratamento das súmulas da CBF.  Execute com:  python -m unittest"""
 
+import json
+import tempfile
 import unittest
+import urllib.error
+from pathlib import Path
+from unittest import mock
 
 import coleta_detalhada as coleta
 
@@ -156,6 +161,75 @@ class BoletimTest(unittest.TestCase):
             self.assertEqual(falha.call_count, 1)
             self.assertEqual(json.loads(arquivo.read_text(encoding="utf-8")), {"https://cbf/a.pdf": guardado})
 
+    def test_resultado_distingue_sem_texto_de_formato_desconhecido(self):
+        self.assertEqual(coleta.resultado_do_boletim(""), {"erro": "sem_texto"})
+        self.assertEqual(coleta.resultado_do_boletim(" \n\n "), {"erro": "sem_texto"})
+        self.assertEqual(coleta.resultado_do_boletim("BORDERÔ\nPÚBLICO PAGANTE 1.000"), {"erro": "formato_desconhecido"})
+        texto = "SETOR\nTOTAL 5.597 4.381 1.216 12.150,00"
+        self.assertEqual(coleta.resultado_do_boletim(texto), coleta.ler_boletim(texto))
+
+    def _coletar_com_pdfs(self, guardado, textos):
+        """Roda publicos_dos_boletins com um cache inicial e PDFs falsos (url -> texto)."""
+        import json
+        import sys
+        import tempfile
+        import types
+        from pathlib import Path
+        from unittest import mock
+
+        def abrir(conteudo):
+            pagina = mock.Mock()
+            pagina.extract_text.return_value = textos[conteudo.decode()]
+            pdf = mock.MagicMock()
+            pdf.__enter__.return_value.pages = [pagina]
+            return pdf
+
+        pdfplumber = types.SimpleNamespace(open=lambda arquivo: abrir(arquivo.getvalue()))
+        baixar = mock.Mock(side_effect=lambda url, headers: url.encode())
+        with tempfile.TemporaryDirectory() as pasta:
+            arquivo = Path(pasta) / "boletins.json"
+            arquivo.write_text(json.dumps(guardado), encoding="utf-8")
+            jogos = [{"data": "2026-01-01", "boletim_url": url} for url in list(guardado) + list(textos) if url]
+            jogos = list({jogo["boletim_url"]: jogo for jogo in jogos}.values())
+            with mock.patch.object(coleta, "ARQUIVO_BOLETINS", arquivo), \
+                    mock.patch.object(coleta, "baixar_bytes", baixar), \
+                    mock.patch.dict(sys.modules, {"pdfplumber": pdfplumber}):
+                cache = coleta.publicos_dos_boletins(jogos)
+            gravado = json.loads(arquivo.read_text(encoding="utf-8"))
+        return cache, gravado, [chamada.args[0] for chamada in baixar.call_args_list]
+
+    def test_cache_reprocessa_formato_desconhecido_e_null_antigo(self):
+        lido = {"publico": 100, "renda_bruta": 1000.0, "renda_liquida": None}
+        guardado = {
+            "https://cbf/lido.pdf": lido,
+            "https://cbf/escaneado.pdf": {"erro": "sem_texto"},
+            "https://cbf/desconhecido.pdf": {"erro": "formato_desconhecido"},
+            "https://cbf/antigo.pdf": None,
+        }
+        textos = {
+            # O parser passou a entender o boletim que antes era desconhecido.
+            "https://cbf/desconhecido.pdf": "TOTAL 10 0 10 100,00",
+            # null de versões anteriores: motivo desconhecido, então é lido de novo.
+            "https://cbf/antigo.pdf": "",
+            "https://cbf/novo.pdf": "LAYOUT QUE NINGUEM CONHECE",
+        }
+        cache, gravado, baixados = self._coletar_com_pdfs(guardado, textos)
+        self.assertEqual(sorted(baixados), sorted(textos))
+        self.assertEqual(cache["https://cbf/lido.pdf"], lido)
+        self.assertEqual(cache["https://cbf/escaneado.pdf"], {"erro": "sem_texto"})
+        self.assertEqual(cache["https://cbf/desconhecido.pdf"], {"publico": 10, "renda_bruta": 100.0, "renda_liquida": None})
+        self.assertEqual(cache["https://cbf/antigo.pdf"], {"erro": "sem_texto"})
+        self.assertEqual(cache["https://cbf/novo.pdf"], {"erro": "formato_desconhecido"})
+        self.assertEqual(gravado, cache)
+
+    def test_formato_desconhecido_continua_sendo_tentado(self):
+        guardado = {"https://cbf/desconhecido.pdf": {"erro": "formato_desconhecido"}}
+        textos = {"https://cbf/desconhecido.pdf": "AINDA DESCONHECIDO"}
+        cache, gravado, baixados = self._coletar_com_pdfs(guardado, textos)
+        self.assertEqual(baixados, ["https://cbf/desconhecido.pdf"])
+        self.assertEqual(cache, guardado)
+        self.assertEqual(gravado, guardado)
+
 
 class ClassificacaoGeralTest(unittest.TestCase):
     def test_fase_alcancada_e_campeao(self):
@@ -183,6 +257,79 @@ class ClassificacaoTest(unittest.TestCase):
         tabela = coleta.classificacao_do_grupo(jogos, "A", {})
         self.assertEqual([linha["time"] for linha in tabela], ["A", "B", "C"])
         self.assertEqual(tabela[0]["clube"], 1)
+
+
+class TentativasTest(unittest.TestCase):
+    def test_sucesso_na_terceira_tentativa(self):
+        respostas = [urllib.error.URLError("rede"), TimeoutError(), '{"ok": 1}']
+
+        def baixar(url, como_json=True):
+            resposta = respostas.pop(0)
+            if isinstance(resposta, Exception):
+                raise resposta
+            return json.loads(resposta)
+
+        dormir = mock.Mock()
+        with mock.patch.object(coleta, "baixar", baixar):
+            self.assertEqual(coleta.baixar_com_tentativas("http://x", dormir=dormir), {"ok": 1})
+        self.assertEqual(dormir.call_count, 2)
+
+    def test_falha_em_todas_encerra_com_erro(self):
+        dormir = mock.Mock()
+        with mock.patch.object(coleta, "baixar", side_effect=urllib.error.URLError("rede")) as baixar:
+            with self.assertRaises(SystemExit) as ctx:
+                coleta.baixar_com_tentativas("http://x", tentativas=3, dormir=dormir)
+        self.assertEqual(baixar.call_count, 3)
+        self.assertIn("3 tentativas", str(ctx.exception))
+
+    def test_http_4xx_nao_repete(self):
+        erro = urllib.error.HTTPError("http://x", 404, "nf", {}, None)
+        with mock.patch.object(coleta, "baixar", side_effect=erro) as baixar:
+            with self.assertRaises(urllib.error.HTTPError):
+                coleta.baixar_com_tentativas("http://x", dormir=mock.Mock())
+        self.assertEqual(baixar.call_count, 1)
+
+    def test_http_503_e_429_repetem(self):
+        for codigo in (429, 503):
+            erro = urllib.error.HTTPError("http://x", codigo, "e", {}, None)
+            with mock.patch.object(coleta, "baixar", side_effect=[erro, "ok"]):
+                self.assertEqual(coleta.baixar_com_tentativas("http://x", dormir=mock.Mock()), "ok")
+
+    def test_descobrir_competicao_usa_tentativas(self):
+        with mock.patch.object(coleta, "baixar_com_tentativas", return_value='"competitionId":"7"') as b:
+            self.assertEqual(coleta.descobrir_competicao("serie-d", 2026), ("7", []))
+        b.assert_called_once()
+
+    def test_buscar_rodada_usa_tentativas(self):
+        with mock.patch.object(coleta, "baixar_com_tentativas", return_value={"jogos": [{"jogo": [1, 2]}]}) as b:
+            self.assertEqual(coleta.buscar_rodada("7", "1", 1), [1, 2])
+        b.assert_called_once()
+
+
+class GravacaoTest(unittest.TestCase):
+    def test_salvar_csv_vazio_remove_arquivo_antigo(self):
+        with tempfile.TemporaryDirectory() as pasta:
+            caminho = Path(pasta) / "a.csv"
+            caminho.write_text("velho\n", encoding="utf-8")
+            coleta.salvar_csv(caminho, [])
+            self.assertFalse(caminho.exists())
+            coleta.salvar_csv(caminho, [])  # sem arquivo: não falha
+
+    def test_salvar_csv_grava_linhas(self):
+        with tempfile.TemporaryDirectory() as pasta:
+            caminho = Path(pasta) / "a.csv"
+            coleta.salvar_csv(caminho, [{"a": 1, "b": "x"}])
+            self.assertEqual(caminho.read_bytes().decode().splitlines(), ["a,b", "1,x"])
+
+    def test_gravar_atomico_preserva_original_se_falhar(self):
+        with tempfile.TemporaryDirectory() as pasta:
+            caminho = Path(pasta) / "a.json"
+            caminho.write_text("original", encoding="utf-8")
+            with mock.patch.object(coleta.os, "replace", side_effect=OSError("boom")):
+                with self.assertRaises(OSError):
+                    coleta.gravar_atomico(caminho, "novo")
+            self.assertEqual(caminho.read_text(encoding="utf-8"), "original")
+            self.assertEqual([p.name for p in Path(pasta).iterdir()], ["a.json"])
 
 
 if __name__ == "__main__":
