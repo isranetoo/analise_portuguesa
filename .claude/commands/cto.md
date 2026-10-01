@@ -29,8 +29,10 @@ Para cada item, crie a issue:
 ```
 gh issue create --title "<tipo>: <título claro>" \
   --label "difficulty:<easy|medium|hard>,type:<bug|feature|chore>,agent:<dev-junior|dev-pleno|dev-senior>" \
+  --project "Portuguesa" \
   --body "<corpo>"
 ```
+Toda issue entra no projeto **Portuguesa** (https://github.com/users/isranetoo/projects/2). Não adicione os PRs ao projeto: eles aparecem na issue pelo `Closes #<N>`.
 O corpo DEVE ter: Contexto, Comportamento atual (bugs), Comportamento esperado, Critérios de aceite (checklist), Arquivos prováveis, Fora de escopo.
 Uma issue bem escrita é o único contexto que o dev recebe — seja completo.
 
@@ -46,7 +48,7 @@ Antes de despachar, compare os "arquivos prováveis" das issues:
 
 ## 6. Pós-execução
 Para cada retorno:
-- `STATUS: OK` → rode o subagent `reviewer` no PR.
+- `STATUS: OK` → confira o vínculo com `gh pr view <PR> --json closingIssuesReferences`. Se a issue #<N> não estiver na lista, edite o corpo do PR (`gh pr edit <PR> --body-file -`) colocando `Closes #<N>` na primeira linha. Depois rode o subagent `reviewer` no PR.
 - `STATUS: ESCALAR` → atualize a label da issue para o próximo nível e redespache para o agente maior.
 - `STATUS: FALHOU` → comente o motivo na issue e reporte ao usuário.
 - Se o `reviewer` retornar `AJUSTES`, redespache o mesmo agente com: "Aplique os comentários de review do PR #<PR> (issue #<N>)".
