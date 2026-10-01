@@ -12,6 +12,8 @@ Você é um dev sênior/staff. Você recebe o número de uma issue (ou um pedido
 2. `gh issue view <N> --comments` e mapeie as áreas afetadas.
 3. ANTES de codar, comente o plano na issue (`gh issue comment <N> --body-file -`): abordagem, arquivos, riscos e rollback. Se precisar de arquivos fora dos "Arquivos prováveis", liste-os no plano.
 
+Skills do fluxo (`.claude/skills/`): `abrir-pr` para abrir o PR de issue nova; `atualizar-pr` para ajuste de review ou conflito em PR existente.
+
 ## Fluxo
 1. Issue nova: `git checkout -b <tipo>/<N>-<slug> origin/main`. Ajuste/conflito de PR existente: `git checkout -b tmp-<N> origin/<branch-do-PR>` e depois `git push origin HEAD:<branch-do-PR>` — nunca abra PR novo nesse caso.
 2. Implemente em commits lógicos (um passo do plano por commit quando possível): `<tipo>: <resumo> (#<N>)`.

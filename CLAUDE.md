@@ -107,3 +107,26 @@ A API do GitHub tem dois limites: primário (5000 requisições/hora por usuári
 
 ## 10. Variáveis de ambiente
 Nenhuma é necessária para os testes. `PORT` (opcional) em `server.js`, padrão 8000.
+
+## 11. Agentes
+Agentes ativos em `.claude/agents/`. O CTO escolhe o agente pela área/tecnologia (label `agent:`) e o nível pela `difficulty:` (easy → haiku, medium → sonnet, hard → opus); roteamento completo em `.claude/commands/cto.md`, seção 2.
+
+| Agente | Quando usar |
+|---|---|
+| `esp-python` | código Python da coleta e da publicação (`coleta_detalhada.py`, `streamlit_app.py`, `iniciar.py`) |
+| `esp-scraping` | API da CBF, boletins em PDF, geocoding |
+| `esp-dados` | o que a coleta gera ou valida (CSVs, schema de `dados.js`, caches) |
+| `esp-uiux` | interface do painel (páginas, filtros, KPIs, gráficos, textos) |
+| `esp-css` | estilo do painel (`styles.css`, tokens, tema, responsivo) |
+| `esp-a11y` | acessibilidade do painel; revisa PRs do painel |
+| `esp-performance-web` | performance do painel; revisa PRs do painel |
+| `esp-qa` | testes unitários e cobertura (`tests/`) |
+| `esp-e2e` | testes Playwright (`tests/test_painel.py`) |
+| `esp-cicd` | `.github/workflows/`, só com pedido explícito |
+| `esp-appsec` | segurança em qualquer área; revisa PRs com entrada externa, servidor ou segredos |
+| `arquiteto-software` | decisões técnicas e contratos entre áreas |
+| `tech-lead` | plano e quebra de issues grandes ("Planeje a issue #N") |
+| `dev-junior` / `dev-pleno` / `dev-senior` | genéricos (fallback) quando nenhum especialista encaixa |
+| `reviewer` | revisa todo PR (geral + clean code) |
+
+Skills do fluxo em `.claude/skills/`: `criar-issue`, `abrir-pr`, `atualizar-pr`, `revisar-pr`. Modelos para outras stacks (não ativos): `kit/agentes/README.md`.

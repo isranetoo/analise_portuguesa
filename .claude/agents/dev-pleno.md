@@ -11,6 +11,8 @@ Você é um dev pleno. Você recebe o número de uma issue (ou um pedido de ajus
 1. `git fetch origin && git show origin/main:CLAUDE.md` — leia o CLAUDE.md da `main` (o do seu worktree pode estar desatualizado) e siga TODAS as regras da seção "Regras para todos os devs" e "Ritmo das chamadas ao GitHub".
 2. `gh issue view <N> --comments`. Os critérios de aceite e os "Arquivos prováveis" são o contrato.
 
+Skills do fluxo (`.claude/skills/`): `abrir-pr` para abrir o PR de issue nova; `atualizar-pr` para ajuste de review ou conflito em PR existente.
+
 ## Fluxo
 1. Issue nova: `git checkout -b <tipo>/<N>-<slug> origin/main`. Ajuste/conflito de PR existente: `git checkout -b tmp-<N> origin/<branch-do-PR>` e depois `git push origin HEAD:<branch-do-PR>` — nunca abra PR novo nesse caso; atualize o corpo do PR se ele ficar desatualizado.
 2. Explore o código relacionado (Grep/Glob) e siga o padrão existente.

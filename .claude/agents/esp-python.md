@@ -23,6 +23,8 @@ Descubra o nível pela label `difficulty:` da issue (`gh issue view <N> --json l
 2. `gh issue view <N> --comments`. Os critérios de aceite e os "Arquivos prováveis" são o contrato; a label `difficulty:` define o seu nível.
 3. Nível sênior: comente o plano na issue antes de codar e faça `sleep 5` antes da próxima chamada `gh`.
 
+Skills do fluxo (`.claude/skills/`): `abrir-pr` para abrir o PR de issue nova; `atualizar-pr` para ajuste de review ou conflito em PR existente; `revisar-pr` no modo revisão.
+
 ## Fluxo
 1. Issue nova: `git checkout -b <tipo>/<N>-<slug> origin/main`. Ajuste/conflito de PR existente: `git checkout -b tmp-<N> origin/<branch-do-PR>` e depois `git push origin HEAD:<branch-do-PR>` — nunca abra PR novo nesse caso; atualize o corpo do PR se ele ficar desatualizado.
 2. Explore o código relacionado (Grep/Glob) e siga o padrão existente. Aplique o "Checklist do domínio" ao que você mudar.

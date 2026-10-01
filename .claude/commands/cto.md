@@ -16,18 +16,47 @@ Leia o `CLAUDE.md` antes de tudo: regras de ouro, áreas, padrão de issue e reg
 - Se a ambiguidade mudar a solução, pergunte ANTES de criar a issue.
 
 ## 2. Triagem
-| Nível | Agente | Critérios |
-|---|---|---|
-| fácil | `dev-junior` (haiku) | 1–2 arquivos, sem lógica nova: texto, CSS, config simples |
-| média | `dev-pleno` (sonnet) | bug/feature contido numa área, lógica nova, testes |
-| difícil | `dev-senior` (opus) | várias áreas, arquitetura, segurança, concorrência, causa incerta |
+Duas decisões independentes: **quem** (especialista, pela área/tecnologia) e **qual nível** (dificuldade, que define o modelo).
+
+### 2.1 Nível (label `difficulty:`)
+| Nível | `difficulty:` | `model` no despacho | Critérios |
+|---|---|---|---|
+| fácil | `easy` | `haiku` | 1–2 arquivos, sem lógica nova: texto, CSS, config simples |
+| média | `medium` | `sonnet` | bug/feature contido numa área, lógica nova, testes |
+| difícil | `hard` | `opus` | várias áreas, arquitetura, segurança, concorrência, causa incerta |
 
 Na dúvida, escolha o nível maior. Defina também a área, a Priority (P0/P1/P2) e o Size pelos critérios do `CLAUDE.md`.
 
+### 2.2 Especialista (label `agent:`)
+Escolha pela área e pela tecnologia principal da issue (agentes em `.claude/agents/`):
+
+| Issue | Especialista | Quando escolher |
+|---|---|---|
+| `area:coleta` — código Python, refatoração, erros, tipos | `esp-python` | lógica de `coleta_detalhada.py` sem mudar a fonte nem o formato gerado |
+| `area:coleta` — fonte externa | `esp-scraping` | API da CBF, boletins em PDF (`pdfplumber`), geocoding |
+| `area:coleta` — dados gerados | `esp-dados` | muda o que é gerado/validado: CSVs, schema de `dados.js`, caches |
+| `area:painel` — interface | `esp-uiux` | páginas, filtros, KPIs, gráficos, estados vazios, textos |
+| `area:painel` — estilo | `esp-css` | `styles.css`, tokens, tema, responsivo |
+| `area:painel` — acessibilidade | `esp-a11y` | WCAG, teclado, foco, ARIA, contraste |
+| `area:painel` — performance | `esp-performance-web` | lentidão, renderização, Leaflet, tamanho do `dados.js` |
+| `area:publicacao` | `esp-python` | `streamlit_app.py`, `iniciar.py`, `windows_asyncio.py` (`server.js` → `esp-appsec` se for segurança; senão `dev-*`) |
+| testes unitários/cobertura | `esp-qa` | `tests/test_coleta.py`, mocks, critérios de aceite sem teste |
+| testes E2E do painel | `esp-e2e` | `tests/test_painel.py` (Playwright) |
+| `area:ci` | `esp-cicd` | só issue que peça mudança em `.github/workflows/` |
+| segurança (qualquer área) | `esp-appsec` | entrada externa, XSS, path traversal, segredos, CDN/actions |
+| várias áreas ou contrato entre áreas | `arquiteto-software` → `tech-lead` | o `arquiteto-software` define a abordagem (plano/decisão técnica comentado na issue); o `tech-lead` recebe "Planeje a issue #N" e quebra em issues sem arquivos em comum, que voltam para esta tabela |
+| `area:docs`, `area:kit` ou nenhum especialista encaixa | `dev-junior` / `dev-pleno` / `dev-senior` | genéricos (fallback), um por nível |
+
+- A label `agent:<nome>` registra o especialista escolhido; a `difficulty:` define o nível dele. Especialistas leem a `difficulty:` e se comportam como júnior/pleno/sênior.
+- No despacho, passe `subagent_type: <especialista>` e `model: <haiku|sonnet|opus>` conforme a tabela 2.1 (o `model:` do arquivo do agente é só o padrão).
+- Com fallback genérico, o nível escolhe o agente: easy → `dev-junior`, medium → `dev-pleno`, hard → `dev-senior`.
+- Biblioteca de modelos (outras stacks, fora deste repo): `kit/agentes/README.md`. Ative um modelo só com pedido do usuário (vira issue `area:kit`).
+
 ## 3. Criação da issue
+Use a skill `criar-issue` (`.claude/skills/criar-issue/SKILL.md`), que segue os comandos abaixo.
 ```
 gh issue create --title "<tipo>: <título>" \
-  --label "difficulty:<easy|medium|hard>,type:<bug|feature|chore>,agent:<dev-...>,area:<...>" \
+  --label "difficulty:<easy|medium|hard>,type:<bug|feature|chore>,agent:<especialista|dev-...>,area:<...>" \
   --project "Portuguesa" --assignee @me --body-file -
 sleep 5
 gh project item-edit 2 --owner isranetoo --url <url> --field "Priority" --value <P0|P1|P2>
@@ -44,7 +73,7 @@ Corpo: Contexto · Comportamento atual · Comportamento esperado · Critérios d
 2. **Trava por arquivos:** uma issue só é despachada se nenhum dos seus "Arquivos prováveis" estiver em outra issue `In progress` ou `In review` cujo PR ainda não foi mergeado. Na prática: uma issue por área por vez, salvo quando os arquivos são realmente disjuntos.
 3. Issue que depende de outra fica `Backlog`, com "Bloqueada por #<N>" no corpo, até o merge da outra.
 4. **LIMITES:** no máximo 4 devs rodando ao mesmo tempo. Reviewers não contam. No máximo 4 agentes usando `gh` ao mesmo tempo (ver "Ritmo das chamadas ao GitHub" no CLAUDE.md).
-5. Despache em background passando SOMENTE "Resolva a issue #<N>" e mude o Status para `In progress`.
+5. Despache em background o agente da label `agent:` com o `model` da label `difficulty:` (seção 2), passando SOMENTE "Resolva a issue #<N>", e mude o Status para `In progress`. Devs e especialistas abrem o PR com a skill `abrir-pr` e ajustam PR existente com a `atualizar-pr`.
 6. Mostre a tabela: issue | título | prioridade | área | agente | status (rodando / fila / bloqueada por #N).
 
 Exceção: P0 passa na frente de tudo. Se a área estiver travada por um PR aberto, peça ao usuário para aprovar ou fechar esse PR primeiro.
@@ -53,14 +82,25 @@ Exceção: P0 passa na frente de tudo. Se a área estiver travada por um PR aber
 - `STATUS: OK` → `gh pr edit <PR> --add-assignee @me`; confira `gh pr view <PR> --json closingIssuesReferences,files,mergeable`.
   - Sem a issue em `closingIssuesReferences`: corrija o corpo do PR (`Closes #<N>` na primeira linha).
   - Arquivos fora dos "Arquivos prováveis": anote para o reviewer.
-  - Mude o Status para `In review` e rode o `reviewer`.
-- `STATUS: ESCALAR` → troque as labels `difficulty`/`agent` para o próximo nível e redespache.
+  - Mude o Status para `In review` e rode o `reviewer` e os revisores especialistas (seção 6).
+- `STATUS: ESCALAR` → por nível: suba a `difficulty` (e o `model`; no fallback genérico, troque também o `agent:` para o `dev-*` do próximo nível); por domínio: troque o `agent:` para o especialista certo (seção 2.2). Redespache.
 - `STATUS: FALHOU` ou bloqueio de permissão → comente o motivo na issue, volte o Status para `Backlog` e reporte ao usuário. Não refaça você mesmo uma ação que foi negada ao dev.
 - Se o dev abrir um PR duplicado para a mesma issue, leve o commit para a branch do PR original e feche o duplicado.
 
 ## 6. Review
-- `reviewer` com `AJUSTES` ou `BLOQUEADO` → redespache o MESMO nível com: "Aplique os comentários de review do PR #<PR> (issue #<N>). Atualize a mesma branch do PR, não abra PR novo."
-- `reviewer` com `PRONTO` → seção 7.
+Todo PR passa pelo `reviewer` (geral + clean code). Além dele, chame o especialista revisor quando o PR tocar o domínio dele, passando SOMENTE "Revise o PR #<PR>":
+
+| O PR toca | Revisor especialista |
+|---|---|
+| `index.html`, `app.js` ou `styles.css` | `esp-a11y` e `esp-performance-web` |
+| entrada externa (API da CBF, PDFs, geocoding), `server.js`, `streamlit_app.py`, segredos ou permissões | `esp-appsec` |
+| `.github/workflows/` | `esp-cicd` |
+| contrato entre áreas (ex.: schema de `dados.js`) | `arquiteto-software` |
+
+- Os revisores rodam em paralelo (não contam no limite de devs), mas respeite o limite de 4 agentes usando `gh` ao mesmo tempo. Todos seguem a skill `revisar-pr`.
+- O PR só está PRONTO quando TODOS os revisores chamados derem `PRONTO`.
+- Algum revisor com `AJUSTES` ou `BLOQUEADO` → redespache o MESMO agente e nível do PR com: "Aplique os comentários de review do PR #<PR> (issue #<N>). Atualize a mesma branch do PR, não abra PR novo." Depois, revise de novo com os mesmos revisores.
+- Todos com `PRONTO` → seção 7.
 
 ## 7. Pedido de aprovação (padrão)
 1. **Análise de conflitos** de todos os PRs PRONTO:
