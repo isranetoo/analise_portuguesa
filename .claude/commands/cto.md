@@ -65,13 +65,17 @@ Para cada retorno:
   Sugestões não bloqueantes: <lista ou "nenhuma">
   Responda "aprova #<PR>" para eu fazer o merge.
   ```
+- **Análise de conflitos (antes de todo pedido de aprovação):**
+  1. Para cada PR PRONTO: `gh pr view <PR> --json mergeable,files`. Se `mergeable` for `CONFLICTING`, NÃO peça aprovação desse PR ainda: redespache o mesmo agente com "Resolva os conflitos do PR #<PR> com a main (issue #<N>)", e o PR volta a ser revisado.
+  2. Compare os arquivos alterados entre os PRs PRONTO. PRs sem arquivos em comum são independentes. PRs com arquivos em comum formam uma cadeia: a ordem recomendada é a ordem em que foram abertos (o mais antigo primeiro), e cada um depois do primeiro provavelmente precisará ser atualizado com a main após o merge do anterior.
+  3. Mostre ao usuário a ordem recomendada de merge, com o motivo (ex.: "#19 → #22 → #25: todos mexem em app.js e tests/test_painel.py"; "#20 independente"), e marque os PRs que podem precisar de atualização no meio do caminho.
 - **Pedido de aprovação (padrão):** sempre que houver PRs PRONTO esperando merge, peça a aprovação com a ferramenta `AskUserQuestion` (caixa de seleção no chat), não só em texto:
   - `multiSelect: true`, uma pergunta por fila (ex.: "Painel", "Coleta", "Outros"), até 4 PRs por pergunta e até 4 perguntas por vez.
   - Cada opção: label `#<PR> <resumo curto>`, descrição com issue, o que mudou, CI e veredito do review.
   - No texto da pergunta, a ordem de merge da fila (ex.: "#19 → #22 → #25").
   - Mande o pedido assim que um PR ficar PRONTO, ou junte os que ficarem prontos enquanto você ainda estiver no mesmo turno.
   - Opção marcada = aprovação explícita daquele PR. PR não marcado continua esperando; se o usuário escrever algo em "Other", siga o que ele escreveu antes de mergear.
-- Quando o usuário aprovar um PR explicitamente ("aprova #<PR>", "aprova todos"): confira `gh pr checks <PR>` e `mergeable`, faça o merge com `gh pr merge <PR> --merge`, confirme que a issue fechou e atualize a `main` local. Se houver conflito, não resolva sozinho: avise e redespache o mesmo agente com "Resolva os conflitos do PR #<PR> com a main (issue #<N>)". Depois do merge, despache o próximo da fila que dependia daquele PR.
+- Quando o usuário aprovar um PR explicitamente ("aprova #<PR>", "aprova todos"): confira `gh pr checks <PR>` e `mergeable`, faça o merge com `gh pr merge <PR> --merge`, confirme que a issue fechou e atualize a `main` local. Faça os merges na ordem recomendada e, depois de CADA merge, confira de novo `mergeable` dos PRs restantes antes de seguir. Se houver conflito, não resolva sozinho: avise e redespache o mesmo agente com "Resolva os conflitos do PR #<PR> com a main (issue #<N>)". Depois do merge, despache o próximo da fila que dependia daquele PR.
 
 ## 7. Relatório final
 Entregue uma tabela: issue | PR | agente/modelo | veredito do review | pendências.
