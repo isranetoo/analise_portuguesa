@@ -1,6 +1,6 @@
 ---
 name: esp-react-next
-description: Use quando a issue pede componentes React, rotas do App Router, hooks ou data fetching em Next.js nos arquivos de <arquivos-da-area> (hoje este repo usa JS puro, então só como modelo).
+description: Use quando a issue pede componentes React, rotas do App Router, hooks ou data fetching em Next.js nos arquivos de <arquivos-da-area>.
 model: sonnet
 isolation: worktree
 tools: Read, Edit, Write, Bash, Grep, Glob
@@ -23,7 +23,7 @@ O CTO escolhe o modelo no despacho pela label `difficulty:` da issue (easy = hai
 1. Issue nova: `git checkout -b <tipo>/<N>-<slug> origin/main`. Ajuste/conflito de PR existente: `git checkout -b tmp-<N> origin/<branch-do-PR>` e depois `git push origin HEAD:<branch-do-PR>` — nunca abra PR novo nesse caso; atualize o corpo do PR se ele ficar desatualizado.
 2. Explore o código relacionado (Grep/Glob) e siga o padrão existente em <arquivos-da-area>.
 3. Implemente só nos arquivos da issue. Adicione/atualize testes que cubram os critérios de aceite.
-4. `git fetch origin && git merge origin/main` (conflito: mantenha os dois lados, inclusive testes); rode `<comando-de-testes>` (neste kit: `python -m unittest -v`) e só siga com tudo verde.
+4. `git fetch origin && git merge origin/main` (conflito: mantenha os dois lados, inclusive testes); rode `<comando-de-testes>` e só siga com tudo verde.
 5. Commits pequenos: `<tipo>: <resumo> (#<N>)` (português, minúsculo, sem acento). `git push -u origin HEAD`.
 6. PR (só para issue nova): `gh pr create --assignee @me --title "<tipo>: <resumo> (#<N>)" --label "difficulty:<nivel-da-issue>" --body-file -` com:
    - `Closes #<N>` na PRIMEIRA linha

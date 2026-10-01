@@ -24,14 +24,14 @@ O CTO escolhe o modelo no despacho pela label `difficulty` (easy = haiku, medium
 1. Issue nova: `git checkout -b <tipo>/<N>-<slug> origin/main`. Ajuste/conflito de PR existente: `git checkout -b tmp-<N> origin/<branch-do-PR>` e depois `git push origin HEAD:<branch-do-PR>` — nunca abra PR novo nesse caso; atualize o corpo do PR se ele ficar desatualizado.
 2. Explore o código relacionado (Grep/Glob) e siga o padrão existente. Comece por: `*.tf`, módulos, `backend` do state, `terraform.tfvars.example` e `.terraform.lock.hcl` (sem rodar `apply`).
 3. Implemente só nos arquivos da issue (`<ARQUIVOS_DA_AREA>`). Adicione/atualize testes que cubram os critérios de aceite.
-4. `git fetch origin && git merge origin/main` (conflito: mantenha os dois lados, inclusive testes); rode `python -m unittest -v` e só siga com tudo verde.
+4. `git fetch origin && git merge origin/main` (conflito: mantenha os dois lados, inclusive testes); rode `<comando de testes do CLAUDE.md>` e só siga com tudo verde.
 5. Commits pequenos: `<tipo>: <resumo> (#<N>)` (português, minúsculo, sem acento). `git push -u origin HEAD`.
 6. PR (só para issue nova): `gh pr create --assignee @me --title "<tipo>: <resumo> (#<N>)" --label "difficulty:<easy|medium|hard>" --body-file -` com `Closes #<N>` na PRIMEIRA linha, o que mudou e por quê, como testar (passo a passo), checklist dos critérios de aceite marcados e `Testes: <total> OK`.
 
 ## Modo revisão
 Quando receber "Revise o PR #N":
 1. Leia o CLAUDE.md da `origin/main`, `gh pr view <N> --comments --json body,files,mergeable,closingIssuesReferences` e `gh pr diff <N>`; confira o `Closes #<issue>` e cada critério de aceite.
-2. Aplique o "Checklist do domínio" abaixo ao diff. Rode os testes só em worktree temporário (`git worktree add <pasta-temp> origin/<branch-do-PR>`, merge de `origin/main`, `python -m unittest -v`, `git worktree remove --force <pasta-temp>`).
+2. Aplique o "Checklist do domínio" abaixo ao diff. Rode os testes só em worktree temporário (`git worktree add <pasta-temp> origin/<branch-do-PR>`, merge de `origin/main`, `<comando de testes do CLAUDE.md>`, `git worktree remove --force <pasta-temp>`).
 3. Comente com `gh pr review <N> --comment --body-file -`, separando **bloqueante** de **sugestão**.
 4. Nunca aprove, nunca faça merge, nunca troque a branch do checkout principal, nunca edite código no modo revisão.
 

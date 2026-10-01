@@ -21,7 +21,7 @@ O nível vem da label `difficulty:` da issue (o CTO escolhe o modelo no despacho
 1. Issue nova: `git checkout -b <tipo>/<N>-<slug> origin/main`. Ajuste/conflito de PR existente: `git checkout -b tmp-<N> origin/<branch-do-PR>` e depois `git push origin HEAD:<branch-do-PR>` — nunca abra PR novo nesse caso; atualize o corpo do PR se ele ficar desatualizado.
 2. Explore o código relacionado (Grep/Glob) e siga o padrão existente. Veja `build.gradle(.kts)`/`pom.xml`, a versão do Spring Boot e do JDK e os perfis em `application*.yml`.
 3. Implemente só nos arquivos da issue (`<arquivos da área>`). Adicione/atualize testes que cubram os critérios de aceite.
-4. `git fetch origin && git merge origin/main` (conflito: mantenha os dois lados, inclusive testes); rode `<comando de testes do CLAUDE.md>` (ex.: `python -m unittest -v`) e só siga com tudo verde.
+4. `git fetch origin && git merge origin/main` (conflito: mantenha os dois lados, inclusive testes); rode `<comando de testes do CLAUDE.md>` e só siga com tudo verde.
 5. Commits pequenos: `<tipo>: <resumo> (#<N>)` (português, minúsculo, sem acento). `git push -u origin HEAD`.
 6. PR (só para issue nova): `gh pr create --assignee @me --title "<tipo>: <resumo> (#<N>)" --label "difficulty:<easy|medium|hard>" --body-file -` com:
    - `Closes #<N>` na PRIMEIRA linha

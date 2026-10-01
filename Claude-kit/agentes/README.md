@@ -1,6 +1,6 @@
 # Biblioteca de modelos de agentes
 
-Modelos de especialistas para stacks que **não** são usadas neste repo hoje. Eles ficam aqui, fora de `.claude/agents/`, para o Claude Code não os carregar nem o CTO despachá-los. Os agentes ativos do projeto estão em `.claude/agents/` (lista na seção "Agentes" do `CLAUDE.md`; roteamento em `.claude/commands/cto.md`, seção 2).
+Modelos de especialistas para stacks que o projeto **ainda não** usa. Eles ficam aqui, fora de `.claude/agents/`, para o Claude Code não os carregar nem o CTO despachá-los. Os agentes ativos do projeto estão em `.claude/agents/` (lista na seção "Agentes" do `CLAUDE.md`; roteamento em `.claude/commands/cto.md`, seção 2).
 
 Seguem o formato dos ativos: níveis por `difficulty:` (easy → haiku, medium → sonnet, hard → opus), modo implementação, modo revisão e checklist do domínio. Ao ativar, confira que o arquivo cita as regras de "Ritmo das chamadas ao GitHub" do `CLAUDE.md` e as skills de `.claude/skills/`.
 
@@ -83,17 +83,17 @@ Seguem o formato dos ativos: níveis por `difficulty:` (easy → haiku, medium �
 ## Como ativar um modelo
 Ativar um modelo é mudança do kit: abra uma issue `area:kit` (skill `criar-issue`) e siga o fluxo normal.
 
-1. **Copie** o arquivo para `.claude/agents/` mantendo o nome (ex.: `kit/agentes/backend/esp-go.md` → `.claude/agents/esp-go.md`). O `name:` do frontmatter deve ser igual ao nome do arquivo sem `.md`.
+1. **Copie** o arquivo para `.claude/agents/` mantendo o nome (ex.: `Claude-kit/agentes/backend/esp-go.md` → `.claude/agents/esp-go.md`). O `name:` do frontmatter deve ser igual ao nome do arquivo sem `.md`.
 2. **Ajuste os marcadores** de todo o arquivo (frontmatter e corpo). Os modelos usam estes formatos:
    - `<arquivos da área>`, `<arquivos-da-area>` ou `<ARQUIVOS_DA_AREA>` → os arquivos reais da área (tabela da seção 4 do `CLAUDE.md`);
    - `<PROJETO>` e `<STACK>` → nome do projeto e stack;
-   - `<comando de testes do CLAUDE.md>` → o comando da seção 3 do `CLAUDE.md` (aqui, `python -m unittest -v`).
+   - `<comando de testes do CLAUDE.md>` → o comando da seção 3 do `CLAUDE.md`.
    Confira com `grep -n "<[A-Za-z_-]*>" .claude/agents/<nome>.md` que não sobrou marcador do modelo (os `<N>`, `<PR>`, `<tipo>` dos comandos são parte do fluxo e ficam).
-   Remova notas como "hoje este repo usa JS puro, então só como modelo" e ajuste o checklist do domínio ao código real.
+   Remova notas que só valem para o modelo e ajuste o checklist do domínio ao código real.
 3. **Crie a label** `agent:<nome>` (mesma cor das outras `agent:*`, `BFDADC`):
    ```bash
    gh label create "agent:<nome>" --color BFDADC --description "<quando usar>"
    ```
    (pausa de 5 s entre chamadas `gh` que escrevem; ver "Ritmo das chamadas ao GitHub" no `CLAUDE.md`).
 4. **Registre o roteamento:** uma linha na tabela 2.2 de `.claude/commands/cto.md` (e na tabela de revisores da seção 6, se ele revisar PRs) e uma linha na seção "Agentes" do `CLAUDE.md`.
-5. Mantenha o original em `kit/agentes/` como referência; não é preciso apagá-lo.
+5. Mantenha o original em `Claude-kit/agentes/` como referência; não é preciso apagá-lo.
