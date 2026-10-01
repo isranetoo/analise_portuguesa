@@ -8,7 +8,7 @@ Este arquivo vale para TODOS os agentes (CTO, devs e reviewer). O fluxo detalhad
 1. **Todo pedido vira issue.** Qualquer bug, pedido, ajuste ou informação que o usuário passar no chat vira uma issue na hora, no padrão da seção 5, antes de qualquer implementação. Responda com o link. Só perguntas que não pedem mudança ficam fora.
 2. **Uma issue = uma branch = um PR.** Ajustes de review vão na MESMA branch e no MESMO PR. Nunca abra um segundo PR para a mesma issue.
 3. **Sem conflitos por construção.** Duas issues só rodam ao mesmo tempo se não tiverem nenhum arquivo em comum (seção 4). Toda branch parte de `origin/main` atualizada e é sincronizada com ela antes do PR.
-4. **Testes locais são o portão.** O CI roda só na `main`; todo dev e o reviewer rodam `python -m unittest -v` e informam o resultado.
+4. **Testes locais são o portão.** Todo dev e o reviewer rodam `python -m unittest -v` e informam o resultado. O CI vai rodar só na `main` (issue #37); até essa mudança entrar, ele também roda nos PRs.
 5. **Merge só com aprovação explícita** do usuário (`isranetoo`) para aquele PR.
 6. **Nunca troque a branch do checkout principal** (`C:/Users/IsraelAntunes/Desktop/fastapi/analise_portuguesa`). Use o seu worktree ou um worktree temporário.
 
@@ -26,7 +26,7 @@ python -m unittest -v          # OBRIGATÓRIO antes de abrir/atualizar PR
 ```
 Não há lint, typecheck nem build. Rodar local: `node server.js` (http://localhost:8000) ou `python iniciar.py` (Streamlit, http://localhost:8501). Coleta manual: `python coleta_detalhada.py`.
 
-CI (`.github/workflows/testes.yml`): roda só em push na `main` e manualmente. Depois de cada lote de merges, o CTO confere `gh run list --branch main --limit 1`; CI vermelho na `main` vira issue P0.
+CI (`.github/workflows/testes.yml`): depois da issue #37, roda só em push na `main` e manualmente (hoje ainda roda também em PRs). Depois de cada lote de merges, o CTO confere `gh run list --branch main --limit 1`; CI vermelho na `main` vira issue P0.
 
 ## 4. Áreas e arquivos
 Cada issue tem uma label `area:*`. Os arquivos de uma área são compartilhados: issues da mesma área rodam em sequência (a próxima só começa depois do merge do PR anterior).

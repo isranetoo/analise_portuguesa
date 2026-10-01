@@ -66,7 +66,7 @@ Exceção: P0 passa na frente de tudo. Se a área estiver travada por um PR aber
    ```
    ✅ Pronto para revisar e mergear: PR #<PR> (issue #<N> — <título>)
    O que mudou: <1–2 linhas>
-   Testes locais: <total> OK (dev e reviewer) · Review: PRONTO
+   Testes locais: <total> OK (dev e reviewer) · CI do PR: <passou | rodando | não roda> · Review: PRONTO
    Sugestões não bloqueantes: <lista ou "nenhuma">
    ```
 3. **Ordem recomendada de merge**, com o motivo (ex.: "#19 → #22: os dois mexem em app.js"; "#20 independente"), marcando quem pode precisar de atualização no meio.
