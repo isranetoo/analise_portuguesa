@@ -8,7 +8,9 @@
   <meta name="description" content="Retrospectiva da campanha da Portuguesa na Série D 2026: pontos, aproveitamento, artilharia, elenco, fase de grupos e mata-mata.">
   <script>
     // Aplica o tema salvo antes da renderização para evitar o piscar de cores.
-    try { const theme = localStorage.getItem('dashboard-theme'); if (theme) document.documentElement.dataset.theme = theme; } catch (_) {}
+    let theme = null;
+    try { theme = localStorage.getItem('dashboard-theme'); } catch (_) {}
+    document.documentElement.dataset.theme = theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
   </script>
   <link rel="icon" id="favicon" href="portuguesa-logo.svg">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
@@ -39,14 +41,14 @@
     <section class="filter-row" id="filterRow" aria-label="Filtros">
       <div class="filters">
         <div class="segmented" id="venueFilter" role="group" aria-label="Filtrar por mando de campo">
-          <button class="active" data-filter="Todos">Todos os jogos</button>
-          <button data-filter="Casa">Em casa</button>
-          <button data-filter="Fora">Fora</button>
+          <button class="active" aria-pressed="true" data-filter="Todos">Todos os jogos</button>
+          <button aria-pressed="false" data-filter="Casa">Em casa</button>
+          <button aria-pressed="false" data-filter="Fora">Fora</button>
         </div>
         <div class="segmented" id="stageFilter" role="group" aria-label="Filtrar por fase">
-          <button class="active" data-filter="Todas">Todas as fases</button>
-          <button data-filter="Grupos">Grupos</button>
-          <button data-filter="Mata-mata">Mata-mata</button>
+          <button class="active" aria-pressed="true" data-filter="Todas">Todas as fases</button>
+          <button aria-pressed="false" data-filter="Grupos">Grupos</button>
+          <button aria-pressed="false" data-filter="Mata-mata">Mata-mata</button>
         </div>
       </div>
       <p id="filterContext">Visão geral da campanha</p>
@@ -203,7 +205,7 @@
               <div><span>Ritmo de 50%</span><b id="chartPacePoints">--</b></div>
               <div id="chartGapCard"><span>Diferença</span><b id="chartGap">--</b></div>
             </div>
-            <div class="chart-wrap" id="pointsChart" role="img" aria-label="Gráfico de evolução de pontos"></div>
+            <div class="chart-wrap" id="pointsChart" role="group" aria-label="Gráfico de evolução de pontos"></div>
             <div class="chart-insight" id="chartInsight"></div>
           </article>
 
@@ -215,7 +217,7 @@
               </div>
             </div>
             <div class="donut-row">
-              <div class="donut" id="resultDonut"><div><strong id="donutEfficiency">--</strong><span>aproveitamento</span></div></div>
+              <div class="donut" id="resultDonut" role="img"><div><strong id="donutEfficiency">--</strong><span>aproveitamento</span></div></div>
               <div class="result-list">
                 <div class="result-win"><span><i class="win"></i>Vitórias</span><small id="winsPercent">--</small><b id="winsCount">--</b></div>
                 <div class="result-draw"><span><i class="draw"></i>Empates</span><small id="drawsPercent">--</small><b id="drawsCount">--</b></div>
@@ -289,7 +291,7 @@
               </div>
               <div class="legend"><span><i class="dot for"></i>Marcados</span><span><i class="dot against"></i>Sofridos</span></div>
             </div>
-            <div class="minutes-chart" id="minutesChart"></div>
+            <div class="minutes-chart" id="minutesChart" role="img"></div>
             <div class="stat-boxes" id="minutesStats"></div>
             <div class="analysis-note">
               <span>LEITURA DOS MINUTOS</span>
@@ -514,7 +516,7 @@
               </div>
               <div class="legend"><span><i class="dot for"></i>Vitória</span><span><i class="dot draw"></i>Empate</span><span><i class="dot against"></i>Derrota</span></div>
             </div>
-            <div class="attendance-chart" id="attendanceChart"></div>
+            <div class="attendance-chart" id="attendanceChart" role="img"></div>
             <div class="analysis-note"><span>LEITURA DO PÚBLICO</span><p id="attendanceInsight"></p></div>
             <small class="method" id="attendanceMethod">Público = ingressos vendidos, incluindo gratuidades, segundo os boletins financeiros das federações.</small>
           </article>
