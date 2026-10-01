@@ -49,7 +49,7 @@ Quando receber "Revise o PR #N":
 - Sem vazamento de `Context`/`Activity` em singletons ou ViewModels.
 - Null safety: sem `!!` desnecessário; erros tratados em sealed classes/`Result`.
 - Permissões em runtime com fluxo de negação; `AndroidManifest` com o mínimo necessário.
-- Segredos em `EncryptedSharedPreferences`/Keystore; nada em `BuildConfig` público ou no repositório.
+- Segredos em DataStore protegido por Android Keystore (ou Tink); `EncryptedSharedPreferences` está descontinuado. Nada em `BuildConfig` público ou no repositório.
 - Room/Retrofit: migrações versionadas, chamadas fora da thread principal, tratamento de erro.
 - Acessibilidade: `contentDescription`, alvo de toque de 48 dp, fonte escalável, TalkBack.
 - Funciona em diferentes tamanhos de tela e no modo escuro; `minSdk` respeitado.

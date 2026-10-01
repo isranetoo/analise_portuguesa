@@ -44,7 +44,7 @@ Quando receber "Revise o PR #N":
 - Widgets pequenos e `const` onde possível; `build` sem lógica pesada nem efeitos colaterais.
 - Gerência de estado única e consistente (Riverpod/Bloc/Provider); sem `setState` espalhado em árvore grande.
 - Recursos descartados em `dispose` (controllers, streams, animações).
-- Nenhum uso de `BuildContext` após `await` sem checar `mounted`.
+- Nenhum uso de `BuildContext` após `await` sem checar `context.mounted` (ou `mounted` no `State`).
 - Listas com `ListView.builder` e `Key` estável; sem `shrinkWrap` em lista grande.
 - Null safety respeitada; sem `!` ou `dynamic` sem motivo.
 - Operações assíncronas com tratamento de erro e estados de carregamento/erro/vazio.

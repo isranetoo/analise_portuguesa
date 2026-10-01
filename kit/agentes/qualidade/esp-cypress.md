@@ -52,7 +52,7 @@ Quando receber "Revise o PR #N":
 - `baseUrl` e variáveis em `cypress.config`/`CYPRESS_*`; nenhum segredo no spec ou nos vídeos.
 - Testes de acessibilidade ou de viewport (`cy.viewport`) quando a issue pede.
 - Spec estável: rodado várias vezes sem flakiness antes do PR.
-- Vídeos e screenshots de falha configurados e fora do controle de versão.
+- Vídeo desligado por padrão desde o Cypress 13 (`video: false`); se ligar, só em CI e fora do controle de versão; screenshots de falha também fora do controle de versão.
 - Execução headless no CI com o mesmo comando de `<comando-de-testes>`.
 - Sem dependência nova nem alteração de lockfile sem a issue pedir.
 
