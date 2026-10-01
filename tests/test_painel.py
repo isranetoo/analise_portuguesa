@@ -135,6 +135,21 @@ class PainelTest(unittest.TestCase):
         self.assertIn("estreia", aviso)
         self.assertFalse(self.page.is_visible("#mainNav"))
 
+    def test_proximo_jogo_sem_data_mostra_traco(self):
+        self.page.add_init_script("""
+            Object.defineProperty(window, '__DASHBOARD_DATA__', {
+              configurable: true,
+              set(dados) {
+                dados.principal.jogos.forEach(j => { j.status = 'scheduled'; j.resultado = null; j.data = ''; });
+                dados.principal.gols = [];
+                dados.principal.atletas = [];
+                Object.defineProperty(window, '__DASHBOARD_DATA__', {value: dados, writable: true});
+              }
+            });
+        """)
+        self.page.reload()
+        self.assertIn("estreia será em —", self.page.locator("main").inner_text())
+
     def test_fase_de_grupos_em_andamento_nao_declara_eliminada(self):
         # Simula a fase de grupos no meio: clube em 5º, com rodadas restantes e sem mata-mata.
         self.page.add_init_script("""
