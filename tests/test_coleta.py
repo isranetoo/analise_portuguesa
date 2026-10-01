@@ -260,6 +260,185 @@ class ClassificacaoTest(unittest.TestCase):
         self.assertEqual(tabela[0]["clube"], 1)
 
 
+class DescobrirCompeticaoTest(unittest.TestCase):
+    HTML = ('<script>self.__next_f.push([1,\\"{\\"competitionId\\":\\"12345\\",'
+            '\\"fases\\":[{\\"fase_id\\":\\"302\\",\\"fase_nome\\":\\"2ª Fase\\",\\"rodadas_qtd\\":\\"2\\",\\"fase_tipo\\":\\"eliminacao\\"},'
+            '{\\"fase_id\\":\\"301\\",\\"fase_nome\\":\\"1ª Fase\\",\\"rodadas_qtd\\":\\"14\\",\\"fase_tipo\\":\\"pontuacao\\"}]}\\"])</script>')
+
+    def test_le_id_e_fases_ordenadas(self):
+        from unittest import mock
+        with mock.patch.object(coleta, "baixar", return_value=self.HTML) as baixar:
+            competicao_id, fases = coleta.descobrir_competicao("serie-d", 2026)
+        self.assertTrue(baixar.call_args.args[0].endswith("/serie-d/2026"))
+        self.assertEqual(competicao_id, "12345")
+        self.assertEqual([f["id"] for f in fases], ["301", "302"])
+        self.assertEqual(fases[0], {"id": "301", "nome_cbf": "1ª Fase", "rodadas": 14, "tipo": "pontuacao"})
+
+    def test_html_sem_competicao_interrompe(self):
+        from unittest import mock
+        with mock.patch.object(coleta, "baixar", return_value="<html></html>"):
+            with self.assertRaises(SystemExit):
+                coleta.descobrir_competicao("serie-d", 2026)
+
+    def test_competicao_sem_fases_devolve_lista_vazia(self):
+        from unittest import mock
+        with mock.patch.object(coleta, "baixar", return_value='{"competitionId":"7"}'):
+            self.assertEqual(coleta.descobrir_competicao("serie-d", 2026), ("7", []))
+
+
+def lado(clube_id, gols, penaltis=0):
+    return {"id": clube_id, "nome": clube_id, "gols": str(gols), "panaltis": str(penaltis)}
+
+
+def partida_simples(mandante, visitante, gols_m, gols_v, penaltis=(0, 0), eventos=()):
+    return {"mandante": lado(mandante, gols_m, penaltis[0]), "visitante": lado(visitante, gols_v, penaltis[1]),
+            "penalidades": list(eventos)}
+
+
+class VencedorDoConfrontoTest(unittest.TestCase):
+    def test_vence_pelo_agregado(self):
+        partidas = [partida_simples("A", "B", 2, 0), partida_simples("B", "A", 1, 0)]
+        self.assertEqual(coleta.vencedor_do_confronto(partidas), "A")
+
+    def test_empate_no_agregado_decide_nos_penaltis(self):
+        partidas = [partida_simples("A", "B", 1, 0), partida_simples("B", "A", 1, 0, (5, 4))]
+        self.assertEqual(coleta.vencedor_do_confronto(partidas), "B")
+
+    def test_empate_total_devolve_none(self):
+        partidas = [partida_simples("A", "B", 1, 1), partida_simples("B", "A", 0, 0)]
+        self.assertIsNone(coleta.vencedor_do_confronto(partidas))
+
+    def test_confronto_com_menos_de_dois_clubes_devolve_none(self):
+        self.assertIsNone(coleta.vencedor_do_confronto([]))
+
+
+class ResumoDaLigaTest(unittest.TestCase):
+    def test_totais_e_media(self):
+        partidas = [(partida_simples("A", "B", 2, 1), 0, "1ª fase", True),
+                    (partida_simples("C", "D", 0, 0), 0, "1ª fase", True),
+                    (partida_simples("E", "F", 0, 3), 0, "1ª fase", True)]
+        self.assertEqual(coleta.resumo_da_liga(partidas), {
+            "jogos": 3, "gols": 6, "media_gols_jogo": 2.0,
+            "vitorias_mandante": 1, "empates": 1, "vitorias_visitante": 1})
+
+    def test_ignora_jogos_sem_placar_e_liga_vazia(self):
+        agendado = partida_simples("A", "B", "", "")
+        self.assertEqual(coleta.resumo_da_liga([(agendado, 0, "1ª fase", True)]), {})
+        self.assertEqual(coleta.resumo_da_liga([]), {})
+
+
+class CartoesPorClubeTest(unittest.TestCase):
+    def test_conta_amarelos_e_vermelhos_por_clube(self):
+        eventos = [cartao(CLUBE, "AMARELO"), cartao(CLUBE, "AMARELO"), cartao(CLUBE, "VERMELHO2AMARELO"),
+                   cartao(ADVERSARIO, "VERMELHO"), gol(CLUBE, "1", 5)]
+        contagem = coleta.cartoes_por_clube({"penalidades": eventos})
+        self.assertEqual(contagem[CLUBE], {"amarelos": 2, "vermelhos": 1})
+        self.assertEqual(contagem[ADVERSARIO], {"amarelos": 0, "vermelhos": 1})
+
+    def test_jogo_sem_eventos(self):
+        self.assertEqual(len(coleta.cartoes_por_clube({})), 0)
+        self.assertEqual(len(coleta.cartoes_por_clube({"penalidades": None})), 0)
+
+
+class LinhasDeGolsTest(unittest.TestCase):
+    def test_gols_ordenados_por_minuto_com_equipe_e_tipo(self):
+        eventos = [gol(ADVERSARIO, "2", 5, "PN", "7", "10 - Rival"), gol(CLUBE, "1", 30, "FT", "1", "09 - Artilheiro")]
+        linhas = coleta.linhas_de_gols(jogo(1, 1, eventos), CLUBE, NOMES)
+        self.assertEqual([(l["equipe"], l["minuto_jogo"], l["tipo"]) for l in linhas],
+                         [("clube", 30, "Falta"), ("adversario", 50, "Pênalti")])
+        self.assertEqual(linhas[0]["atleta"], "Artilheiro")
+        self.assertEqual(linhas[0]["id_jogo"], "1")
+
+    def test_jogo_sem_gols_devolve_lista_vazia(self):
+        self.assertEqual(coleta.linhas_de_gols(jogo(0, 0), CLUBE, NOMES), [])
+
+
+class CoordenadasDasCidadesTest(unittest.TestCase):
+    def executar(self, jogos, inicial, resposta):
+        import json
+        import tempfile
+        from pathlib import Path
+        from unittest import mock
+
+        with tempfile.TemporaryDirectory() as pasta:
+            arquivo = Path(pasta) / "coordenadas.json"
+            if inicial is not None:
+                arquivo.write_text(json.dumps(inicial), encoding="utf-8")
+            baixar = mock.Mock(side_effect=resposta) if isinstance(resposta, Exception) else mock.Mock(return_value=resposta)
+            with mock.patch.object(coleta, "ARQUIVO_COORDENADAS", arquivo), \
+                    mock.patch.object(coleta, "baixar_bytes", baixar), mock.patch.object(coleta.time, "sleep"):
+                cache = coleta.coordenadas_das_cidades(jogos)
+            gravado = json.loads(arquivo.read_text(encoding="utf-8")) if arquivo.exists() else None
+            return cache, gravado, baixar
+
+    def test_cidade_nova_e_consultada_e_gravada(self):
+        resposta = b'[{"lat": "-23.5505199", "lon": "-46.6333094"}]'
+        cache, gravado, baixar = self.executar([{"cidade": "Sao Paulo", "uf": "SP"}], None, resposta)
+        self.assertEqual(cache["Sao Paulo/SP"], [-23.55052, -46.63331])
+        self.assertEqual(gravado, cache)
+        self.assertEqual(baixar.call_count, 1)
+
+    def test_cidade_em_cache_ou_vazia_nao_consulta_a_rede(self):
+        inicial = {"Sao Paulo/SP": [1.0, 2.0]}
+        jogos = [{"cidade": "Sao Paulo", "uf": "SP"}, {"cidade": "", "uf": ""}]
+        cache, _, baixar = self.executar(jogos, inicial, b"[]")
+        self.assertEqual(cache, inicial)
+        baixar.assert_not_called()
+
+    def test_cidade_nao_encontrada_vira_none_no_cache(self):
+        cache, gravado, _ = self.executar([{"cidade": "Nenhures", "uf": "XX"}], None, b"[]")
+        self.assertIsNone(cache["Nenhures/XX"])
+        self.assertEqual(gravado, {"Nenhures/XX": None})
+
+    def test_falha_de_rede_nao_entra_no_cache(self):
+        cache, gravado, _ = self.executar([{"cidade": "Santos", "uf": "SP"}], None, OSError("sem rede"))
+        self.assertEqual(cache, {})
+        self.assertIsNone(gravado)  # nada foi alterado, o arquivo nem é criado
+
+
+class ExportacaoTest(unittest.TestCase):
+    CONFIG = {"clube": {"id": "1", "nome": "Portuguesa"}, "competicao": {"slug": "serie-d", "nome": "Série D", "ano": 2026}}
+
+    def test_converter_data(self):
+        self.assertEqual(coleta.converter_data(" 20/06/2026"), "2026-06-20")
+        self.assertEqual(coleta.converter_data("01/12/2025 "), "2025-12-01")
+        with self.assertRaises(ValueError):
+            coleta.converter_data("2026-06-20")
+
+    def test_slug(self):
+        self.assertEqual(coleta.slug("Série D"), "serie_d")
+        self.assertEqual(coleta.slug("  São Paulo / F.C.  "), "sao_paulo_f_c")
+        self.assertEqual(coleta.slug("---"), "")
+
+    def test_prefixo_arquivos(self):
+        self.assertEqual(coleta.prefixo_arquivos(self.CONFIG, 2026), "portuguesa_serie_d_2026")
+        config = {"clube": {"nome": "Água Santa"}, "competicao": {"slug": "serie-d"}}
+        self.assertEqual(coleta.prefixo_arquivos(config, 2025), "agua_santa_serie_d_2025")
+
+    def test_dados_js_pode_ser_lido_de_volta(self):
+        import json
+        import re
+        import tempfile
+        from pathlib import Path
+
+        principal = {"ano": 2026, "jogos": [{"adversario": "São José; \"X\""}], "gols": []}
+        comparacao = {"ano": 2025, "grupo_nome": "B1", "jogos": [], "grupo": [], "extra": "fora"}
+        with tempfile.TemporaryDirectory() as pasta:
+            caminho = Path(pasta) / "dados.js"
+            coleta.salvar_dados_js(caminho, self.CONFIG, principal, comparacao)
+            texto = caminho.read_text(encoding="utf-8")
+            sem_comparacao = Path(pasta) / "sem.js"
+            coleta.salvar_dados_js(sem_comparacao, self.CONFIG, principal, None)
+            texto_sem = sem_comparacao.read_text(encoding="utf-8")
+        padrao = r"window\.__DASHBOARD_DATA__ = (.*);\s*$"
+        dados = json.loads(re.search(padrao, texto, re.S).group(1))
+        self.assertEqual(dados["config"], {"clube": self.CONFIG["clube"], "competicao": self.CONFIG["competicao"]})
+        self.assertEqual(dados["principal"], principal)
+        self.assertEqual(dados["comparacao"], {"ano": 2025, "grupo_nome": "B1", "jogos": [], "grupo": []})
+        self.assertIn("São José", texto)  # sem escapes \u
+        self.assertIsNone(json.loads(re.search(padrao, texto_sem, re.S).group(1))["comparacao"])
+
+
 class ValidarTest(unittest.TestCase):
     @staticmethod
     def linha(id_jogo="1", status="finished", **extra):
