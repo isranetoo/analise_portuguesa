@@ -66,7 +66,7 @@ tests/                  Testes unitários (unittest) e Playwright
 
 - Labels obrigatórias: `difficulty:<easy|medium|hard>`, `type:<bug|feature|chore>`, `agent:<dev-junior|dev-pleno|dev-senior>`.
 - PRs não são adicionados ao projeto; aparecem na issue pela coluna "Linked pull requests".
-- Quando a issue fica pronta (PR com review PRONTO), uma mensagem é enviada na hora no chat para `isranetoo` revisar e aprovar o merge, com link do PR, issue, resumo, CI e sugestões do review. O pedido de aprovação é feito com uma caixa de seleção no chat (`AskUserQuestion`, múltipla escolha, agrupada por fila, com a ordem de merge). O merge só acontece com a aprovação explícita dele para aquele PR (opção marcada ou "aprova #<PR>"); aí o próprio CTO faz o merge.
+- Quando a issue fica pronta (PR com review PRONTO), uma mensagem é enviada na hora no chat para `isranetoo` revisar e aprovar o merge, com link do PR, issue, resumo, CI e sugestões do review. Antes do pedido, o CTO analisa conflitos (com a `main` e entre os PRs prontos), manda o dev atualizar PRs em conflito e mostra a ordem recomendada de merge. O pedido de aprovação é feito com uma caixa de seleção no chat (`AskUserQuestion`, múltipla escolha, agrupada por fila, com a ordem de merge). O merge só acontece com a aprovação explícita dele para aquele PR (opção marcada ou "aprova #<PR>"); aí o próprio CTO faz o merge.
 
 ## Banco de dados
 Projeto não possui banco de dados. Dados provêm da API pública da CBF e são armazenados em arquivos gerados (`dados.js`, `*.csv`, `boletins.json`, `coordenadas.json`).
