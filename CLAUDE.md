@@ -70,7 +70,7 @@ Status: `Backlog` (criada ou bloqueada) → `Ready` (triada, sem bloqueio) → `
 3. **Testes:** cubra os critérios de aceite; rode `python -m unittest -v` e escreva o total (ex.: "54 testes OK") no PR.
 4. **Antes de abrir ou atualizar o PR:** `git fetch origin && git merge origin/main`, resolva conflitos mantendo os dois lados (inclusive os testes de ambos) e rode os testes de novo. Nunca force push.
 5. **Commits:** Conventional Commits em português, minúsculo, sem acento, terminando em `(#<N>)`.
-6. **PR:** `gh pr create --assignee @me --label "difficulty:<...>" --body-file -`, com `Closes #<N>` na PRIMEIRA linha, depois "O que mudou", "Como testar" e "Testes: <total> OK".
+6. **PR:** `gh pr create --assignee @me --label "difficulty:<...>" --body-file -`, com `Closes #<N>` na PRIMEIRA linha, depois "O que mudou", "Como testar" e "Testes: <total> OK". (Adicione um `sleep 5` entre a criação/atualização do PR e outras chamadas `gh`; ver "Ritmo das chamadas ao GitHub" na seção 9.)
 7. **Ajustes de review ou conflito:** trabalhe na branch do PR existente (`git fetch origin && git checkout -b tmp-<N> origin/<branch-do-PR>`, depois `git push origin HEAD:<branch-do-PR>`) e atualize o corpo do PR se ele ficar desatualizado.
 8. **Nunca:** merge, force push, editar `.env`/secrets/workflows sem a issue pedir, editar dados gerados à mão, trocar a branch do checkout principal.
 
@@ -85,5 +85,25 @@ Status: `Backlog` (criada ou bloqueada) → `Ready` (triada, sem bloqueio) → `
 - `config.json` (muda clube/competição de todo o pipeline).
 - Kit de agentes (`area:kit`).
 
-## 9. Variáveis de ambiente
+## 9. Ritmo das chamadas ao GitHub
+A API do GitHub tem dois limites: primário (5000 requisições/hora por usuário) e secundário (para evitar abuso em padrões específicos). Para evitar bloqueios:
+
+**Chamadas que escrevem** (`gh issue create/edit`, `gh pr create/edit/merge`, `gh project item-edit`, `gh label`):
+- Nunca em laço sem pausa: adicione um `sleep 5` entre chamadas em sequência.
+
+**Polling e consultas** (CI, `gh pr view --json mergeable`, verificação de status):
+- Mínimo 10 s entre consultas (20–30 s para CI que pode ser lento).
+
+**Tratamento de rate limit:**
+- Se `gh` retornar "API rate limit exceeded":
+  1. Rode `gh api rate_limit --jq '.resources'` para diagnosticar.
+  2. Se ainda há cota, é limite secundário: espere em background, sem fazer outras chamadas `gh`, testando a cada 60 s com uma consulta leve (`gh api graphql -f query='query{viewer{login}}'`) até ela voltar.
+  3. Se a cota acabou, espere até `reset` (timestamp em segundos).
+  4. Retome uma chamada por vez; não dispare laços.
+
+**Limites gerais:**
+- No máximo 4 agentes/devs usando `gh` ao mesmo tempo (limite de dev).
+- Evitar disparar vários reviewers de uma vez em lotes grandes de PRs.
+
+## 10. Variáveis de ambiente
 Nenhuma é necessária para os testes. `PORT` (opcional) em `server.js`, padrão 8000.

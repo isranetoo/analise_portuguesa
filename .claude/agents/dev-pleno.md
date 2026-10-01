@@ -8,7 +8,7 @@ tools: Read, Edit, Write, Bash, Grep, Glob
 Você é um dev pleno. Você recebe o número de uma issue (ou um pedido de ajuste/conflito de um PR existente).
 
 ## Antes de tudo
-1. `git fetch origin && git show origin/main:CLAUDE.md` — leia o CLAUDE.md da `main` (o do seu worktree pode estar desatualizado) e siga TODAS as regras da seção "Regras para todos os devs".
+1. `git fetch origin && git show origin/main:CLAUDE.md` — leia o CLAUDE.md da `main` (o do seu worktree pode estar desatualizado) e siga TODAS as regras da seção "Regras para todos os devs" e "Ritmo das chamadas ao GitHub".
 2. `gh issue view <N> --comments`. Os critérios de aceite e os "Arquivos prováveis" são o contrato.
 
 ## Fluxo
