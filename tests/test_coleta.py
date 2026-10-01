@@ -1,6 +1,9 @@
 """Testes do tratamento das súmulas da CBF.  Execute com:  python -m unittest"""
 
+import json
+import re
 import unittest
+from pathlib import Path
 
 import coleta_detalhada as coleta
 
@@ -183,6 +186,62 @@ class ClassificacaoTest(unittest.TestCase):
         tabela = coleta.classificacao_do_grupo(jogos, "A", {})
         self.assertEqual([linha["time"] for linha in tabela], ["A", "B", "C"])
         self.assertEqual(tabela[0]["clube"], 1)
+
+
+class ValidarTest(unittest.TestCase):
+    @staticmethod
+    def linha(id_jogo="1", status="finished", **extra):
+        base = {"id_jogo": id_jogo, "status": status, "data": "2026-04-04",
+                "adversario": "Rival", "gols_clube": 1, "gols_adversario": 0}
+        base.update(extra)
+        return base
+
+    def principal(self, *jogos, ano=2026):
+        return {"ano": ano, "jogos": list(jogos)}
+
+    def test_coleta_valida(self):
+        anterior = {"principal": self.principal(self.linha("1"))}
+        coleta.validar(self.principal(self.linha("1"), self.linha("2")), anterior)
+
+    def test_sem_dados_anteriores(self):
+        coleta.validar(self.principal(self.linha("1")), None)
+
+    def test_agendado_sem_placar_e_aceito(self):
+        agendado = self.linha("2", status="scheduled", gols_clube=None, gols_adversario=None)
+        coleta.validar(self.principal(self.linha("1"), agendado), None)
+
+    def test_menos_encerrados_que_o_anterior(self):
+        anterior = {"principal": self.principal(self.linha("1"), self.linha("2"))}
+        with self.assertRaises(SystemExit):
+            coleta.validar(self.principal(self.linha("1")), anterior)
+
+    def test_temporada_diferente_nao_compara(self):
+        anterior = {"principal": self.principal(self.linha("1"), self.linha("2"), ano=2025)}
+        coleta.validar(self.principal(self.linha("1")), anterior)
+
+    def test_encerrado_sem_campo_obrigatorio(self):
+        for campo in ("data", "adversario", "gols_clube", "gols_adversario"):
+            with self.subTest(campo=campo):
+                with self.assertRaises(SystemExit):
+                    coleta.validar(self.principal(self.linha("1", **{campo: None})), None)
+
+    def test_id_duplicado(self):
+        with self.assertRaises(SystemExit):
+            coleta.validar(self.principal(self.linha("1"), self.linha("1")), None)
+
+
+class DadosVersionadosTest(unittest.TestCase):
+    def test_estrutura_do_dados_js(self):
+        texto = (Path(__file__).resolve().parents[1] / "dados.js").read_text(encoding="utf-8")
+        dados = json.loads(re.search(r"window\.__DASHBOARD_DATA__ = (.*);\s*$", texto, re.S).group(1))
+        self.assertIn("principal", dados)
+        self.assertIn("jogos", dados["principal"])
+        encerrados = [j for j in dados["principal"]["jogos"] if j["status"] == "finished"]
+        for jogo in encerrados:
+            for campo in ("id_jogo", "data", "adversario", "gols_clube", "gols_adversario"):
+                self.assertNotIn(jogo.get(campo), (None, ""), f"{campo} em {jogo.get('id_jogo')}")
+        # A coleta real versionada precisa passar na própria validação.
+        coleta.validar(dados["principal"], dados)
 
 
 if __name__ == "__main__":
