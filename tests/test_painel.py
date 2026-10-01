@@ -221,9 +221,48 @@ class PainelTest(unittest.TestCase):
         self.assertNotRegex(texto, r"(?i)eliminad|classificad")
         self.assertIn("EM DISPUTA", texto)
 
+    def test_foco_visivel_no_grafico_de_pontos(self):
+        self.page.click("#mainNav a[data-page='desempenho']")
+        self.page.focus("#mainNav a[data-page='desempenho']")
+        for _ in range(200):
+            self.page.keyboard.press("Tab")
+            if self.page.evaluate("document.activeElement.classList.contains('chart-hit')"):
+                break
+        else:
+            self.fail("Tab não chegou a um ponto do gráfico")
+        self.assertEqual(self.page.evaluate("getComputedStyle(document.activeElement).outlineStyle"), "solid")
+        self.assertNotEqual(self.page.evaluate("getComputedStyle(document.activeElement).outlineWidth"), "0px")
+        self.assertEqual(self.page.get_attribute("#pointsChart", "role"), "group")
+
+    def test_filtro_clicado_tem_aria_pressed(self):
+        self.page.click("#mainNav a[data-page='desempenho']")
+        self.page.click("#venueFilter button[data-filter='Casa']")
+        self.assertEqual(self.page.get_attribute("#venueFilter button[data-filter='Casa']", "aria-pressed"), "true")
+        self.assertEqual(self.page.get_attribute("#venueFilter button[data-filter='Todos']", "aria-pressed"), "false")
+
+    def test_graficos_tem_resumo_em_texto(self):
+        self.page.click("#mainNav a[data-page='desempenho']")
+        self.assertIn("Resultados:", self.page.get_attribute("#resultDonut", "aria-label"))
+        self.assertIn("Gols por faixa", self.page.get_attribute("#minutesChart", "aria-label"))
+
     def test_tema_escuro(self):
+        antes = self.page.evaluate("document.documentElement.dataset.theme")
         self.page.click("#themeToggle")
-        self.assertIn(self.page.evaluate("document.documentElement.dataset.theme"), ("dark", "light"))
+        depois = self.page.evaluate("document.documentElement.dataset.theme")
+        self.assertIn(depois, ("dark", "light"))
+        self.assertNotEqual(antes, depois)
+
+    def test_tema_inicial_segue_preferencia_do_sistema(self):
+        contexto = self.browser.new_context(color_scheme="dark")
+        pagina = contexto.new_page()
+        pagina.route(re.compile(r"^https?://"), lambda route: route.abort())
+        try:
+            pagina.goto(INDEX.as_uri())
+            self.assertEqual(pagina.evaluate("document.documentElement.dataset.theme"), "dark")
+            pagina.emulate_media(color_scheme="light")
+            pagina.wait_for_function("document.documentElement.dataset.theme === 'light'", timeout=3000)
+        finally:
+            contexto.close()
 
 
 if __name__ == "__main__":
