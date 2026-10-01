@@ -21,7 +21,11 @@ const clubRef = (capitalize = false) => {
 const $ = (id) => document.getElementById(id);
 const pct = (n) => `${n.toLocaleString('pt-BR', {minimumFractionDigits: 1, maximumFractionDigits: 1})}%`;
 const decimal = (n) => n.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-const formatDate = (date) => new Intl.DateTimeFormat('pt-BR', {day: '2-digit', month: 'short'}).format(new Date(`${date}T12:00:00`)).replace('.', '');
+const formatDate = (date) => {
+  const parsed = date ? new Date(`${date}T12:00:00`) : null;
+  if (!parsed || Number.isNaN(parsed.getTime())) return '—';
+  return new Intl.DateTimeFormat('pt-BR', {day: '2-digit', month: 'short'}).format(parsed).replace('.', '');
+};
 const plural = (value, singular, pluralForm) => `${value} ${value === 1 ? singular : pluralForm}`;
 const signedNumber = (value) => (value > 0 ? '+' : '') + value;
 const score = (a, b) => `${a} <i>×</i> ${b}`;
@@ -369,12 +373,38 @@ function renderChart() {
     tooltip.hidden = true;
     wrap.querySelectorAll('.chart-dot.active').forEach(dot => dot.classList.remove('active'));
   };
+  // Touch: the browser fires pointerleave right after pointerup, so a tap toggles the tooltip instead.
+  let lastTouchAt = 0;
+  const recentTouch = () => Date.now() - lastTouchAt < 600;
   wrap.querySelectorAll('.chart-hit').forEach(circle => {
-    circle.addEventListener('pointerenter', () => show(circle));
-    circle.addEventListener('focus', () => show(circle));
-    circle.addEventListener('pointerleave', hide);
-    circle.addEventListener('blur', hide);
+    let wasOpen = false;
+    circle.addEventListener('pointerenter', e => { if (e.pointerType !== 'touch') show(circle); });
+    circle.addEventListener('focus', () => { if (!recentTouch()) show(circle); });
+    circle.addEventListener('pointerleave', e => { if (e.pointerType !== 'touch') hide(); });
+    circle.addEventListener('blur', () => { if (!recentTouch()) hide(); });
+    circle.addEventListener('pointerdown', e => {
+      if (e.pointerType !== 'touch') return;
+      lastTouchAt = Date.now();
+      wasOpen = !tooltip.hidden && circle.classList.contains('shown');
+    });
+    circle.addEventListener('pointerup', e => {
+      if (e.pointerType !== 'touch') return;
+      lastTouchAt = Date.now();
+      wrap.querySelectorAll('.chart-hit.shown').forEach(c => c.classList.remove('shown'));
+      if (wasOpen) hide();
+      else { show(circle); circle.classList.add('shown'); }
+    });
   });
+  if (!wrap.dataset.touchOutside) {
+    wrap.dataset.touchOutside = '1';
+    document.addEventListener('pointerdown', e => {
+      if (e.pointerType !== 'touch' || e.target.closest?.('.chart-hit')) return;
+      const tip = $('chartTooltip');
+      if (tip) tip.hidden = true;
+      wrap.querySelectorAll('.chart-dot.active').forEach(dot => dot.classList.remove('active'));
+      wrap.querySelectorAll('.chart-hit.shown').forEach(c => c.classList.remove('shown'));
+    });
+  }
 
   const full = summarize(matches);
   const delta = full.points - pace;
@@ -383,7 +413,7 @@ function renderChart() {
   $('chartGap').textContent = `${delta > 0 ? '+' : ''}${delta.toLocaleString('pt-BR')} pts`;
   $('chartGapCard').classList.toggle('positive', delta >= 0);
   $('chartInsight').innerHTML = `Em ${plural(matches.length, 'jogo', 'jogos')}, ${clubRef()} ficou <b>${plural(Math.abs(delta), 'ponto', 'pontos')} ${delta >= 0 ? 'acima' : 'abaixo'}</b> do ritmo de 50% de aproveitamento. ` +
-    'No mata-mata os pontos não valem classificação; aqui eles medem o rendimento em cada partida. Passe o mouse sobre os pontos para ver cada jogo.';
+    'No mata-mata os pontos não valem classificação; aqui eles medem o rendimento em cada partida. Passe o mouse ou toque nos pontos para ver cada jogo.';
 }
 
 // ---------- Mando de campo ----------
@@ -1238,14 +1268,15 @@ function renderLeague() {
   $('leagueTitle').textContent = `${CLUB.nome} na ${COMPETITION.nome} ${COMPETITION.ano}`;
   $('leagueLegendClub').textContent = CLUB.nome;
   const behind = LEAGUE_ROWS.filter(row => row.posicao > own.posicao).length;
-  const reach = own.fase_alcancada === 'Campeão' ? 'com o título' : `com a campanha encerrada ${PHASE_WITH_ARTICLE[own.fase_alcancada] || `na ${own.fase_alcancada.toLowerCase()}`}`;
+  const phase = own.fase_alcancada || '';
+  const reach = !phase ? 'sem fase alcançada registrada' : phase === 'Campeão' ? 'com o título' : `com a campanha encerrada ${PHASE_WITH_ARTICLE[phase] || `na ${phase.toLowerCase()}`}`;
   $('leagueSummary').textContent = `${own.posicao}º lugar na classificação geral entre ${total} clubes, ${reach}. ` +
     `${clubRef(true)} ficou à frente de ${pct(behind / Math.max(total - 1, 1) * 100)} dos participantes.`;
 
   const efficiency = LEAGUE_METRICS[0];
   const avgEfficiency = sum(LEAGUE_ROWS, efficiency.value) / total;
   const tiles = [
-    {label: 'Classificação geral', value: `${own.posicao}º de ${total}`, note: own.fase_alcancada},
+    {label: 'Classificação geral', value: `${own.posicao}º de ${total}`, note: phase || '—'},
     {label: 'Aproveitamento', value: pct(efficiency.value(own)), note: `${leagueRank(efficiency, own)}º melhor · média ${pct(avgEfficiency)}`},
     {label: 'Gols por jogo na competição', value: decimal(league.media_gols_jogo || 0), note: `${(league.jogos || 0).toLocaleString('pt-BR')} jogos disputados`},
     {label: 'Vitórias do mandante', value: pct(league.jogos ? league.vitorias_mandante / league.jogos * 100 : 0), note: `empates ${pct(league.jogos ? league.empates / league.jogos * 100 : 0)} · visitante ${pct(league.jogos ? league.vitorias_visitante / league.jogos * 100 : 0)}`}
@@ -1254,6 +1285,7 @@ function renderLeague() {
 
   $('leagueMetrics').innerHTML = LEAGUE_METRICS.map(metric => {
     const values = LEAGUE_ROWS.filter(r => r.jogos).map(metric.value);
+    if (!values.length) return `<div class="league-metric"><div class="lm-head"><span>${metric.label}</span><b>—</b></div></div>`;
     const min = Math.min(...values), max = Math.max(...values);
     const avg = values.reduce((a, b) => a + b, 0) / values.length;
     const ownValue = metric.value(own);
@@ -1359,6 +1391,8 @@ function renderAttendance() {
   const withData = matches.filter(m => Number.isFinite(m.attendance));
   const home = withData.filter(m => m.venue === 'Casa');
   const missing = matches.length - withData.length;
+  const noBoletim = matches.filter(m => !Number.isFinite(m.attendance) && !m.boletim).length;
+  const unreadable = missing - noBoletim;
   if (!withData.length) {
     $('attendanceKpis').innerHTML = '';
     $('attendanceChart').innerHTML = '<p class="empty-state">Nenhum boletim financeiro com público disponível.</p>';
@@ -1371,7 +1405,7 @@ function renderAttendance() {
   const tiles = [
     {label: 'Público em casa', value: sum(home, m => m.attendance).toLocaleString('pt-BR'), note: `${plural(home.length, 'jogo', 'jogos')} com boletim`},
     {label: 'Média em casa', value: Math.round(homeAvg).toLocaleString('pt-BR'), note: 'torcedores por jogo'},
-    {label: 'Maior público', value: biggest.attendance.toLocaleString('pt-BR'), note: `${escapeHtml(biggest.opponent)} · ${biggest.venue === 'Casa' ? 'em casa' : 'fora'}`},
+    {label: 'Maior público (casa ou fora)', value: biggest.attendance.toLocaleString('pt-BR'), note: `${escapeHtml(biggest.opponent)} · ${biggest.venue === 'Casa' ? 'em casa' : 'fora'}${biggest.city ? ` (${escapeHtml(biggest.city)})` : ''}`},
     {label: 'Renda bruta em casa', value: money(homeGross), note: `${money(home.length ? homeGross / home.length : 0)} por jogo`},
     homeNet.length && {label: 'Resultado líquido em casa', value: money(sum(homeNet, m => m.netIncome)), note: 'receita menos despesas do jogo'}
   ].filter(Boolean);
@@ -1380,21 +1414,29 @@ function renderAttendance() {
   const max = Math.max(...withData.map(m => m.attendance));
   $('attendanceChart').innerHTML = matches.map(m => {
     const has = Number.isFinite(m.attendance);
-    const height = has ? Math.max(4, m.attendance / max * 160) : 18;
-    const title = `J${m.round} · ${m.opponent} (${m.venue === 'Casa' ? 'casa' : 'fora'}) · ${has ? `${m.attendance.toLocaleString('pt-BR')} torcedores` : 'sem boletim legível'}`;
-    return `<div class="attendance-col ${has ? '' : 'missing'}" title="${escapeHtml(title)}">
-      <b>${has ? (m.attendance >= 1000 ? `${(m.attendance / 1000).toLocaleString('pt-BR', {maximumFractionDigits: 1})} mil` : m.attendance) : '—'}</b>
-      <i class="${has ? m.result : ''}" style="height:${height}px"></i>
-      <span>J${m.round}</span><small>${m.venue === 'Casa' ? 'C' : 'F'}</small>
+    const place = m.venue === 'Casa' ? 'casa' : 'fora';
+    const reason = m.boletim ? 'boletim sem dados legíveis' : 'sem boletim';
+    const title = `J${m.round} · ${m.opponent} (${place}) · ${has ? `${m.attendance.toLocaleString('pt-BR')} torcedores` : `sem dado: ${reason}`}`;
+    const footer = `<span>J${m.round}</span><small>${m.venue === 'Casa' ? 'C' : 'F'}</small>`;
+    if (!has) {
+      const link = m.boletim ? `<a href="${escapeHtml(m.boletim)}" target="_blank" rel="noopener" title="Abrir o boletim (PDF)">PDF</a>` : '';
+      return `<div class="attendance-col no-data" title="${escapeHtml(title)}">
+        <em>sem dado<br>${m.boletim ? 'ilegível' : 'sem boletim'}</em>${link}${footer}
+      </div>`;
+    }
+    const height = Math.max(4, m.attendance / max * 160);
+    return `<div class="attendance-col" title="${escapeHtml(title)}">
+      <b>${m.attendance >= 1000 ? `${(m.attendance / 1000).toLocaleString('pt-BR', {maximumFractionDigits: 1})} mil` : m.attendance}</b>
+      <i class="${m.result}" style="height:${height}px"></i>${footer}
     </div>`;
   }).join('');
 
   const above = home.filter(m => m.attendance >= homeAvg);
   const below = home.filter(m => m.attendance < homeAvg);
-  $('attendanceInsight').innerHTML = `A média em casa foi de <b>${Math.round(homeAvg).toLocaleString('pt-BR')} torcedores</b>; o maior público da campanha foi <b>${biggest.attendance.toLocaleString('pt-BR')}</b>, contra o ${escapeHtml(biggest.opponent)} (${formatDate(biggest.date)}). ` +
+  $('attendanceInsight').innerHTML = `A média em casa foi de <b>${Math.round(homeAvg).toLocaleString('pt-BR')} torcedores</b>; o maior público da campanha, entre jogos em casa e fora, foi <b>${biggest.attendance.toLocaleString('pt-BR')}</b>, contra o ${escapeHtml(biggest.opponent)} ${biggest.venue === 'Casa' ? 'em casa' : 'fora'} (${formatDate(biggest.date)}). ` +
     (above.length && below.length ? `Nos jogos em casa com público acima da média, o aproveitamento foi de <b>${pct(summarize(above).efficiency)}</b>; abaixo da média, <b>${pct(summarize(below).efficiency)}</b>.` : '');
   $('attendanceMethod').textContent = 'Público = ingressos vendidos, incluindo gratuidades, segundo os boletins financeiros das federações.' +
-    (missing ? ` ${plural(missing, 'jogo não tem boletim legível', 'jogos não têm boletim legível')} (documento escaneado, sem texto).` : '');
+    (missing ? ` Sem dado de público em ${plural(missing, 'jogo', 'jogos')}: ${plural(noBoletim, 'sem boletim', 'sem boletim')} e ${plural(unreadable, 'com boletim sem dados legíveis', 'com boletim sem dados legíveis')}.` : '');
 }
 
 // ---------- Viagens ----------

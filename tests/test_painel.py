@@ -116,6 +116,23 @@ class PainelTest(unittest.TestCase):
         self.assertIn("km percorridos", self.page.locator("#travelSummary").inner_text())
         self.assertIn("Mapa indisponível", self.page.locator("#travelMap").inner_text())
 
+    def test_grafico_de_publico_marca_jogos_sem_dado(self):
+        self.page.click("#mainNav a[data-page='estadios']")
+        colunas = self.page.locator("#attendanceChart .attendance-col")
+        self.assertEqual(colunas.count(), len(self.jogos))
+        sem_dado = [j for j in self.jogos if j.get("publico") is None]
+        self.assertEqual(self.page.locator("#attendanceChart .attendance-col.no-data").count(), len(sem_dado))
+        self.assertEqual(self.page.locator("#attendanceChart .no-data i").count(), 0)
+        self.assertNotIn("escaneado", self.page.locator("#attendanceMethod").inner_text())
+        self.assertIn("casa ou fora", self.page.locator("#attendanceKpis").inner_text().lower())
+
+    def test_grafico_de_publico_numa_linha_no_celular(self):
+        self.page.set_viewport_size({"width": 360, "height": 800})
+        self.page.click("#mainNav a[data-page='estadios']")
+        topos = self.page.evaluate("[...document.querySelectorAll('#attendanceChart .attendance-col')].map(c => Math.round(c.getBoundingClientRect().bottom))")
+        self.assertEqual(len(set(topos)), 1, "as colunas quebraram em várias linhas")
+        self.assertLessEqual(self.page.evaluate("document.documentElement.scrollWidth"), 360)
+
     def test_temporada_sem_jogos_encerrados_mostra_aviso(self):
         # Simula o início de uma temporada: os jogos chegam do dados.js apenas agendados.
         self.page.add_init_script("""
@@ -134,6 +151,48 @@ class PainelTest(unittest.TestCase):
         self.assertIn("ainda não disputou jogos", aviso)
         self.assertIn("estreia", aviso)
         self.assertFalse(self.page.is_visible("#mainNav"))
+
+    def test_tooltip_do_grafico_de_pontos_com_toque(self):
+        contexto = self.browser.new_context(viewport={"width": 390, "height": 800}, has_touch=True, is_mobile=True)
+        pagina = contexto.new_page()
+        pagina.route(re.compile(r"^https?://"), lambda route: route.abort())
+        try:
+            pagina.goto(INDEX.as_uri())
+            pagina.evaluate("location.hash = '#desempenho'")
+            pagina.wait_for_selector("#pointsChart .chart-hit", state="attached")
+            self.assertIn("toque nos pontos", pagina.locator("#chartInsight").inner_text())
+            ponto = pagina.locator("#pointsChart .chart-hit").first
+            ponto.tap()
+            pagina.wait_for_timeout(100)
+            self.assertTrue(pagina.is_visible("#chartTooltip"))
+            # Novo toque no mesmo ponto fecha.
+            ponto.dispatch_event("pointerdown", {"pointerType": "touch"})
+            ponto.dispatch_event("pointerup", {"pointerType": "touch"})
+            self.assertFalse(pagina.is_visible("#chartTooltip"))
+            # Reabre e toca fora: fecha.
+            ponto.dispatch_event("pointerdown", {"pointerType": "touch"})
+            ponto.dispatch_event("pointerup", {"pointerType": "touch"})
+            self.assertTrue(pagina.is_visible("#chartTooltip"))
+            pagina.evaluate("document.body.dispatchEvent(new PointerEvent('pointerdown', {pointerType: 'touch', bubbles: true}))")
+            self.assertFalse(pagina.is_visible("#chartTooltip"))
+            self.assertEqual(self.erros, [])
+        finally:
+            contexto.close()
+
+    def test_proximo_jogo_sem_data_mostra_traco(self):
+        self.page.add_init_script("""
+            Object.defineProperty(window, '__DASHBOARD_DATA__', {
+              configurable: true,
+              set(dados) {
+                dados.principal.jogos.forEach(j => { j.status = 'scheduled'; j.resultado = null; j.data = ''; });
+                dados.principal.gols = [];
+                dados.principal.atletas = [];
+                Object.defineProperty(window, '__DASHBOARD_DATA__', {value: dados, writable: true});
+              }
+            });
+        """)
+        self.page.reload()
+        self.assertIn("estreia será em —", self.page.locator("main").inner_text())
 
     def test_fase_de_grupos_em_andamento_nao_declara_eliminada(self):
         # Simula a fase de grupos no meio: clube em 5º, com rodadas restantes e sem mata-mata.

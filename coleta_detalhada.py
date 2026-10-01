@@ -785,6 +785,45 @@ def salvar_dados_js(caminho, config, principal, comparacao):
     )
 
 
+def carregar_dados_anteriores(caminho):
+    """Lê o dados.js atual; devolve None se não existir ou estiver ilegível."""
+    try:
+        texto = caminho.read_text(encoding="utf-8")
+        return json.loads(re.search(r"window\.__DASHBOARD_DATA__ = (.*);\s*$", texto, re.S).group(1))
+    except (OSError, AttributeError, ValueError):
+        return None
+
+
+def validar(principal, anterior):
+    """Aborta com SystemExit, sem gravar nada, se a coleta parecer inconsistente."""
+    jogos = principal["jogos"]
+    encerrados = [jogo for jogo in jogos if jogo.get("status") == "finished"]
+
+    ids = [jogo.get("id_jogo") for jogo in jogos]
+    repetidos = sorted({i for i in ids if ids.count(i) > 1}, key=str)
+    if repetidos:
+        raise SystemExit(f"Validação falhou: id_jogo duplicado: {', '.join(map(str, repetidos))}.")
+
+    for jogo in encerrados:
+        faltando = [
+            campo for campo in ("data", "adversario", "gols_clube", "gols_adversario")
+            if jogo.get(campo) in (None, "")
+        ]
+        if faltando:
+            raise SystemExit(
+                f"Validação falhou: jogo encerrado {jogo.get('id_jogo')} sem {', '.join(faltando)}."
+            )
+
+    anterior_principal = (anterior or {}).get("principal") or {}
+    if anterior_principal.get("ano") == principal.get("ano"):
+        antes = sum(1 for jogo in anterior_principal.get("jogos", []) if jogo.get("status") == "finished")
+        if len(encerrados) < antes:
+            raise SystemExit(
+                f"Validação falhou: {len(encerrados)} jogos encerrados na coleta, "
+                f"mas o dados.js atual tem {antes}."
+            )
+
+
 def main():
     config = json.loads((ROOT / "config.json").read_text(encoding="utf-8"))
     ano = config["competicao"]["ano"]
@@ -812,6 +851,8 @@ def main():
     for jogo in principal["jogos"]:
         latitude, longitude = coordenadas.get(f"{jogo['cidade']}/{jogo['uf']}") or (None, None)
         jogo["latitude"], jogo["longitude"] = latitude, longitude
+
+    validar(principal, carregar_dados_anteriores(ROOT / "dados.js"))
 
     prefixo = prefixo_arquivos(config, ano)
     salvar_csv(ROOT / f"{prefixo}_todos_jogos.csv", principal["jogos"])

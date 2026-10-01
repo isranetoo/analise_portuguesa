@@ -742,15 +742,15 @@ nav a[aria-current="page"] { color: var(--primary); box-shadow: inset 0 -2px var
 .bench-card small { color: var(--muted); font-size: 10px; }
 
 /* ---------- Público ---------- */
-.attendance-chart { display: grid; grid-template-columns: repeat(auto-fit, minmax(38px, 1fr)); gap: 6px; align-items: end; min-height: 230px; padding-top: 10px; }
+.attendance-chart { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(38px, 1fr); overflow-x: auto; max-width: 100%; gap: 6px; align-items: end; min-height: 230px; padding-top: 10px; }
 .attendance-col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 5px; min-width: 0; }
 .attendance-col b { font-size: 9px; white-space: nowrap; }
 .attendance-col i { display: block; width: 70%; max-width: 34px; border-radius: 6px 6px 0 0; background: var(--loss); }
 .attendance-col i.V { background: var(--win); }
 .attendance-col i.E { background: var(--draw); }
 .attendance-col i.D { background: var(--primary); }
-.attendance-col.missing i { background: repeating-linear-gradient(45deg, var(--track), var(--track) 4px, transparent 4px, transparent 8px); border: 1px dashed var(--line); }
-.attendance-col.missing b { color: var(--faint); }
+.attendance-col.no-data em { font-style: normal; font-size: 8px; line-height: 1.2; text-align: center; color: var(--faint); border: 1px dashed var(--line); border-radius: 6px; padding: 4px 2px; }
+.attendance-col.no-data a { font-size: 9px; font-weight: 800; }
 .attendance-col span { color: var(--muted); font-size: 9px; font-weight: 800; }
 .attendance-col small { color: var(--faint); font-size: 8px; margin-top: -4px; }
 
