@@ -22,9 +22,12 @@ Não exige chave de API. Execute com:  python coleta_detalhada.py
 import csv
 import io
 import json
+import os
 import re
 import time
+import tempfile
 import unicodedata
+import urllib.error
 import urllib.parse
 import urllib.request
 from collections import defaultdict
@@ -47,6 +50,25 @@ ARQUIVO_BOLETINS = ROOT / "boletins.json"
 # 1. ACESSO À CBF
 # =========================================================
 
+def gravar_atomico(caminho, conteudo, newline=None):
+    """Grava em arquivo temporário na mesma pasta e troca com os.replace.
+
+    Uma interrupção no meio da escrita nunca deixa o arquivo final truncado.
+    """
+    caminho = Path(caminho)
+    fd, temporario = tempfile.mkstemp(dir=caminho.parent, prefix=f".{caminho.name}.", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8", newline=newline) as saida:
+            saida.write(conteudo)
+        os.replace(temporario, caminho)
+    except BaseException:
+        try:
+            os.unlink(temporario)
+        except OSError:
+            pass
+        raise
+
+
 def baixar_bytes(url, headers=HEADERS):
     request = urllib.request.Request(url, headers=headers)
     with urllib.request.urlopen(request, timeout=30) as response:
@@ -58,10 +80,39 @@ def baixar(url, como_json=True):
     return json.loads(corpo) if como_json else corpo.decode("utf-8", errors="replace")
 
 
+TENTATIVAS = 4
+ERROS_TEMPORARIOS = (urllib.error.URLError, TimeoutError, json.JSONDecodeError)
+
+
+def erro_temporario(erro):
+    """Falhas de rede, timeout, JSON truncado e HTTP 429/5xx valem nova tentativa."""
+    if isinstance(erro, urllib.error.HTTPError):
+        return erro.code == 429 or erro.code >= 500
+    return isinstance(erro, ERROS_TEMPORARIOS)
+
+
+def baixar_com_tentativas(url, como_json=True, tentativas=TENTATIVAS, dormir=time.sleep):
+    """Baixa a URL com backoff exponencial curto (2s, 4s, 8s...) em erros temporários.
+
+    Esgotadas as tentativas, encerra com mensagem clara: gravar dados parciais seria pior
+    do que manter os arquivos anteriores. `dormir` pode ser trocado nos testes.
+    """
+    for tentativa in range(1, tentativas + 1):
+        try:
+            return baixar(url, como_json=como_json)
+        except Exception as erro:
+            if not erro_temporario(erro):
+                raise
+            print(f"   Falha em {url} (tentativa {tentativa}/{tentativas}): {erro}")
+            if tentativa == tentativas:
+                raise SystemExit(f"Não foi possível obter {url} após {tentativas} tentativas. Nenhum arquivo foi alterado.")
+            dormir(2 ** tentativa)
+
+
 def descobrir_competicao(slug, ano):
     """Lê o id do campeonato e as fases embutidos na página de tabelas da CBF."""
     url = f"{SITE_URL}/futebol-brasileiro/tabelas/campeonato-brasileiro/{slug}/{ano}"
-    texto = baixar(url, como_json=False).replace('\\"', '"')
+    texto = baixar_com_tentativas(url, como_json=False).replace('\\"', '"')
 
     competicao = re.search(r'"competitionId":"(\d+)"', texto)
     if not competicao:
@@ -76,9 +127,6 @@ def descobrir_competicao(slug, ano):
     return competicao.group(1), sorted(fases.values(), key=lambda fase: int(fase["id"]))
 
 
-TENTATIVAS = 4
-
-
 def buscar_rodada(competicao_id, fase_id, rodada):
     """Busca os jogos de uma rodada, com novas tentativas em caso de falha.
 
@@ -86,16 +134,7 @@ def buscar_rodada(competicao_id, fase_id, rodada):
     (um jogo a menos, por exemplo) seria pior do que manter os arquivos anteriores.
     """
     url = f"{API_URL}/jogos/campeonato/{competicao_id}/rodada/{rodada}/fase/{fase_id}"
-    for tentativa in range(1, TENTATIVAS + 1):
-        try:
-            dados = baixar(url)
-            break
-        except Exception as erro:
-            print(f"   Falha em fase {fase_id}, rodada {rodada} (tentativa {tentativa}/{TENTATIVAS}): {erro}")
-            if tentativa == TENTATIVAS:
-                raise SystemExit(f"Não foi possível obter a fase {fase_id}, rodada {rodada}. Nenhum arquivo foi alterado.")
-            time.sleep(2 ** tentativa)
-
+    dados = baixar_com_tentativas(url)
     jogos = []
     for grupo in dados.get("jogos") or []:
         jogos.extend(grupo.get("jogo") or [])
@@ -566,7 +605,7 @@ def publicos_dos_boletins(jogos):
         cache[url] = ler_boletim(texto)
         alterado = True
     if alterado:
-        ARQUIVO_BOLETINS.write_text(json.dumps(cache, ensure_ascii=False, indent=1, sort_keys=True), encoding="utf-8")
+        gravar_atomico(ARQUIVO_BOLETINS, json.dumps(cache, ensure_ascii=False, indent=1, sort_keys=True))
     return cache
 
 
@@ -592,7 +631,7 @@ def coordenadas_das_cidades(jogos):
         alterado = True
         time.sleep(1.1)  # política de uso do OpenStreetMap: no máximo 1 consulta por segundo
     if alterado:
-        ARQUIVO_COORDENADAS.write_text(json.dumps(cache, ensure_ascii=False, indent=1, sort_keys=True), encoding="utf-8")
+        gravar_atomico(ARQUIVO_COORDENADAS, json.dumps(cache, ensure_ascii=False, indent=1, sort_keys=True))
     return cache
 
 
@@ -676,12 +715,16 @@ def prefixo_arquivos(config, ano):
 
 
 def salvar_csv(caminho, linhas):
+    """Grava o CSV de forma atômica. Sem linhas não há cabeçalho a inferir, então o arquivo
+    antigo é removido para não ficar inconsistente com o dados.js novo."""
     if not linhas:
+        Path(caminho).unlink(missing_ok=True)
         return
-    with open(caminho, "w", newline="", encoding="utf-8") as saida:
-        escritor = csv.DictWriter(saida, fieldnames=list(linhas[0].keys()))
-        escritor.writeheader()
-        escritor.writerows(linhas)
+    saida = io.StringIO(newline="")
+    escritor = csv.DictWriter(saida, fieldnames=list(linhas[0].keys()))
+    escritor.writeheader()
+    escritor.writerows(linhas)
+    gravar_atomico(caminho, saida.getvalue(), newline="")
 
 
 def salvar_dados_js(caminho, config, principal, comparacao):
@@ -699,10 +742,10 @@ def salvar_dados_js(caminho, config, principal, comparacao):
         },
     }
     conteudo = json.dumps(dados, ensure_ascii=False, separators=(",", ":"))
-    caminho.write_text(
+    gravar_atomico(
+        caminho,
         "// Arquivo gerado por coleta_detalhada.py. Não edite manualmente.\n"
         f"window.__DASHBOARD_DATA__ = {conteudo};\n",
-        encoding="utf-8",
     )
 
 
