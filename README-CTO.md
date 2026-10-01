@@ -40,7 +40,7 @@ O CTO escolhe **quem** pela área/tecnologia da issue (label `agent:`) e **o ní
 | reviewer | sonnet | revisa todo PR (geral + clean code) e comenta (nunca aprova/mergeia) |
 
 Skills do fluxo (`.claude/skills/`): `criar-issue` (CTO), `abrir-pr` e `atualizar-pr` (devs e especialistas), `revisar-pr` (revisores).
-Modelos de especialistas para outras stacks ficam em `kit/agentes/` (índice e como ativar em `kit/agentes/README.md`).
+Modelos de especialistas para outras stacks ficam em `Claude-kit/agentes/` (índice e como ativar em `Claude-kit/agentes/README.md`). Para levar o workflow a outro projeto, use o kit genérico em `Claude-kit/` (instalação em `Claude-kit/README.md`).
 
 ## Ciclo de uma demanda
 demanda → triagem (CTO: especialista + nível) → issue com labels (`criar-issue`) → especialista ou dev no worktree → PR `Closes #N` (`abrir-pr`) → `reviewer` + revisores especialistas do domínio ("Revise o PR #N") → ajustes na mesma branch (`atualizar-pr`) → você aprova e o CTO faz o merge.

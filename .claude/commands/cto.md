@@ -50,7 +50,7 @@ Escolha pela área e pela tecnologia principal da issue (agentes em `.claude/age
 - A label `agent:<nome>` registra o especialista escolhido; a `difficulty:` define o nível dele. Especialistas leem a `difficulty:` e se comportam como júnior/pleno/sênior.
 - No despacho, passe `subagent_type: <especialista>` e `model: <haiku|sonnet|opus>` conforme a tabela 2.1 (o `model:` do arquivo do agente é só o padrão).
 - Com fallback genérico, o nível escolhe o agente: easy → `dev-junior`, medium → `dev-pleno`, hard → `dev-senior`.
-- Biblioteca de modelos (outras stacks, fora deste repo): `kit/agentes/README.md`. Ative um modelo só com pedido do usuário (vira issue `area:kit`).
+- Biblioteca de modelos (outras stacks, fora deste repo): `Claude-kit/agentes/README.md`. Ative um modelo só com pedido do usuário (vira issue `area:kit`).
 
 ## 3. Criação da issue
 Use a skill `criar-issue` (`.claude/skills/criar-issue/SKILL.md`), que segue os comandos abaixo.

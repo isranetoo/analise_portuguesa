@@ -38,7 +38,7 @@ Cada issue tem uma label `area:*`. Os arquivos de uma área são compartilhados:
 | `area:publicacao` | `streamlit_app.py`, `iniciar.py`, `windows_asyncio.py`, `server.js`, `requirements*.txt` |
 | `area:docs` | `README.md` |
 | `area:ci` | `.github/workflows/` |
-| `area:kit` | `CLAUDE.md`, `.claude/`, `scripts/`, `README-CTO.md`, `.worktreeinclude` |
+| `area:kit` | `CLAUDE.md`, `.claude/`, `scripts/`, `README-CTO.md`, `.worktreeinclude`, `Claude-kit/` |
 
 Dados gerados (`dados.js`, `*.csv`, `boletins.json`, `coordenadas.json`): só mudam rodando `coleta_detalhada.py`, nunca à mão.
 
@@ -129,4 +129,4 @@ Agentes ativos em `.claude/agents/`. O CTO escolhe o agente pela área/tecnologi
 | `dev-junior` / `dev-pleno` / `dev-senior` | genéricos (fallback) quando nenhum especialista encaixa |
 | `reviewer` | revisa todo PR (geral + clean code) |
 
-Skills do fluxo em `.claude/skills/`: `criar-issue`, `abrir-pr`, `atualizar-pr`, `revisar-pr`. Modelos para outras stacks (não ativos): `kit/agentes/README.md`.
+Skills do fluxo em `.claude/skills/`: `criar-issue`, `abrir-pr`, `atualizar-pr`, `revisar-pr`. Modelos para outras stacks (não ativos): `Claude-kit/agentes/README.md`. Kit genérico para outros projetos: `Claude-kit/README.md`.
