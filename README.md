@@ -96,7 +96,7 @@ O painel considera somente partidas com <code>status</code> igual a <code>finish
 
 ## Tecnologias utilizadas
 
-- **Python:** coleta e preparação dos dados (somente biblioteca padrão);
+- **Python:** coleta e preparação dos dados (com pdfplumber para leitura dos boletins financeiros);
 - **Streamlit:** publicação e disponibilização da aplicação;
 - **JavaScript:** cálculos, filtros e renderização dos gráficos;
 - **HTML e CSS:** estrutura, responsividade e identidade visual;
