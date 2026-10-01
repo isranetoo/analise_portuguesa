@@ -20,7 +20,7 @@ except ImportError:  # pragma: no cover - depende do ambiente
 
 ROOT = Path(__file__).resolve().parents[1]
 INDEX = ROOT / "index.html"
-PAGINAS = ["inicio", "trajetoria", "desempenho", "gols", "elenco", "jogos", "serie-d", "estadios"]
+PAGINAS = ["inicio", "trajetoria", "desempenho", "gols", "elenco", "jogos", "serie-d", "estadios", "comparacao"]
 
 
 def dados():
@@ -115,6 +115,25 @@ class PainelTest(unittest.TestCase):
         self.page.wait_for_timeout(200)
         self.assertIn("km percorridos", self.page.locator("#travelSummary").inner_text())
         self.assertIn("Mapa indisponível", self.page.locator("#travelMap").inner_text())
+
+    def test_temporada_sem_jogos_encerrados_mostra_aviso(self):
+        # Simula o início de uma temporada: os jogos chegam do dados.js apenas agendados.
+        self.page.add_init_script("""
+            Object.defineProperty(window, '__DASHBOARD_DATA__', {
+              configurable: true,
+              set(dados) {
+                dados.principal.jogos.forEach(j => { j.status = 'scheduled'; j.resultado = null; });
+                dados.principal.gols = [];
+                dados.principal.atletas = [];
+                Object.defineProperty(window, '__DASHBOARD_DATA__', {value: dados, writable: true});
+              }
+            });
+        """)
+        self.page.reload()
+        aviso = self.page.locator("main").inner_text()
+        self.assertIn("ainda não disputou jogos", aviso)
+        self.assertIn("estreia", aviso)
+        self.assertFalse(self.page.is_visible("#mainNav"))
 
     def test_tema_escuro(self):
         self.page.click("#themeToggle")
