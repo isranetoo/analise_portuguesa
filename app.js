@@ -419,7 +419,12 @@ function renderVenue() {
       </div>
     </div>`;
   const better = home.efficiency >= away.efficiency ? ['em casa', home, away] : ['fora de casa', away, home];
-  $('venueInsight').innerHTML = `<span>LEITURA DO MANDO</span><p>${clubRef(true)} rende melhor <b>${better[0]}</b>: são <strong>${pct(Math.abs(better[1].efficiency - better[2].efficiency))}</strong> pontos percentuais de diferença.</p>`;
+  const effDiff = Math.abs(better[1].efficiency - better[2].efficiency);
+  if (effDiff === 0) {
+    $('venueInsight').innerHTML = `<span>LEITURA DO MANDO</span><p>O aproveitamento é igual em casa e fora.</p>`;
+  } else {
+    $('venueInsight').innerHTML = `<span>LEITURA DO MANDO</span><p>${clubRef(true)} rende melhor <b>${better[0]}</b>: são <strong>${effDiff.toLocaleString('pt-BR', {minimumFractionDigits: 1, maximumFractionDigits: 1})} p.p.</strong> de diferença.</p>`;
+  }
 }
 
 // ---------- Trajetória ----------
