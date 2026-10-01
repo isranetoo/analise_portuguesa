@@ -1347,6 +1347,8 @@ function renderAttendance() {
   const withData = matches.filter(m => Number.isFinite(m.attendance));
   const home = withData.filter(m => m.venue === 'Casa');
   const missing = matches.length - withData.length;
+  const noBoletim = matches.filter(m => !Number.isFinite(m.attendance) && !m.boletim).length;
+  const unreadable = missing - noBoletim;
   if (!withData.length) {
     $('attendanceKpis').innerHTML = '';
     $('attendanceChart').innerHTML = '<p class="empty-state">Nenhum boletim financeiro com público disponível.</p>';
@@ -1359,7 +1361,7 @@ function renderAttendance() {
   const tiles = [
     {label: 'Público em casa', value: sum(home, m => m.attendance).toLocaleString('pt-BR'), note: `${plural(home.length, 'jogo', 'jogos')} com boletim`},
     {label: 'Média em casa', value: Math.round(homeAvg).toLocaleString('pt-BR'), note: 'torcedores por jogo'},
-    {label: 'Maior público', value: biggest.attendance.toLocaleString('pt-BR'), note: `${escapeHtml(biggest.opponent)} · ${biggest.venue === 'Casa' ? 'em casa' : 'fora'}`},
+    {label: 'Maior público (casa ou fora)', value: biggest.attendance.toLocaleString('pt-BR'), note: `${escapeHtml(biggest.opponent)} · ${biggest.venue === 'Casa' ? 'em casa' : 'fora'}${biggest.city ? ` (${escapeHtml(biggest.city)})` : ''}`},
     {label: 'Renda bruta em casa', value: money(homeGross), note: `${money(home.length ? homeGross / home.length : 0)} por jogo`},
     homeNet.length && {label: 'Resultado líquido em casa', value: money(sum(homeNet, m => m.netIncome)), note: 'receita menos despesas do jogo'}
   ].filter(Boolean);
@@ -1368,21 +1370,29 @@ function renderAttendance() {
   const max = Math.max(...withData.map(m => m.attendance));
   $('attendanceChart').innerHTML = matches.map(m => {
     const has = Number.isFinite(m.attendance);
-    const height = has ? Math.max(4, m.attendance / max * 160) : 18;
-    const title = `J${m.round} · ${m.opponent} (${m.venue === 'Casa' ? 'casa' : 'fora'}) · ${has ? `${m.attendance.toLocaleString('pt-BR')} torcedores` : 'sem boletim legível'}`;
-    return `<div class="attendance-col ${has ? '' : 'missing'}" title="${escapeHtml(title)}">
-      <b>${has ? (m.attendance >= 1000 ? `${(m.attendance / 1000).toLocaleString('pt-BR', {maximumFractionDigits: 1})} mil` : m.attendance) : '—'}</b>
-      <i class="${has ? m.result : ''}" style="height:${height}px"></i>
-      <span>J${m.round}</span><small>${m.venue === 'Casa' ? 'C' : 'F'}</small>
+    const place = m.venue === 'Casa' ? 'casa' : 'fora';
+    const reason = m.boletim ? 'boletim sem dados legíveis' : 'sem boletim';
+    const title = `J${m.round} · ${m.opponent} (${place}) · ${has ? `${m.attendance.toLocaleString('pt-BR')} torcedores` : `sem dado: ${reason}`}`;
+    const footer = `<span>J${m.round}</span><small>${m.venue === 'Casa' ? 'C' : 'F'}</small>`;
+    if (!has) {
+      const link = m.boletim ? `<a href="${escapeHtml(m.boletim)}" target="_blank" rel="noopener" title="Abrir o boletim (PDF)">PDF</a>` : '';
+      return `<div class="attendance-col no-data" title="${escapeHtml(title)}">
+        <em>sem dado<br>${m.boletim ? 'ilegível' : 'sem boletim'}</em>${link}${footer}
+      </div>`;
+    }
+    const height = Math.max(4, m.attendance / max * 160);
+    return `<div class="attendance-col" title="${escapeHtml(title)}">
+      <b>${m.attendance >= 1000 ? `${(m.attendance / 1000).toLocaleString('pt-BR', {maximumFractionDigits: 1})} mil` : m.attendance}</b>
+      <i class="${m.result}" style="height:${height}px"></i>${footer}
     </div>`;
   }).join('');
 
   const above = home.filter(m => m.attendance >= homeAvg);
   const below = home.filter(m => m.attendance < homeAvg);
-  $('attendanceInsight').innerHTML = `A média em casa foi de <b>${Math.round(homeAvg).toLocaleString('pt-BR')} torcedores</b>; o maior público da campanha foi <b>${biggest.attendance.toLocaleString('pt-BR')}</b>, contra o ${escapeHtml(biggest.opponent)} (${formatDate(biggest.date)}). ` +
+  $('attendanceInsight').innerHTML = `A média em casa foi de <b>${Math.round(homeAvg).toLocaleString('pt-BR')} torcedores</b>; o maior público da campanha, entre jogos em casa e fora, foi <b>${biggest.attendance.toLocaleString('pt-BR')}</b>, contra o ${escapeHtml(biggest.opponent)} ${biggest.venue === 'Casa' ? 'em casa' : 'fora'} (${formatDate(biggest.date)}). ` +
     (above.length && below.length ? `Nos jogos em casa com público acima da média, o aproveitamento foi de <b>${pct(summarize(above).efficiency)}</b>; abaixo da média, <b>${pct(summarize(below).efficiency)}</b>.` : '');
   $('attendanceMethod').textContent = 'Público = ingressos vendidos, incluindo gratuidades, segundo os boletins financeiros das federações.' +
-    (missing ? ` ${plural(missing, 'jogo não tem boletim legível', 'jogos não têm boletim legível')} (documento escaneado, sem texto).` : '');
+    (missing ? ` Sem dado de público em ${plural(missing, 'jogo', 'jogos')}: ${plural(noBoletim, 'sem boletim', 'sem boletim')} e ${plural(unreadable, 'com boletim sem dados legíveis', 'com boletim sem dados legíveis')}.` : '');
 }
 
 // ---------- Viagens ----------
