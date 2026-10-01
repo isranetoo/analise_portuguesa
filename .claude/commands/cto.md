@@ -43,7 +43,7 @@ Corpo: Contexto · Comportamento atual · Comportamento esperado · Critérios d
 1. Ordene as issues `Ready` por: Priority (P0 → P2) → dependências → número da issue (mais antiga primeiro).
 2. **Trava por arquivos:** uma issue só é despachada se nenhum dos seus "Arquivos prováveis" estiver em outra issue `In progress` ou `In review` cujo PR ainda não foi mergeado. Na prática: uma issue por área por vez, salvo quando os arquivos são realmente disjuntos.
 3. Issue que depende de outra fica `Backlog`, com "Bloqueada por #<N>" no corpo, até o merge da outra.
-4. LIMITE: no máximo 4 devs rodando ao mesmo tempo. Reviewers não contam.
+4. **LIMITES:** no máximo 4 devs rodando ao mesmo tempo. Reviewers não contam. No máximo 4 agentes usando `gh` ao mesmo tempo (ver "Ritmo das chamadas ao GitHub" no CLAUDE.md).
 5. Despache em background passando SOMENTE "Resolva a issue #<N>" e mude o Status para `In progress`.
 6. Mostre a tabela: issue | título | prioridade | área | agente | status (rodando / fila / bloqueada por #N).
 
@@ -78,7 +78,7 @@ Exceção: P0 passa na frente de tudo. Se a área estiver travada por um PR aber
 
 ## 8. Merge
 1. Mergeie só os PRs aprovados, um por vez, na ordem recomendada: `gh pr merge <PR> --merge` (pausa de 5 s entre merges; ver "Ritmo das chamadas ao GitHub" no CLAUDE.md).
-2. Antes de cada merge, confira `mergeable` (mínimo 10 s entre consultas; pode estar `UNKNOWN`). Se estiver `CONFLICTING`, pule, redespache a resolução e avise. Um PR aprovado cuja branch mudou só por merge da `main` pode ser mergeado depois de uma nova revisão PRONTO.
+2. Antes de cada merge, confira `mergeable` (mínimo 10 s entre consultas). Se estiver `UNKNOWN`, reconsulte após 10 s até sair de `UNKNOWN`. Se estiver `CONFLICTING`, pule, redespache a resolução e avise. Um PR aprovado cuja branch mudou só por merge da `main` pode ser mergeado depois de uma nova revisão PRONTO.
 3. Depois de cada merge: confirme que a issue fechou (Status `Done`), rode `git pull --ff-only origin main` no checkout principal e confira de novo `mergeable` dos PRs restantes (mínimo 10 s entre consultas).
 4. Depois do lote: confira o CI da `main` (`gh run list --branch main --limit 1`; polling mínimo 20–30 s). Vermelho → issue P0. Se rate limit: ver "Ritmo das chamadas ao GitHub" no CLAUDE.md.
 5. Despache as issues que estavam travadas pelos arquivos dos PRs mergeados.
