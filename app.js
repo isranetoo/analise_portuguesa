@@ -21,7 +21,11 @@ const clubRef = (capitalize = false) => {
 const $ = (id) => document.getElementById(id);
 const pct = (n) => `${n.toLocaleString('pt-BR', {minimumFractionDigits: 1, maximumFractionDigits: 1})}%`;
 const decimal = (n) => n.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-const formatDate = (date) => new Intl.DateTimeFormat('pt-BR', {day: '2-digit', month: 'short'}).format(new Date(`${date}T12:00:00`)).replace('.', '');
+const formatDate = (date) => {
+  const parsed = date ? new Date(`${date}T12:00:00`) : null;
+  if (!parsed || Number.isNaN(parsed.getTime())) return '—';
+  return new Intl.DateTimeFormat('pt-BR', {day: '2-digit', month: 'short'}).format(parsed).replace('.', '');
+};
 const plural = (value, singular, pluralForm) => `${value} ${value === 1 ? singular : pluralForm}`;
 const signedNumber = (value) => (value > 0 ? '+' : '') + value;
 const score = (a, b) => `${a} <i>×</i> ${b}`;
@@ -196,11 +200,18 @@ function computeKeyGoals() {
   return {winGoals, qualifyingGoals};
 }
 
+// The group phase is over once the club played every group game (home and away) or a knockout match exists.
+function isGroupPhaseOver(list, table) {
+  const own = table.find(team => team.own);
+  if (list.some(m => m.stage === 'Mata-mata')) return true;
+  return Boolean(own && own.games >= (table.length - 1) * 2);
+}
+
 function getOutcome(list, table) {
   const ties = getTies(list);
   const own = table.find(team => team.own);
   if (!ties.length) {
-    if (own && own.games && own.pos > GROUP_QUALIFIERS) return {label: `${gendered('Eliminado', 'Eliminada')} na 1ª fase`, finished: true};
+    if (own && own.games && isGroupPhaseOver(list, table) && own.pos > GROUP_QUALIFIERS) return {label: `${gendered('Eliminado', 'Eliminada')} na 1ª fase`, finished: true};
     return {label: 'Em andamento', finished: false};
   }
   const last = ties.at(-1);
@@ -445,7 +456,12 @@ function renderVenue() {
       </div>
     </div>`;
   const better = home.efficiency >= away.efficiency ? ['em casa', home, away] : ['fora de casa', away, home];
-  $('venueInsight').innerHTML = `<span>LEITURA DO MANDO</span><p>${clubRef(true)} rende melhor <b>${better[0]}</b>: são <strong>${pct(Math.abs(better[1].efficiency - better[2].efficiency))}</strong> pontos percentuais de diferença.</p>`;
+  const effDiff = Math.abs(better[1].efficiency - better[2].efficiency);
+  if (effDiff === 0) {
+    $('venueInsight').innerHTML = `<span>LEITURA DO MANDO</span><p>O aproveitamento é igual em casa e fora.</p>`;
+  } else {
+    $('venueInsight').innerHTML = `<span>LEITURA DO MANDO</span><p>${clubRef(true)} rende melhor <b>${better[0]}</b>: são <strong>${effDiff.toLocaleString('pt-BR', {minimumFractionDigits: 1, maximumFractionDigits: 1})} p.p.</strong> de diferença.</p>`;
+  }
 }
 
 // ---------- Trajetória ----------
@@ -468,13 +484,13 @@ function renderJourney() {
   const cards = [];
 
   if (groupMatches.length) {
-    const qualified = own ? own.pos <= GROUP_QUALIFIERS : false;
+    const groupStatus = !isGroupPhaseOver(matches, groupTable) ? 'pending' : (own && own.pos <= GROUP_QUALIFIERS ? 'advanced' : 'eliminated');
     const rows = groupTable.map(team => `<tr class="${team.own ? 'own' : ''} ${team.pos <= GROUP_QUALIFIERS ? 'qualified' : ''}">
       <td>${team.pos}</td><td>${escapeHtml(team.team)}</td><td>${team.points}</td><td>${team.games}</td><td>${signedNumber(team.gf - team.ga)}</td>
     </tr>`).join('');
     cards.push(`<article class="journey-card group-card">
       <div class="journey-card-head"><span>1ª fase · Grupo ${escapeHtml(groupName)}</span><i>${own ? `${own.pos}º` : '—'}</i></div>
-      <div class="journey-value"><strong>${groupSummary.points} pts</strong><em class="tag ${qualified ? 'advanced' : 'eliminated'}">${statusLabel[qualified ? 'advanced' : 'eliminated']}</em></div>
+      <div class="journey-value"><strong>${groupSummary.points} pts</strong><em class="tag ${groupStatus}">${statusLabel[groupStatus]}</em></div>
       <div class="journey-facts">
         <div><span>Campanha</span><b>${groupSummary.wins}V ${groupSummary.draws}E ${groupSummary.losses}D</b></div>
         <div><span>Aproveitamento</span><b>${pct(groupSummary.efficiency)}</b></div>
@@ -1046,8 +1062,8 @@ function renderHome() {
   const groupSummary = summarize(matches.filter(m => m.stage === 'Grupos'));
   const steps = [];
   if (groupSummary.games) {
-    const qualified = own ? own.pos <= GROUP_QUALIFIERS : true;
-    steps.push(`<li class="step ${qualified ? 'advanced' : 'eliminated'}"><span>1ª fase</span><b>Grupo ${escapeHtml(groupName)}${own ? ` · ${own.pos}º` : ''}</b><small>${groupSummary.points} pts · ${groupSummary.wins}V ${groupSummary.draws}E ${groupSummary.losses}D</small></li>`);
+    const groupStatus = !isGroupPhaseOver(matches, groupTable) ? 'pending' : (own && own.pos > GROUP_QUALIFIERS ? 'eliminated' : 'advanced');
+    steps.push(`<li class="step ${groupStatus}"><span>1ª fase</span><b>Grupo ${escapeHtml(groupName)}${own ? ` · ${own.pos}º` : ''}</b><small>${groupSummary.points} pts · ${groupSummary.wins}V ${groupSummary.draws}E ${groupSummary.losses}D</small></li>`);
   }
   getTies(matches).forEach(tie => {
     const penalties = tie.hasPenalties ? ` (pên. ${tie.penGf}–${tie.penGa})` : '';
@@ -1252,14 +1268,15 @@ function renderLeague() {
   $('leagueTitle').textContent = `${CLUB.nome} na ${COMPETITION.nome} ${COMPETITION.ano}`;
   $('leagueLegendClub').textContent = CLUB.nome;
   const behind = LEAGUE_ROWS.filter(row => row.posicao > own.posicao).length;
-  const reach = own.fase_alcancada === 'Campeão' ? 'com o título' : `com a campanha encerrada ${PHASE_WITH_ARTICLE[own.fase_alcancada] || `na ${own.fase_alcancada.toLowerCase()}`}`;
+  const phase = own.fase_alcancada || '';
+  const reach = !phase ? 'sem fase alcançada registrada' : phase === 'Campeão' ? 'com o título' : `com a campanha encerrada ${PHASE_WITH_ARTICLE[phase] || `na ${phase.toLowerCase()}`}`;
   $('leagueSummary').textContent = `${own.posicao}º lugar na classificação geral entre ${total} clubes, ${reach}. ` +
     `${clubRef(true)} ficou à frente de ${pct(behind / Math.max(total - 1, 1) * 100)} dos participantes.`;
 
   const efficiency = LEAGUE_METRICS[0];
   const avgEfficiency = sum(LEAGUE_ROWS, efficiency.value) / total;
   const tiles = [
-    {label: 'Classificação geral', value: `${own.posicao}º de ${total}`, note: own.fase_alcancada},
+    {label: 'Classificação geral', value: `${own.posicao}º de ${total}`, note: phase || '—'},
     {label: 'Aproveitamento', value: pct(efficiency.value(own)), note: `${leagueRank(efficiency, own)}º melhor · média ${pct(avgEfficiency)}`},
     {label: 'Gols por jogo na competição', value: decimal(league.media_gols_jogo || 0), note: `${(league.jogos || 0).toLocaleString('pt-BR')} jogos disputados`},
     {label: 'Vitórias do mandante', value: pct(league.jogos ? league.vitorias_mandante / league.jogos * 100 : 0), note: `empates ${pct(league.jogos ? league.empates / league.jogos * 100 : 0)} · visitante ${pct(league.jogos ? league.vitorias_visitante / league.jogos * 100 : 0)}`}
@@ -1268,6 +1285,7 @@ function renderLeague() {
 
   $('leagueMetrics').innerHTML = LEAGUE_METRICS.map(metric => {
     const values = LEAGUE_ROWS.filter(r => r.jogos).map(metric.value);
+    if (!values.length) return `<div class="league-metric"><div class="lm-head"><span>${metric.label}</span><b>—</b></div></div>`;
     const min = Math.min(...values), max = Math.max(...values);
     const avg = values.reduce((a, b) => a + b, 0) / values.length;
     const ownValue = metric.value(own);

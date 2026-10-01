@@ -22,9 +22,12 @@ Não exige chave de API. Execute com:  python coleta_detalhada.py
 import csv
 import io
 import json
+import os
 import re
 import time
+import tempfile
 import unicodedata
+import urllib.error
 import urllib.parse
 import urllib.request
 from collections import defaultdict
@@ -47,6 +50,25 @@ ARQUIVO_BOLETINS = ROOT / "boletins.json"
 # 1. ACESSO À CBF
 # =========================================================
 
+def gravar_atomico(caminho, conteudo, newline=None):
+    """Grava em arquivo temporário na mesma pasta e troca com os.replace.
+
+    Uma interrupção no meio da escrita nunca deixa o arquivo final truncado.
+    """
+    caminho = Path(caminho)
+    fd, temporario = tempfile.mkstemp(dir=caminho.parent, prefix=f".{caminho.name}.", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8", newline=newline) as saida:
+            saida.write(conteudo)
+        os.replace(temporario, caminho)
+    except BaseException:
+        try:
+            os.unlink(temporario)
+        except OSError:
+            pass
+        raise
+
+
 def baixar_bytes(url, headers=HEADERS):
     request = urllib.request.Request(url, headers=headers)
     with urllib.request.urlopen(request, timeout=30) as response:
@@ -58,10 +80,39 @@ def baixar(url, como_json=True):
     return json.loads(corpo) if como_json else corpo.decode("utf-8", errors="replace")
 
 
+TENTATIVAS = 4
+ERROS_TEMPORARIOS = (urllib.error.URLError, TimeoutError, json.JSONDecodeError)
+
+
+def erro_temporario(erro):
+    """Falhas de rede, timeout, JSON truncado e HTTP 429/5xx valem nova tentativa."""
+    if isinstance(erro, urllib.error.HTTPError):
+        return erro.code == 429 or erro.code >= 500
+    return isinstance(erro, ERROS_TEMPORARIOS)
+
+
+def baixar_com_tentativas(url, como_json=True, tentativas=TENTATIVAS, dormir=time.sleep):
+    """Baixa a URL com backoff exponencial curto (2s, 4s, 8s...) em erros temporários.
+
+    Esgotadas as tentativas, encerra com mensagem clara: gravar dados parciais seria pior
+    do que manter os arquivos anteriores. `dormir` pode ser trocado nos testes.
+    """
+    for tentativa in range(1, tentativas + 1):
+        try:
+            return baixar(url, como_json=como_json)
+        except Exception as erro:
+            if not erro_temporario(erro):
+                raise
+            print(f"   Falha em {url} (tentativa {tentativa}/{tentativas}): {erro}")
+            if tentativa == tentativas:
+                raise SystemExit(f"Não foi possível obter {url} após {tentativas} tentativas. Nenhum arquivo foi alterado.")
+            dormir(2 ** tentativa)
+
+
 def descobrir_competicao(slug, ano):
     """Lê o id do campeonato e as fases embutidos na página de tabelas da CBF."""
     url = f"{SITE_URL}/futebol-brasileiro/tabelas/campeonato-brasileiro/{slug}/{ano}"
-    texto = baixar(url, como_json=False).replace('\\"', '"')
+    texto = baixar_com_tentativas(url, como_json=False).replace('\\"', '"')
 
     competicao = re.search(r'"competitionId":"(\d+)"', texto)
     if not competicao:
@@ -76,9 +127,6 @@ def descobrir_competicao(slug, ano):
     return competicao.group(1), sorted(fases.values(), key=lambda fase: int(fase["id"]))
 
 
-TENTATIVAS = 4
-
-
 def buscar_rodada(competicao_id, fase_id, rodada):
     """Busca os jogos de uma rodada, com novas tentativas em caso de falha.
 
@@ -86,16 +134,7 @@ def buscar_rodada(competicao_id, fase_id, rodada):
     (um jogo a menos, por exemplo) seria pior do que manter os arquivos anteriores.
     """
     url = f"{API_URL}/jogos/campeonato/{competicao_id}/rodada/{rodada}/fase/{fase_id}"
-    for tentativa in range(1, TENTATIVAS + 1):
-        try:
-            dados = baixar(url)
-            break
-        except Exception as erro:
-            print(f"   Falha em fase {fase_id}, rodada {rodada} (tentativa {tentativa}/{TENTATIVAS}): {erro}")
-            if tentativa == TENTATIVAS:
-                raise SystemExit(f"Não foi possível obter a fase {fase_id}, rodada {rodada}. Nenhum arquivo foi alterado.")
-            time.sleep(2 ** tentativa)
-
+    dados = baixar_com_tentativas(url)
     jogos = []
     for grupo in dados.get("jogos") or []:
         jogos.extend(grupo.get("jogo") or [])
@@ -538,12 +577,44 @@ def ler_boletim(texto):
     }
 
 
+BOLETIM_SEM_TEXTO = "sem_texto"
+BOLETIM_FORMATO_DESCONHECIDO = "formato_desconhecido"
+
+
+def resultado_do_boletim(texto):
+    """Dados do boletim ou o motivo de não haver dados, no formato guardado em boletins.json.
+
+    - {"publico": ..., "renda_bruta": ..., "renda_liquida": ...}: boletim lido;
+    - {"erro": "sem_texto"}: PDF sem camada de texto (documento escaneado);
+    - {"erro": "formato_desconhecido"}: tem texto, mas nenhum modelo de ler_boletim reconheceu.
+    """
+    if not texto.strip():
+        return {"erro": BOLETIM_SEM_TEXTO}
+    return ler_boletim(texto) or {"erro": BOLETIM_FORMATO_DESCONHECIDO}
+
+
+def boletim_precisa_ser_lido(cache, url):
+    """Diz se o boletim deve ser baixado: ainda não está no cache ou pode ter mudado de resultado.
+
+    Boletins lidos e escaneados (sem texto) não mudam, então não são baixados de novo.
+    Formato desconhecido é tentado a cada coleta, para aproveitar modelos novos de
+    ler_boletim; null de versões anteriores (motivo não registrado) também é relido.
+    """
+    if url not in cache:
+        return True
+    entrada = cache[url]
+    return entrada is None or (isinstance(entrada, dict) and entrada.get("erro") == BOLETIM_FORMATO_DESCONHECIDO)
+
+
 def publicos_dos_boletins(jogos):
     """Público e renda de cada boletim, com cache em boletins.json (chave: link do PDF).
 
-    Um boletim lido fica guardado e não é baixado de novo. Falhas de rede não entram no
-    cache, para que o boletim seja tentado novamente na próxima coleta sem apagar dados.
-    PDFs sem texto (documentos escaneados) ficam registrados como null.
+    Cada entrada do cache é o retorno de resultado_do_boletim: os dados do boletim ou
+    {"erro": "sem_texto"} (PDF escaneado, não é baixado de novo) ou
+    {"erro": "formato_desconhecido"} (layout que ler_boletim não reconhece; é baixado e
+    lido de novo a cada coleta). Entradas null, gravadas por versões anteriores sem o
+    motivo, também são relidas. Falhas de rede não entram no cache, para que o boletim
+    seja tentado novamente na próxima coleta sem apagar dados.
     """
     cache = json.loads(ARQUIVO_BOLETINS.read_text(encoding="utf-8")) if ARQUIVO_BOLETINS.exists() else {}
     try:
@@ -554,7 +625,7 @@ def publicos_dos_boletins(jogos):
     alterado = False
     for jogo in jogos:
         url = jogo["boletim_url"]
-        if not url or url in cache:
+        if not url or not boletim_precisa_ser_lido(cache, url):
             continue
         try:
             conteudo = baixar_bytes(url, {"User-Agent": HEADERS["User-Agent"]})
@@ -563,10 +634,14 @@ def publicos_dos_boletins(jogos):
         except Exception as erro:
             print(f"   Boletim de {jogo['data']} indisponível agora ({erro}); será tentado na próxima coleta")
             continue
-        cache[url] = ler_boletim(texto)
-        alterado = True
+        resultado = resultado_do_boletim(texto)
+        if resultado.get("erro"):
+            print(f"   Boletim de {jogo['data']} sem dados ({resultado['erro']}): {url}")
+        if url not in cache or cache[url] != resultado:
+            cache[url] = resultado
+            alterado = True
     if alterado:
-        ARQUIVO_BOLETINS.write_text(json.dumps(cache, ensure_ascii=False, indent=1, sort_keys=True), encoding="utf-8")
+        gravar_atomico(ARQUIVO_BOLETINS, json.dumps(cache, ensure_ascii=False, indent=1, sort_keys=True))
     return cache
 
 
@@ -592,7 +667,7 @@ def coordenadas_das_cidades(jogos):
         alterado = True
         time.sleep(1.1)  # política de uso do OpenStreetMap: no máximo 1 consulta por segundo
     if alterado:
-        ARQUIVO_COORDENADAS.write_text(json.dumps(cache, ensure_ascii=False, indent=1, sort_keys=True), encoding="utf-8")
+        gravar_atomico(ARQUIVO_COORDENADAS, json.dumps(cache, ensure_ascii=False, indent=1, sort_keys=True))
     return cache
 
 
@@ -676,12 +751,16 @@ def prefixo_arquivos(config, ano):
 
 
 def salvar_csv(caminho, linhas):
+    """Grava o CSV de forma atômica. Sem linhas não há cabeçalho a inferir, então o arquivo
+    antigo é removido para não ficar inconsistente com o dados.js novo."""
     if not linhas:
+        Path(caminho).unlink(missing_ok=True)
         return
-    with open(caminho, "w", newline="", encoding="utf-8") as saida:
-        escritor = csv.DictWriter(saida, fieldnames=list(linhas[0].keys()))
-        escritor.writeheader()
-        escritor.writerows(linhas)
+    saida = io.StringIO(newline="")
+    escritor = csv.DictWriter(saida, fieldnames=list(linhas[0].keys()))
+    escritor.writeheader()
+    escritor.writerows(linhas)
+    gravar_atomico(caminho, saida.getvalue(), newline="")
 
 
 def salvar_dados_js(caminho, config, principal, comparacao):
@@ -699,11 +778,50 @@ def salvar_dados_js(caminho, config, principal, comparacao):
         },
     }
     conteudo = json.dumps(dados, ensure_ascii=False, separators=(",", ":"))
-    caminho.write_text(
+    gravar_atomico(
+        caminho,
         "// Arquivo gerado por coleta_detalhada.py. Não edite manualmente.\n"
         f"window.__DASHBOARD_DATA__ = {conteudo};\n",
-        encoding="utf-8",
     )
+
+
+def carregar_dados_anteriores(caminho):
+    """Lê o dados.js atual; devolve None se não existir ou estiver ilegível."""
+    try:
+        texto = caminho.read_text(encoding="utf-8")
+        return json.loads(re.search(r"window\.__DASHBOARD_DATA__ = (.*);\s*$", texto, re.S).group(1))
+    except (OSError, AttributeError, ValueError):
+        return None
+
+
+def validar(principal, anterior):
+    """Aborta com SystemExit, sem gravar nada, se a coleta parecer inconsistente."""
+    jogos = principal["jogos"]
+    encerrados = [jogo for jogo in jogos if jogo.get("status") == "finished"]
+
+    ids = [jogo.get("id_jogo") for jogo in jogos]
+    repetidos = sorted({i for i in ids if ids.count(i) > 1}, key=str)
+    if repetidos:
+        raise SystemExit(f"Validação falhou: id_jogo duplicado: {', '.join(map(str, repetidos))}.")
+
+    for jogo in encerrados:
+        faltando = [
+            campo for campo in ("data", "adversario", "gols_clube", "gols_adversario")
+            if jogo.get(campo) in (None, "")
+        ]
+        if faltando:
+            raise SystemExit(
+                f"Validação falhou: jogo encerrado {jogo.get('id_jogo')} sem {', '.join(faltando)}."
+            )
+
+    anterior_principal = (anterior or {}).get("principal") or {}
+    if anterior_principal.get("ano") == principal.get("ano"):
+        antes = sum(1 for jogo in anterior_principal.get("jogos", []) if jogo.get("status") == "finished")
+        if len(encerrados) < antes:
+            raise SystemExit(
+                f"Validação falhou: {len(encerrados)} jogos encerrados na coleta, "
+                f"mas o dados.js atual tem {antes}."
+            )
 
 
 def main():
@@ -721,16 +839,20 @@ def main():
     print("\nPúblico e renda (boletins financeiros)")
     boletins = publicos_dos_boletins(principal["jogos"])
     for jogo in principal["jogos"]:
+        # Entradas com "erro" (sem texto, formato desconhecido) deixam público e renda vazios.
         publico = boletins.get(jogo["boletim_url"]) or {}
         jogo["publico"] = publico.get("publico")
         jogo["renda_bruta"] = publico.get("renda_bruta")
         jogo["renda_liquida"] = publico.get("renda_liquida")
-        print(f"   {jogo['data']} {jogo['adversario']}: {jogo['publico'] if jogo['publico'] is not None else 'sem dados'}")
+        sem_dados = f"sem dados ({publico['erro']})" if publico.get("erro") else "sem dados"
+        print(f"   {jogo['data']} {jogo['adversario']}: {jogo['publico'] if jogo['publico'] is not None else sem_dados}")
 
     coordenadas = coordenadas_das_cidades(principal["jogos"])
     for jogo in principal["jogos"]:
         latitude, longitude = coordenadas.get(f"{jogo['cidade']}/{jogo['uf']}") or (None, None)
         jogo["latitude"], jogo["longitude"] = latitude, longitude
+
+    validar(principal, carregar_dados_anteriores(ROOT / "dados.js"))
 
     prefixo = prefixo_arquivos(config, ano)
     salvar_csv(ROOT / f"{prefixo}_todos_jogos.csv", principal["jogos"])
