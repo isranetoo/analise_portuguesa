@@ -373,12 +373,38 @@ function renderChart() {
     tooltip.hidden = true;
     wrap.querySelectorAll('.chart-dot.active').forEach(dot => dot.classList.remove('active'));
   };
+  // Touch: the browser fires pointerleave right after pointerup, so a tap toggles the tooltip instead.
+  let lastTouchAt = 0;
+  const recentTouch = () => Date.now() - lastTouchAt < 600;
   wrap.querySelectorAll('.chart-hit').forEach(circle => {
-    circle.addEventListener('pointerenter', () => show(circle));
-    circle.addEventListener('focus', () => show(circle));
-    circle.addEventListener('pointerleave', hide);
-    circle.addEventListener('blur', hide);
+    let wasOpen = false;
+    circle.addEventListener('pointerenter', e => { if (e.pointerType !== 'touch') show(circle); });
+    circle.addEventListener('focus', () => { if (!recentTouch()) show(circle); });
+    circle.addEventListener('pointerleave', e => { if (e.pointerType !== 'touch') hide(); });
+    circle.addEventListener('blur', () => { if (!recentTouch()) hide(); });
+    circle.addEventListener('pointerdown', e => {
+      if (e.pointerType !== 'touch') return;
+      lastTouchAt = Date.now();
+      wasOpen = !tooltip.hidden && circle.classList.contains('shown');
+    });
+    circle.addEventListener('pointerup', e => {
+      if (e.pointerType !== 'touch') return;
+      lastTouchAt = Date.now();
+      wrap.querySelectorAll('.chart-hit.shown').forEach(c => c.classList.remove('shown'));
+      if (wasOpen) hide();
+      else { show(circle); circle.classList.add('shown'); }
+    });
   });
+  if (!wrap.dataset.touchOutside) {
+    wrap.dataset.touchOutside = '1';
+    document.addEventListener('pointerdown', e => {
+      if (e.pointerType !== 'touch' || e.target.closest?.('.chart-hit')) return;
+      const tip = $('chartTooltip');
+      if (tip) tip.hidden = true;
+      wrap.querySelectorAll('.chart-dot.active').forEach(dot => dot.classList.remove('active'));
+      wrap.querySelectorAll('.chart-hit.shown').forEach(c => c.classList.remove('shown'));
+    });
+  }
 
   const full = summarize(matches);
   const delta = full.points - pace;
@@ -387,7 +413,7 @@ function renderChart() {
   $('chartGap').textContent = `${delta > 0 ? '+' : ''}${delta.toLocaleString('pt-BR')} pts`;
   $('chartGapCard').classList.toggle('positive', delta >= 0);
   $('chartInsight').innerHTML = `Em ${plural(matches.length, 'jogo', 'jogos')}, ${clubRef()} ficou <b>${plural(Math.abs(delta), 'ponto', 'pontos')} ${delta >= 0 ? 'acima' : 'abaixo'}</b> do ritmo de 50% de aproveitamento. ` +
-    'No mata-mata os pontos não valem classificação; aqui eles medem o rendimento em cada partida. Passe o mouse sobre os pontos para ver cada jogo.';
+    'No mata-mata os pontos não valem classificação; aqui eles medem o rendimento em cada partida. Passe o mouse ou toque nos pontos para ver cada jogo.';
 }
 
 // ---------- Mando de campo ----------

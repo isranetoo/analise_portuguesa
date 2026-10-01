@@ -152,6 +152,33 @@ class PainelTest(unittest.TestCase):
         self.assertIn("estreia", aviso)
         self.assertFalse(self.page.is_visible("#mainNav"))
 
+    def test_tooltip_do_grafico_de_pontos_com_toque(self):
+        contexto = self.browser.new_context(viewport={"width": 390, "height": 800}, has_touch=True, is_mobile=True)
+        pagina = contexto.new_page()
+        pagina.route(re.compile(r"^https?://"), lambda route: route.abort())
+        try:
+            pagina.goto(INDEX.as_uri())
+            pagina.evaluate("location.hash = '#desempenho'")
+            pagina.wait_for_selector("#pointsChart .chart-hit", state="attached")
+            self.assertIn("toque nos pontos", pagina.locator("#chartInsight").inner_text())
+            ponto = pagina.locator("#pointsChart .chart-hit").first
+            ponto.tap()
+            pagina.wait_for_timeout(100)
+            self.assertTrue(pagina.is_visible("#chartTooltip"))
+            # Novo toque no mesmo ponto fecha.
+            ponto.dispatch_event("pointerdown", {"pointerType": "touch"})
+            ponto.dispatch_event("pointerup", {"pointerType": "touch"})
+            self.assertFalse(pagina.is_visible("#chartTooltip"))
+            # Reabre e toca fora: fecha.
+            ponto.dispatch_event("pointerdown", {"pointerType": "touch"})
+            ponto.dispatch_event("pointerup", {"pointerType": "touch"})
+            self.assertTrue(pagina.is_visible("#chartTooltip"))
+            pagina.evaluate("document.body.dispatchEvent(new PointerEvent('pointerdown', {pointerType: 'touch', bubbles: true}))")
+            self.assertFalse(pagina.is_visible("#chartTooltip"))
+            self.assertEqual(self.erros, [])
+        finally:
+            contexto.close()
+
     def test_proximo_jogo_sem_data_mostra_traco(self):
         self.page.add_init_script("""
             Object.defineProperty(window, '__DASHBOARD_DATA__', {
