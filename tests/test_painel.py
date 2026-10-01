@@ -116,6 +116,23 @@ class PainelTest(unittest.TestCase):
         self.assertIn("km percorridos", self.page.locator("#travelSummary").inner_text())
         self.assertIn("Mapa indisponível", self.page.locator("#travelMap").inner_text())
 
+    def test_grafico_de_publico_marca_jogos_sem_dado(self):
+        self.page.click("#mainNav a[data-page='estadios']")
+        colunas = self.page.locator("#attendanceChart .attendance-col")
+        self.assertEqual(colunas.count(), len(self.jogos))
+        sem_dado = [j for j in self.jogos if j.get("publico") is None]
+        self.assertEqual(self.page.locator("#attendanceChart .attendance-col.no-data").count(), len(sem_dado))
+        self.assertEqual(self.page.locator("#attendanceChart .no-data i").count(), 0)
+        self.assertNotIn("escaneado", self.page.locator("#attendanceMethod").inner_text())
+        self.assertIn("casa ou fora", self.page.locator("#attendanceKpis").inner_text().lower())
+
+    def test_grafico_de_publico_numa_linha_no_celular(self):
+        self.page.set_viewport_size({"width": 360, "height": 800})
+        self.page.click("#mainNav a[data-page='estadios']")
+        topos = self.page.evaluate("[...document.querySelectorAll('#attendanceChart .attendance-col')].map(c => Math.round(c.getBoundingClientRect().bottom))")
+        self.assertEqual(len(set(topos)), 1, "as colunas quebraram em várias linhas")
+        self.assertLessEqual(self.page.evaluate("document.documentElement.scrollWidth"), 360)
+
     def test_temporada_sem_jogos_encerrados_mostra_aviso(self):
         # Simula o início de uma temporada: os jogos chegam do dados.js apenas agendados.
         self.page.add_init_script("""
