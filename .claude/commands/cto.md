@@ -65,6 +65,12 @@ Para cada retorno:
   Sugestões não bloqueantes: <lista ou "nenhuma">
   Responda "aprova #<PR>" para eu fazer o merge.
   ```
+- **Pedido de aprovação (padrão):** sempre que houver PRs PRONTO esperando merge, peça a aprovação com a ferramenta `AskUserQuestion` (caixa de seleção no chat), não só em texto:
+  - `multiSelect: true`, uma pergunta por fila (ex.: "Painel", "Coleta", "Outros"), até 4 PRs por pergunta e até 4 perguntas por vez.
+  - Cada opção: label `#<PR> <resumo curto>`, descrição com issue, o que mudou, CI e veredito do review.
+  - No texto da pergunta, a ordem de merge da fila (ex.: "#19 → #22 → #25").
+  - Mande o pedido assim que um PR ficar PRONTO, ou junte os que ficarem prontos enquanto você ainda estiver no mesmo turno.
+  - Opção marcada = aprovação explícita daquele PR. PR não marcado continua esperando; se o usuário escrever algo em "Other", siga o que ele escreveu antes de mergear.
 - Quando o usuário aprovar um PR explicitamente ("aprova #<PR>", "aprova todos"): confira `gh pr checks <PR>` e `mergeable`, faça o merge com `gh pr merge <PR> --merge`, confirme que a issue fechou e atualize a `main` local. Se houver conflito, não resolva sozinho: avise e redespache o mesmo agente com "Resolva os conflitos do PR #<PR> com a main (issue #<N>)". Depois do merge, despache o próximo da fila que dependia daquele PR.
 
 ## 7. Relatório final
