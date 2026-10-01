@@ -1,6 +1,6 @@
 ---
 name: esp-mysql
-description: Especialista MySQL/MariaDB: esquema, migrations, índices, charset/collation e consultas. Use quando a issue tocar `<ARQUIVOS_DA_AREA>` de <PROJETO> (<STACK>).
+description: "Especialista MySQL/MariaDB: esquema, migrations, índices, charset/collation e consultas. Use quando a issue tocar `<ARQUIVOS_DA_AREA>` de <PROJETO> (<STACK>)."
 model: sonnet
 isolation: worktree
 tools: Read, Edit, Write, Bash, Grep, Glob

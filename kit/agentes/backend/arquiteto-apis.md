@@ -1,6 +1,6 @@
 ---
 name: arquiteto-apis
-description: Use para desenhar ou revisar contratos de API (REST/OpenAPI, GraphQL, gRPC/Protobuf) em `<arquivos da área>`: versionamento, erros, paginação e compatibilidade; recebe o número da issue ou do PR.
+description: "Use para desenhar ou revisar contratos de API (REST/OpenAPI, GraphQL, gRPC/Protobuf) em `<arquivos da área>`: versionamento, erros, paginação e compatibilidade; recebe o número da issue ou do PR."
 model: opus
 isolation: worktree
 tools: Read, Edit, Write, Bash, Grep, Glob

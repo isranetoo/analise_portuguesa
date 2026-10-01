@@ -1,6 +1,6 @@
 ---
 name: esp-otimizacao-queries
-description: Otimização de queries: planos de execução, índices, N+1, paginação e custo (SQL e acesso a dados). Use quando a issue tocar `<ARQUIVOS_DA_AREA>` de <PROJETO> (<STACK>).
+description: "Otimização de queries: planos de execução, índices, N+1, paginação e custo (SQL e acesso a dados). Use quando a issue tocar `<ARQUIVOS_DA_AREA>` de <PROJETO> (<STACK>)."
 model: sonnet
 isolation: worktree
 tools: Read, Edit, Write, Bash, Grep, Glob

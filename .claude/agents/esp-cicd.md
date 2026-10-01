@@ -1,6 +1,6 @@
 ---
 name: esp-cicd
-description: Especialista em CI/CD com GitHub Actions (testes.yml e coleta.yml: Python 3.12, cache pip, Playwright, commit automático dos dados). Use SOMENTE para issues que peçam explicitamente mudança em .github/workflows/ ou para revisar PRs que as alterem.
+description: "Especialista em CI/CD com GitHub Actions (testes.yml e coleta.yml: Python 3.12, cache pip, Playwright, commit automático dos dados). Use SOMENTE para issues que peçam explicitamente mudança em .github/workflows/ ou para revisar PRs que as alterem."
 model: sonnet
 isolation: worktree
 tools: Read, Edit, Write, Bash, Grep, Glob

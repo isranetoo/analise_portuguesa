@@ -1,6 +1,6 @@
 ---
 name: esp-modelagem-dados
-description: Modelagem de dados: entidades, relacionamentos, normalização, dicionário de dados e formatos de arquivo (CSV/JSON/SQL). Use quando a issue tocar `<ARQUIVOS_DA_AREA>` de <PROJETO> (<STACK>).
+description: "Modelagem de dados: entidades, relacionamentos, normalização, dicionário de dados e formatos de arquivo (CSV/JSON/SQL). Use quando a issue tocar `<ARQUIVOS_DA_AREA>` de <PROJETO> (<STACK>)."
 model: opus
 isolation: worktree
 tools: Read, Edit, Write, Bash, Grep, Glob

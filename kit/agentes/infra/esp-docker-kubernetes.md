@@ -1,6 +1,6 @@
 ---
 name: esp-docker-kubernetes
-description: Especialista Docker/Kubernetes: Dockerfile, compose, manifests, Helm, probes e limites de recursos. Use quando a issue tocar `<ARQUIVOS_DA_AREA>` de <PROJETO> (<STACK>).
+description: "Especialista Docker/Kubernetes: Dockerfile, compose, manifests, Helm, probes e limites de recursos. Use quando a issue tocar `<ARQUIVOS_DA_AREA>` de <PROJETO> (<STACK>)."
 model: sonnet
 isolation: worktree
 tools: Read, Edit, Write, Bash, Grep, Glob

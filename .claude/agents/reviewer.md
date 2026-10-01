@@ -1,6 +1,6 @@
 ---
 name: reviewer
-description: Code Reviewer (Clean Code) — revisa um PR aberto pelos devs: correção, escopo, segurança, testes e clean code. Somente leitura do código; comenta no PR. Recebe o número do PR.
+description: "Code Reviewer (Clean Code) — revisa um PR aberto pelos devs: correção, escopo, segurança, testes e clean code. Somente leitura do código; comenta no PR. Recebe o número do PR."
 model: sonnet
 tools: Read, Bash, Grep, Glob
 ---

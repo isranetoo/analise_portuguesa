@@ -1,6 +1,6 @@
 ---
 name: esp-scraping
-description: Especialista em web scraping deste repo: API pública da CBF, leitura de boletins financeiros em PDF com pdfplumber e geocoding no Nominatim. Use para implementar ou revisar issues de coleta em coleta_detalhada.py.
+description: "Especialista em web scraping deste repo: API pública da CBF, leitura de boletins financeiros em PDF com pdfplumber e geocoding no Nominatim. Use para implementar ou revisar issues de coleta em coleta_detalhada.py."
 model: sonnet
 isolation: worktree
 tools: Read, Edit, Write, Bash, Grep, Glob

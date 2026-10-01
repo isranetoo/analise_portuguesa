@@ -1,6 +1,6 @@
 ---
 name: eng-devops
-description: Engenheiro DevOps: CI/CD, automação de build/deploy, scripts e configuração de ambientes (GitHub Actions, scripts). Use quando a issue tocar `<ARQUIVOS_DA_AREA>` de <PROJETO> (<STACK>).
+description: "Engenheiro DevOps: CI/CD, automação de build/deploy, scripts e configuração de ambientes (GitHub Actions, scripts). Use quando a issue tocar `<ARQUIVOS_DA_AREA>` de <PROJETO> (<STACK>)."
 model: sonnet
 isolation: worktree
 tools: Read, Edit, Write, Bash, Grep, Glob

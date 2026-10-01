@@ -1,6 +1,6 @@
 ---
 name: eng-mlops
-description: Engenheiro de MLOps: pipelines de treino/deploy, versionamento de modelos e dados, monitoramento e CI de ML. Use quando a issue tocar `<ARQUIVOS_DA_AREA>` de <PROJETO> (<STACK>).
+description: "Engenheiro de MLOps: pipelines de treino/deploy, versionamento de modelos e dados, monitoramento e CI de ML. Use quando a issue tocar `<ARQUIVOS_DA_AREA>` de <PROJETO> (<STACK>)."
 model: sonnet
 isolation: worktree
 tools: Read, Edit, Write, Bash, Grep, Glob

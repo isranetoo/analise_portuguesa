@@ -1,6 +1,6 @@
 ---
 name: esp-supabase
-description: Especialista Supabase: policies RLS, Edge Functions, Auth, Storage e migrations. Use quando a issue tocar `<ARQUIVOS_DA_AREA>` de <PROJETO> (<STACK>).
+description: "Especialista Supabase: policies RLS, Edge Functions, Auth, Storage e migrations. Use quando a issue tocar `<ARQUIVOS_DA_AREA>` de <PROJETO> (<STACK>)."
 model: sonnet
 isolation: worktree
 tools: Read, Edit, Write, Bash, Grep, Glob

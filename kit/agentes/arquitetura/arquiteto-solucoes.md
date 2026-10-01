@@ -1,6 +1,6 @@
 ---
 name: arquiteto-solucoes
-description: Use para decisões de arquitetura que cruzam áreas (`<arquivos da área>`): escolha de componentes, fronteiras, integrações, requisitos não funcionais, custo e migração; recebe o número da issue ou do PR.
+description: "Use para decisões de arquitetura que cruzam áreas (`<arquivos da área>`): escolha de componentes, fronteiras, integrações, requisitos não funcionais, custo e migração; recebe o número da issue ou do PR."
 model: opus
 isolation: worktree
 tools: Read, Edit, Write, Bash, Grep, Glob
