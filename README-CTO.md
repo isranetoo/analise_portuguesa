@@ -19,18 +19,33 @@ claude --model opus
 ```
 
 ## Agentes
-| Agente | Modelo | Quando |
-|---|---|---|
-| dev-junior | haiku | ajustes triviais, 1–2 arquivos |
-| dev-pleno | sonnet | features/bugs contidos em um módulo |
-| dev-senior | opus | arquitetura, schema, segurança, bugs difíceis |
-| reviewer | sonnet | revisa cada PR e comenta (nunca aprova/mergeia) |
+O CTO escolhe **quem** pela área/tecnologia da issue (label `agent:`) e **o nível** pela dificuldade (label `difficulty:`), passando o `model` no despacho: easy → haiku, medium → sonnet, hard → opus. O `model:` no arquivo do agente é só o padrão. Roteamento completo em `.claude/commands/cto.md`, seção 2.
 
-Para trocar o modelo de um nível, edite o campo `model:` no arquivo do agente (aceita `haiku`, `sonnet`, `opus` ou um model ID completo).
+| Agente | Modelo padrão | Quando |
+|---|---|---|
+| esp-python | sonnet | código Python da coleta e da publicação |
+| esp-scraping | sonnet | API da CBF, boletins em PDF, geocoding |
+| esp-dados | sonnet | o que a coleta gera ou valida (CSVs, `dados.js`, caches) |
+| esp-uiux | sonnet | interface do painel |
+| esp-css | sonnet | estilo do painel |
+| esp-a11y | sonnet | acessibilidade do painel; também revisa PRs do painel |
+| esp-performance-web | sonnet | performance do painel; também revisa PRs do painel |
+| esp-qa | sonnet | testes unitários e cobertura |
+| esp-e2e | sonnet | testes Playwright do painel |
+| esp-cicd | sonnet | `.github/workflows/`, só com pedido explícito |
+| esp-appsec | opus | segurança; também revisa PRs com entrada externa, servidor ou segredos |
+| arquiteto-software | opus | decisões técnicas e contratos entre áreas |
+| tech-lead | opus | plano e quebra de issues grandes em issues paralelas |
+| dev-junior / dev-pleno / dev-senior | haiku / sonnet / opus | genéricos (fallback) quando nenhum especialista encaixa |
+| reviewer | sonnet | revisa todo PR (geral + clean code) e comenta (nunca aprova/mergeia) |
+
+Skills do fluxo (`.claude/skills/`): `criar-issue` (CTO), `abrir-pr` e `atualizar-pr` (devs e especialistas), `revisar-pr` (revisores).
+Modelos de especialistas para outras stacks ficam em `kit/agentes/` (índice e como ativar em `kit/agentes/README.md`).
 
 ## Ciclo de uma demanda
-demanda → triagem (CTO) → issue com labels → dev no worktree → PR `Closes #N` → reviewer → você faz o merge.
-Se um dev perceber que a tarefa é maior que o nível dele, responde `ESCALAR` e o CTO redespacha para o nível acima.
+demanda → triagem (CTO: especialista + nível) → issue com labels (`criar-issue`) → especialista ou dev no worktree → PR `Closes #N` (`abrir-pr`) → `reviewer` + revisores especialistas do domínio ("Revise o PR #N") → ajustes na mesma branch (`atualizar-pr`) → você aprova e o CTO faz o merge.
+Mudança em várias áreas: o `arquiteto-software` define a abordagem e o `tech-lead` quebra em issues sem arquivos em comum antes do despacho.
+Se um agente perceber que a tarefa é maior que o nível dele ou fora do domínio, responde `ESCALAR` e o CTO redespacha (nível acima ou outro especialista).
 
 ## Dicas
 - **Permissões:** para os devs em background não travarem pedindo aprovação, libere `git` e `gh` via `/permissions` no Claude Code (ou no `.claude/settings.json` do projeto).
