@@ -260,6 +260,14 @@ function setupThemeToggle() {
     update();
   });
   update();
+  // Sem tema salvo, acompanha a preferência do sistema em tempo real.
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (event) => {
+    let saved = null;
+    try { saved = localStorage.getItem('dashboard-theme'); } catch (_) { /* armazenamento indisponível */ }
+    if (saved) return;
+    root.dataset.theme = event.matches ? 'dark' : 'light';
+    update();
+  });
 }
 
 // ---------- Cabeçalho e indicadores ----------

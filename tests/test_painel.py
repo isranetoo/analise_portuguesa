@@ -246,8 +246,23 @@ class PainelTest(unittest.TestCase):
         self.assertIn("Gols por faixa", self.page.get_attribute("#minutesChart", "aria-label"))
 
     def test_tema_escuro(self):
+        antes = self.page.evaluate("document.documentElement.dataset.theme")
         self.page.click("#themeToggle")
-        self.assertIn(self.page.evaluate("document.documentElement.dataset.theme"), ("dark", "light"))
+        depois = self.page.evaluate("document.documentElement.dataset.theme")
+        self.assertIn(depois, ("dark", "light"))
+        self.assertNotEqual(antes, depois)
+
+    def test_tema_inicial_segue_preferencia_do_sistema(self):
+        contexto = self.browser.new_context(color_scheme="dark")
+        pagina = contexto.new_page()
+        pagina.route(re.compile(r"^https?://"), lambda route: route.abort())
+        try:
+            pagina.goto(INDEX.as_uri())
+            self.assertEqual(pagina.evaluate("document.documentElement.dataset.theme"), "dark")
+            pagina.emulate_media(color_scheme="light")
+            pagina.wait_for_function("document.documentElement.dataset.theme === 'light'", timeout=3000)
+        finally:
+            contexto.close()
 
 
 if __name__ == "__main__":
