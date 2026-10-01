@@ -260,6 +260,14 @@ function setupThemeToggle() {
     update();
   });
   update();
+  // Sem tema salvo, acompanha a preferência do sistema em tempo real.
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (event) => {
+    let saved = null;
+    try { saved = localStorage.getItem('dashboard-theme'); } catch (_) { /* armazenamento indisponível */ }
+    if (saved) return;
+    root.dataset.theme = event.matches ? 'dark' : 'light';
+    update();
+  });
 }
 
 // ---------- Cabeçalho e indicadores ----------
@@ -303,6 +311,7 @@ function renderSummary(list) {
   const winDeg = s.games ? s.wins / s.games * 360 : 0;
   const drawDeg = s.games ? s.draws / s.games * 360 : 0;
   $('resultDonut').style.background = `conic-gradient(var(--win) 0 ${winDeg}deg, var(--draw) ${winDeg}deg ${winDeg + drawDeg}deg, var(--loss) ${winDeg + drawDeg}deg 360deg)`;
+  $('resultDonut').setAttribute('aria-label', `Resultados: ${plural(s.wins, 'vitória', 'vitórias')}, ${plural(s.draws, 'empate', 'empates')} e ${plural(s.losses, 'derrota', 'derrotas')}; aproveitamento de ${pct(s.efficiency)}`);
   $('filterContext').textContent = describeFilter(s.games);
 }
 
@@ -694,6 +703,7 @@ function renderMinutes(list) {
   const goals = goalsOf(list);
   const counts = minuteCounts(list);
   const max = Math.max(1, ...counts.flatMap(c => [c.for, c.against]));
+  $('minutesChart').setAttribute('aria-label', `Gols por faixa de minutos: ${MINUTE_BUCKETS.map((bucket, i) => `${bucket.label}, ${counts[i].for} marcados e ${counts[i].against} sofridos`).join('; ')}`);
   $('minutesChart').innerHTML = MINUTE_BUCKETS.map((bucket, i) => `<div class="minute-col ${i === 3 ? 'half-start' : ''}">
     <div class="minute-bars">
       <div class="for" title="${counts[i].for} marcados entre ${bucket.label}"><b>${counts[i].for}</b><i style="height:${counts[i].for / max * 120}px"></i></div>
@@ -1412,6 +1422,7 @@ function renderAttendance() {
   $('attendanceKpis').innerHTML = tiles.map(tile => `<article class="home-kpi"><span>${tile.label}</span><b>${tile.value}</b><small>${tile.note}</small></article>`).join('');
 
   const max = Math.max(...withData.map(m => m.attendance));
+  $('attendanceChart').setAttribute('aria-label', `Público por jogo: ${plural(withData.length, 'jogo com público informado', 'jogos com público informado')} de ${matches.length}; maior público ${biggest.attendance.toLocaleString('pt-BR')} contra ${biggest.opponent}; média em casa ${Math.round(homeAvg).toLocaleString('pt-BR')} torcedores`);
   $('attendanceChart').innerHTML = matches.map(m => {
     const has = Number.isFinite(m.attendance);
     const place = m.venue === 'Casa' ? 'casa' : 'fora';
@@ -1538,7 +1549,10 @@ function renderFiltered() {
 function setupSegmented(containerId, onChange) {
   const buttons = document.querySelectorAll(`#${containerId} button`);
   buttons.forEach(button => button.addEventListener('click', () => {
-    buttons.forEach(b => b.classList.toggle('active', b === button));
+    buttons.forEach(b => {
+      b.classList.toggle('active', b === button);
+      b.setAttribute('aria-pressed', String(b === button));
+    });
     onChange(button.dataset.filter);
     renderFiltered();
   }));
